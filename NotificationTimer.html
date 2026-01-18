@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Timer with Notifications</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        color: #667eea;
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .time-input-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .time-input-wrapper .input-group {
+        margin-bottom: 0;
+      }
+
+      .time-input-wrapper input {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .timer-display {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        margin: 30px 0;
+        display: none;
+      }
+
+      .timer-display.active {
+        display: block;
+      }
+
+      .timer-name {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        opacity: 0.9;
+      }
+
+      .timer-time {
+        font-size: 48px;
+        font-weight: bold;
+        font-family: "Courier New", monospace;
+        margin-bottom: 10px;
+      }
+
+      .button-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .button-group-full {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      button {
+        padding: 14px 20px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-primary:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .btn-secondary {
+        background: #f0f0f0;
+        color: #333;
+        border: 2px solid #e0e0e0;
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: #e0e0e0;
+        transform: translateY(-2px);
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-success:hover:not(:disabled) {
+        background: #059669;
+        transform: translateY(-2px);
+      }
+
+      .btn-warning {
+        background: #f59e0b;
+        color: white;
+      }
+
+      .btn-warning:hover:not(:disabled) {
+        background: #d97706;
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover:not(:disabled) {
+        background: #dc2626;
+        transform: translateY(-2px);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .notification-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .notification-modal.active {
+        display: flex;
+      }
+
+      .notification-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .notification-content h2 {
+        color: #667eea;
+        font-size: 24px;
+        margin-bottom: 10px;
+      }
+
+      .notification-content .timer-name {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+
+      .notification-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .notification-buttons button {
+        flex: 1;
+      }
+
+      .timer-list {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 2px solid #e0e0e0;
+      }
+
+      .timer-list h3 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 16px;
+      }
+
+      .timer-item {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .timer-item-info {
+        text-align: left;
+      }
+
+      .timer-item-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .timer-item-time {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .timer-item-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .timer-item-actions button {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .info-box {
+        background: #f0f7ff;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: #555;
+      }
+
+      .nav-back {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+        background: #f0f0f0;
+        color: #333;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .nav-back:hover {
+        background: #e0e0e0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="nav-back">← Back to Tracker</a>
+
+      <div class="header">
+        <h1>⏱️ Smart Timer</h1>
+        <p>Set reminders with notifications & sound</p>
+      </div>
+
+      <div class="info-box">
+        💡 Set a timer, give it a name, and get notified with sound even when
+        the website is closed!
+      </div>
+
+      <div id="setupPanel">
+        <!-- Timer Name -->
+        <div class="input-group">
+          <label for="timerName">📝 Timer Name</label>
+          <input
+            type="text"
+            id="timerName"
+            placeholder="e.g., Go to office, Take break, Meeting"
+          />
+        </div>
+
+        <!-- Time Inputs -->
+        <div class="input-group">
+          <label>⏰ Set Time</label>
+        </div>
+        <div class="time-input-wrapper">
+          <div class="input-group">
+            <label for="hours">Hours</label>
+            <input type="number" id="hours" min="0" max="23" value="0" />
+          </div>
+          <div class="input-group">
+            <label for="minutes">Minutes</label>
+            <input type="number" id="minutes" min="0" max="59" value="30" />
+          </div>
+          <div class="input-group">
+            <label for="seconds">Seconds</label>
+            <input type="number" id="seconds" min="0" max="59" value="0" />
+          </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="input-group">
+          <label for="soundSelect">🔊 Sound Type</label>
+          <select id="soundSelect">
+            <option value="bell">Bell</option>
+            <option value="alarm">Alarm</option>
+            <option value="chime">Chime</option>
+            <option value="beep">Beep</option>
+          </select>
+        </div>
+
+        <!-- Remind Later Options -->
+        <div class="input-group">
+          <label for="remindLater">🔄 Auto Remind After (minutes)</label>
+          <input
+            type="number"
+            id="remindLater"
+            min="0"
+            max="120"
+            value="5"
+            placeholder="0 to disable"
+          />
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="button-group-full">
+          <button id="startBtn" class="btn-primary">START TIMER</button>
+        </div>
+      </div>
+
+      <!-- Timer Running Display -->
+      <div id="timerDisplay" class="timer-display">
+        <div class="timer-name" id="displayName">--</div>
+        <div class="timer-time" id="timeLeft">00:00:00</div>
+        <div class="button-group">
+          <button id="pauseBtn" class="btn-warning">PAUSE</button>
+          <button id="resumeBtn" class="btn-success" style="display: none">
+            RESUME
+          </button>
+        </div>
+        <div class="button-group">
+          <button id="stopBtn" class="btn-danger">STOP</button>
+          <button id="resetBtn" class="btn-secondary">RESET</button>
+        </div>
+      </div>
+
+      <!-- Active Timers List -->
+      <div id="timerListSection" class="timer-list" style="display: none">
+        <h3>📌 Active Timers</h3>
+        <div id="timerList"></div>
+      </div>
+    </div>
+
+    <!-- Notification Popup Modal -->
+    <div id="notificationModal" class="notification-modal">
+      <div class="notification-content">
+        <h2>⏰ Time's Up!</h2>
+        <div class="timer-name" id="notifName">--</div>
+        <div class="notification-buttons">
+          <button id="notifDismiss" class="btn-primary">DISMISS</button>
+          <button id="notifRemind" class="btn-warning">REMIND LATER</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Timer Manager
+      class TimerManager {
+        constructor() {
+          this.timers = JSON.parse(localStorage.getItem("smartTimers")) || [];
+          this.active = null;
+          this.initElements();
+          this.setupEventListeners();
+          this.checkNotifications();
+          this.restoreTimers();
+        }
+
+        initElements() {
+          this.els = {
+            timerName: document.getElementById("timerName"),
+            hours: document.getElementById("hours"),
+            minutes: document.getElementById("minutes"),
+            seconds: document.getElementById("seconds"),
+            soundSelect: document.getElementById("soundSelect"),
+            remindLater: document.getElementById("remindLater"),
+            startBtn: document.getElementById("startBtn"),
+            pauseBtn: document.getElementById("pauseBtn"),
+            resumeBtn: document.getElementById("resumeBtn"),
+            stopBtn: document.getElementById("stopBtn"),
+            resetBtn: document.getElementById("resetBtn"),
+            timerDisplay: document.getElementById("timerDisplay"),
+            displayName: document.getElementById("displayName"),
+            timeLeft: document.getElementById("timeLeft"),
+            setupPanel: document.getElementById("setupPanel"),
+            notificationModal: document.getElementById("notificationModal"),
+            notifName: document.getElementById("notifName"),
+            notifDismiss: document.getElementById("notifDismiss"),
+            notifRemind: document.getElementById("notifRemind"),
+            timerList: document.getElementById("timerList"),
+            timerListSection: document.getElementById("timerListSection"),
+          };
+        }
+
+        setupEventListeners() {
+          this.els.startBtn.addEventListener("click", () => this.start());
+          this.els.pauseBtn.addEventListener("click", () => this.pause());
+          this.els.resumeBtn.addEventListener("click", () => this.resume());
+          this.els.stopBtn.addEventListener("click", () => this.stop());
+          this.els.resetBtn.addEventListener("click", () => this.reset());
+          this.els.notifDismiss.addEventListener("click", () =>
+            this.dismissNotification(),
+          );
+          this.els.notifRemind.addEventListener("click", () =>
+            this.remindLater(),
+          );
+        }
+
+        start() {
+          const name = this.els.timerName.value.trim();
+          const hours = parseInt(this.els.hours.value) || 0;
+          const minutes = parseInt(this.els.minutes.value) || 0;
+          const seconds = parseInt(this.els.seconds.value) || 0;
+
+          if (!name) {
+            alert("Please enter a timer name!");
+            return;
+          }
+
+          const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+          if (totalSeconds <= 0) {
+            alert("Please set a valid time!");
+            return;
+          }
+
+          this.active = {
+            id: Date.now(),
+            name: name,
+            totalSeconds: totalSeconds,
+            remainingSeconds: totalSeconds,
+            startTime: Date.now(),
+            paused: false,
+            pausedTime: 0,
+            sound: this.els.soundSelect.value,
+            remindInterval: parseInt(this.els.remindLater.value) || 0,
+            completed: false,
+          };
+
+          this.save();
+          this.updateDisplay();
+          this.els.setupPanel.style.display = "none";
+          this.els.timerDisplay.classList.add("active");
+          this.tick();
+
+          // Request notification permission
+          if (
+            "Notification" in window &&
+            Notification.permission === "default"
+          ) {
+            Notification.requestPermission();
+          }
+        }
+
+        tick() {
+          if (!this.active || this.active.paused) {
+            requestAnimationFrame(() => this.tick());
+            return;
+          }
+
+          const elapsed = Math.floor(
+            (Date.now() - this.active.startTime - this.active.pausedTime) /
+              1000,
+          );
+          this.active.remainingSeconds = this.active.totalSeconds - elapsed;
+
+          if (this.active.remainingSeconds <= 0) {
+            this.active.remainingSeconds = 0;
+            if (!this.active.completed) {
+              this.complete();
+            }
+          } else {
+            this.updateDisplay();
+            requestAnimationFrame(() => this.tick());
+          }
+        }
+
+        updateDisplay() {
+          if (!this.active) return;
+
+          const h = String(
+            Math.floor(this.active.remainingSeconds / 3600),
+          ).padStart(2, "0");
+          const m = String(
+            Math.floor((this.active.remainingSeconds % 3600) / 60),
+          ).padStart(2, "0");
+          const s = String(this.active.remainingSeconds % 60).padStart(2, "0");
+
+          this.els.displayName.textContent = this.active.name;
+          this.els.timeLeft.textContent = `${h}:${m}:${s}`;
+        }
+
+        complete() {
+          this.active.completed = true;
+          this.playSound(this.active.sound);
+          this.showNotification(this.active.name);
+          this.save();
+
+          // Show browser notification if permitted
+          if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
+            new Notification("Timer Complete! ⏰", {
+              body: `Your "${this.active.name}" timer has finished!`,
+              icon: "⏱️",
+              tag: "timer-notification",
+            });
+          }
+
+          // Request focus
+          window.focus();
+        }
+
+        showNotification(name) {
+          this.els.notifName.textContent = name;
+          this.els.notificationModal.classList.add("active");
+        }
+
+        dismissNotification() {
+          this.els.notificationModal.classList.remove("active");
+          this.stop();
+        }
+
+        remindLater() {
+          if (!this.active || this.active.remindInterval <= 0) {
+            this.dismissNotification();
+            return;
+          }
+
+          this.els.notificationModal.classList.remove("active");
+          this.active.completed = false;
+          this.active.remainingSeconds = this.active.remindInterval * 60;
+          this.active.startTime = Date.now();
+          this.active.pausedTime = 0;
+          this.updateDisplay();
+          this.tick();
+        }
+
+        pause() {
+          if (!this.active) return;
+          this.active.paused = true;
+          this.active.pauseStartTime = Date.now();
+          this.els.pauseBtn.style.display = "none";
+          this.els.resumeBtn.style.display = "block";
+        }
+
+        resume() {
+          if (!this.active) return;
+          this.active.pausedTime += Date.now() - this.active.pauseStartTime;
+          this.active.paused = false;
+          this.els.pauseBtn.style.display = "block";
+          this.els.resumeBtn.style.display = "none";
+          this.tick();
+        }
+
+        stop() {
+          this.active = null;
+          this.els.timerDisplay.classList.remove("active");
+          this.els.setupPanel.style.display = "block";
+          this.els.pauseBtn.style.display = "block";
+          this.els.resumeBtn.style.display = "none";
+          this.save();
+        }
+
+        reset() {
+          if (this.active) {
+            this.active.remainingSeconds = this.active.totalSeconds;
+            this.active.startTime = Date.now();
+            this.active.pausedTime = 0;
+            this.active.completed = false;
+            this.updateDisplay();
+          }
+        }
+
+        playSound(soundType) {
+          const audioContext = new (
+            window.AudioContext || window.webkitAudioContext
+          )();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+
+          switch (soundType) {
+            case "bell":
+              oscillator.frequency.value = 800;
+              gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+              gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 1,
+              );
+              oscillator.start(audioContext.currentTime);
+              oscillator.stop(audioContext.currentTime + 1);
+              break;
+            case "alarm":
+              oscillator.frequency.setValueAtTime(
+                600,
+                audioContext.currentTime,
+              );
+              oscillator.frequency.setValueAtTime(
+                800,
+                audioContext.currentTime + 0.1,
+              );
+              gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+              oscillator.start(audioContext.currentTime);
+              oscillator.stop(audioContext.currentTime + 2);
+              break;
+            case "chime":
+              oscillator.frequency.value = 1000;
+              gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+              gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.5,
+              );
+              oscillator.start(audioContext.currentTime);
+              oscillator.stop(audioContext.currentTime + 0.5);
+              break;
+            case "beep":
+              oscillator.frequency.value = 1000;
+              gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+              gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.3,
+              );
+              oscillator.start(audioContext.currentTime);
+              oscillator.stop(audioContext.currentTime + 0.3);
+              for (let i = 1; i < 3; i++) {
+                oscillator.start(audioContext.currentTime + 0.4 * i);
+                oscillator.stop(audioContext.currentTime + 0.4 * i + 0.3);
+              }
+              break;
+          }
+        }
+
+        save() {
+          localStorage.setItem("smartTimers", JSON.stringify(this.timers));
+          if (this.active) {
+            localStorage.setItem("activeTimer", JSON.stringify(this.active));
+          }
+        }
+
+        restoreTimers() {
+          const saved = localStorage.getItem("activeTimer");
+          if (saved) {
+            try {
+              const timer = JSON.parse(saved);
+              // Only restore if timer was incomplete
+              if (!timer.completed) {
+                this.active = timer;
+                this.els.displayName.textContent = this.active.name;
+                this.els.timerDisplay.classList.add("active");
+                this.els.setupPanel.style.display = "none";
+                this.tick();
+              }
+            } catch (e) {
+              console.error("Failed to restore timer:", e);
+            }
+          }
+        }
+
+        checkNotifications() {
+          // Check every second for notifications from background timers
+          setInterval(() => {
+            const active = localStorage.getItem("activeTimer");
+            if (active && !this.active) {
+              const timer = JSON.parse(active);
+              if (timer.completed && !timer.notificationShown) {
+                this.playSound(timer.sound);
+                this.showNotification(timer.name);
+                timer.notificationShown = true;
+                localStorage.setItem("activeTimer", JSON.stringify(timer));
+              }
+            }
+          }, 1000);
+        }
+      }
+
+      // Initialize
+      const timerManager = new TimerManager();
+    </script>
+  </body>
+</html>
