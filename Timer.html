@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tap Timer Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Poppins&family=Roboto+Mono&family=Montserrat&family=Oswald&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f8;--text:#000;--panel:#fff;--accent:#4f46e5}
+body{margin:0;font-family:Poppins,sans-serif;background:var(--bg);color:var(--text)}
+#timerScreen{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+#timeDisplay{font-size:36px;font-weight:bold;font-family:Orbitron}
+#stats{margin-top:10px;text-align:center}
+#hint{font-size:12px}
+#dataPanel{position:fixed;top:10px;right:10px}
+button{padding:8px 12px;border:none;border-radius:6px;cursor:pointer}
+#openBtn{background:var(--accent);color:#fff}
+#panel{position:fixed;top:0;right:-90vw;width:90vw;height:100vh;background:var(--panel);box-shadow:-4px 0 10px rgba(0,0,0,.2);transition:.4s;padding:15px;overflow-y:auto}
+#panel.open{right:0}
+#closeBtn{background:#ef4444;color:#fff;float:right}
+input,select{width:100%;padding:8px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:6px;text-align:center}
+th{background:#f0f0f0}
+#csvBtn,#saveBtn,#clearBtn{width:100%;color:#fff}
+#csvBtn{background:#16a34a}
+#saveBtn{background:#0ea5e9;margin-bottom:6px}
+#clearBtn{background:#dc2626;margin-bottom:10px}
+.resetBtn{margin-top:10px;background:#f97316;color:#fff}
+</style>
+</head>
+<body>
+
+<div id="timerScreen">
+ <div id="timeDisplay">00:00:00.000</div>
+ <div id="stats">Best: -- | Avg: --</div>
+ <button class="resetBtn" id="resetBtn">Reset Timer</button>
+ <div id="hint">Tap / Press SPACE</div>
+</div>
+
+<div id="dataPanel"><button id="openBtn">View Details</button></div>
+
+<div id="panel">
+ <button id="closeBtn">Close</button>
+ <h3>Session Details</h3>
+
+ <h4>Theme Mode</h4>
+ <select id="modeDropdown">
+  <option value="day">Day Mode</option>
+  <option value="dark">Dark Mode</option>
+ </select>
+
+ <h4>Color Theme</h4>
+ <select id="colorDropdown"></select>
+
+ <h4>Font Picker</h4>
+ <select id="fontDropdown"></select>
+
+ <h4>Font Size</h4>
+ <button onclick="fontSize('+')">A+</button>
+ <button onclick="fontSize('-')">A-</button><br><br>
+
+ <input id="title" placeholder="Title">
+ <input id="subtitle" placeholder="Sub-title">
+ <button id="saveBtn">Save Session</button>
+ <button id="clearBtn">Clear All Saved Data</button>
+
+ <table id="dataTable">
+  <thead>
+   <tr><th>Title</th><th>Sub</th><th>Date</th><th>Time</th><th>Duration</th></tr>
+  </thead>
+  <tbody></tbody>
+ </table>
+
+ <canvas id="chart"></canvas>
+
+ <button id="csvBtn">Download CSV</button>
+</div>
+
+<script>
+let running=false,startTime,interval=null,elapsed=0;
+let fontSizeVal=36;
+const fonts=['Orbitron','Roboto Mono','Montserrat','Poppins','Oswald','Pacifico'];
+const colors={
+ 'Blue':'#4f46e5','Pink':'#f72585','Green':'#06d6a0','Orange':'#f97316','Purple':'#6a4c93','Sky':'#4cc9f0'
+};
+
+const display=document.getElementById('timeDisplay');
+let data=JSON.parse(localStorage.getItem('timerData'))||[];
+const tbody=document.querySelector('#dataTable tbody');
+
+/* FORMAT */
+function format(ms){
+ let milli=String(ms%1000).padStart(3,'0');
+ let s=Math.floor(ms/1000);
+ let h=String(Math.floor(s/3600)).padStart(2,'0');
+ let m=String(Math.floor((s%3600)/60)).padStart(2,'0');
+ let sec=String(s%60).padStart(2,'0');
+ return `${h}:${m}:${sec}.${milli}`;
+}
+
+/* TIMER */
+function toggleTimer(){
+ if(!running){
+  startTime=Date.now()-elapsed;
+  interval=setInterval(()=>{
+   elapsed=Date.now()-startTime;
+   display.innerText=format(elapsed);
+  },10);
+  running=true;
+ }else{
+  clearInterval(interval);
+  running=false;
+ }
+}
+
+function resetTimer(){
+ clearInterval(interval);
+ interval=null;
+ running=false;
+ elapsed=0;
+ display.innerText='00:00:00.000';
+}
+
+// EVENTS
+
+document.getElementById('timerScreen').addEventListener('click',toggleTimer);
+document.getElementById('resetBtn').addEventListener('click',e=>{
+ e.stopPropagation(); resetTimer();
+});
+
+// SPACE shortcut
+document.addEventListener('keydown',e=>{
+ if(e.code==='Space'){
+  e.preventDefault(); toggleTimer();
+ }
+});
+
+// PANEL
+openBtn.onclick=()=>panel.classList.add('open');
+closeBtn.onclick=()=>panel.classList.remove('open');
+
+/* SAVE */
+function render(){
+ tbody.innerHTML='';
+ data.sort((a,b)=>a.ms-b.ms);
+ data.forEach(d=>{
+  let r=tbody.insertRow();
+  r.innerHTML=`<td>${d.t}</td><td>${d.s}</td><td>${d.d}</td><td>${d.time}</td><td>${d.du}</td>`;
+ });
+ calcStats(); drawChart();
+ localStorage.setItem('timerData',JSON.stringify(data));
+}
+
+saveBtn.onclick=()=>{
+ let t=title.value.trim(),s=subtitle.value.trim();
+ if(!t||!s)return alert('Title & Sub required');
+ let now=new Date();
+ data.push({t,s,d:now.toLocaleDateString(),time:now.toLocaleTimeString(),du:format(elapsed),ms:elapsed});
+ render();
+}
+
+clearBtn.onclick=()=>{
+ if(confirm('Delete all saved data?')){
+  data=[];
+  localStorage.removeItem('timerData');
+  render();
+ }
+}
+
+/* STATS */
+function calcStats(){
+ if(!data.length){stats.innerText='Best: -- | Avg: --';return;}
+ let best=data[0].ms;
+ let avg=data.reduce((a,b)=>a+b.ms,0)/data.length;
+ stats.innerText=`Best: ${format(best)} | Avg: ${format(avg)}`;
+}
+
+/* CHART */
+let chart;
+function drawChart(){
+ let ctx=document.getElementById('chart');
+ if(chart)chart.destroy();
+ chart=new Chart(ctx,{
+  type:'line',
+  data:{labels:data.map((_,i)=>i+1),datasets:[{label:'Time',data:data.map(x=>x.ms)}]},
+  options:{scales:{y:{ticks:{callback:v=>format(v)}}}}
+ });
+}
+
+/* CSV */
+csvBtn.onclick=()=>{
+ let csv='Title,Sub,Date,Time,Duration\n';
+ data.forEach(d=>csv+=`${d.t},${d.s},${d.d},${d.time},${d.du}\n`);
+ let a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([csv]));
+ a.download='timer.csv'; a.click();
+}
+
+/* DROPDOWNS */
+const colorDD=document.getElementById('colorDropdown');
+Object.keys(colors).forEach(k=>{
+ let o=document.createElement('option'); o.text=k; o.value=colors[k];
+ colorDD.add(o);
+});
+
+colorDD.onchange=()=>{
+ let c=colorDD.value;
+ setThemeVars(c);
+ localStorage.setItem('userColor',c);
+};
+
+const fontDD=document.getElementById('fontDropdown');
+fonts.forEach(f=>{
+ let o=document.createElement('option'); o.text=f; o.value=f;
+ fontDD.add(o);
+});
+fontDD.onchange=()=>{
+ display.style.fontFamily=fontDD.value;
+ localStorage.setItem('userFont',fontDD.value);
+};
+
+// MODE
+const modeDD=document.getElementById('modeDropdown');
+modeDD.onchange=()=>{
+ applyMode(modeDD.value);
+ localStorage.setItem('userMode',modeDD.value);
+};
+
+function applyMode(m){
+ if(m==='dark'){
+  document.documentElement.style.setProperty('--bg','#0f172a');
+  document.documentElement.style.setProperty('--text','#fff');
+  document.documentElement.style.setProperty('--panel','#1e293b');
+ }
+ if(m==='day'){
+  document.documentElement.style.setProperty('--bg','#f4f6f8');
+  document.documentElement.style.setProperty('--text','#000');
+  document.documentElement.style.setProperty('--panel','#fff');
+ }
+}
+
+function setThemeVars(c){
+ document.documentElement.style.setProperty('--accent',c);
+ document.documentElement.style.setProperty('--bg',c+'22');
+ document.documentElement.style.setProperty('--panel',c+'33');
+}
+
+// FONT SIZE
+function fontSize(x){
+ if(x==='+')fontSizeVal+=4;
+ if(x==='-')fontSizeVal-=4;
+ display.style.fontSize=fontSizeVal+'px';
+}
+
+/* LOAD USER PREFS */
+window.onload=()=>{
+ let c=localStorage.getItem('userColor');
+ let f=localStorage.getItem('userFont');
+ let m=localStorage.getItem('userMode');
+
+ if(c){colorDD.value=c; setThemeVars(c)}
+ if(f){fontDD.value=f; display.style.fontFamily=f}
+ if(m){modeDD.value=m; applyMode(m)}
+};
+
+render();
+</script>
+</body>
+</html>

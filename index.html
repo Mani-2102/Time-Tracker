@@ -1,0 +1,1746 @@
+<!-- FULL UPDATED VERSION: CLEAN B/W UI, FIXED DATES, LOCALSTORAGE, REFRESH LOCK, PIE CHART, STABLE HEADER -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pro Work Time Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="database.js"></script>
+    <style>
+      :root {
+        --bg: #f8f9fa;
+        --fg: #111111;
+        --muted: #666;
+        --border: #ddd;
+        --primary: #4f46e5;
+        --success: #10b981;
+        --danger: #ef4444;
+        --accent: #3b82f6;
+      }
+      * {
+        box-sizing: border-box;
+        font-family:
+          Segoe UI,
+          Arial,
+          sans-serif;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #fff;
+        border-bottom: 2px solid var(--primary);
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      header h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary);
+      }
+      header .right {
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #000;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      button:hover {
+        background: #f3f3f3;
+        border-color: var(--primary);
+      }
+      button.running {
+        background: var(--success);
+        color: #fff;
+        border-color: var(--success);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      main {
+        padding: 20px;
+        max-width: 1400px;
+        margin: auto;
+      }
+      .main-container {
+        display: grid;
+        grid-template-columns: 0.8fr 3fr;
+        gap: 20px;
+      }
+      .left-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      #totalRunning {
+        font-size: 26px;
+        font-weight: 600;
+        text-align: center;
+        margin: 0 0 20px 0;
+        white-space: nowrap;
+        color: var(--primary);
+      }
+      .running-section {
+        background: #fff;
+        border: 2px solid var(--success);
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+      }
+      .running-section h2 {
+        margin: 0 0 12px 0;
+        color: var(--success);
+        font-size: 16px;
+        text-align: center;
+      }
+      .running-card {
+        background: #f0fff4;
+        border: 1px solid var(--success);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .running-card h4 {
+        margin: 0 0 8px 0;
+        color: var(--primary);
+        font-size: 14px;
+        word-break: break-word;
+      }
+      .running-card .time-display {
+        color: var(--success);
+        font-weight: 600;
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+      .running-card button {
+        width: 100%;
+        padding: 8px;
+        margin: 0;
+        font-size: 12px;
+      }
+      .task-list-section {
+        background: #fff;
+        border: 2px solid var(--primary);
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+      }
+      .task-list-section h2 {
+        margin: 0 0 12px 0;
+        color: var(--primary);
+        font-size: 16px;
+        text-align: center;
+      }
+      .task-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .task-list li {
+        margin-bottom: 8px;
+      }
+      .task-list-link {
+        display: block;
+        padding: 8px 12px;
+        background: #f0f4ff;
+        border: 1px solid var(--primary);
+        border-radius: 6px;
+        color: var(--primary);
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 12px;
+        transition: all 0.2s;
+        text-align: left;
+        word-break: break-word;
+      }
+      .task-list-link:hover {
+        background: var(--primary);
+        color: #fff;
+      }
+      .task-list-link.running {
+        background: #ecfdf5;
+        border-color: var(--success);
+        color: var(--success);
+        font-weight: 600;
+      }
+      .task-list-link.completed {
+        background: #fef2f2;
+        border-color: #fee2e2;
+        color: var(--muted);
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        background: #fff;
+        border: 2px solid var(--primary);
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+      .modal-content h2 {
+        margin: 0 0 16px 0;
+        color: var(--primary);
+        font-size: 18px;
+      }
+      .sheet-list {
+        list-style: none;
+        margin: 0 0 16px 0;
+        padding: 0;
+      }
+      .sheet-item {
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        background: #f8f9fa;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .sheet-item:hover {
+        background: #e8ecf8;
+        border-color: var(--primary);
+      }
+      .sheet-item.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+        font-weight: 600;
+      }
+      .sheet-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .sheet-actions button {
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+      .create-sheet-btn {
+        width: 100%;
+        padding: 10px;
+        background: var(--success);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .create-sheet-btn:hover {
+        background: #059669;
+      }
+      .home-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 70%;
+        height: 100%;
+        background: #fff;
+        border-right: 3px solid var(--primary);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+        z-index: 99;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      .home-sidebar.active {
+        transform: translateX(0);
+      }
+      .sidebar-header {
+        padding: 20px;
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .sidebar-header h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+      .sidebar-close {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+      }
+      .running-tasks-list {
+        padding: 20px;
+      }
+      .running-task-card {
+        background: #f8f9fa;
+        border: 2px solid var(--success);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+      .running-task-card h4 {
+        margin: 0 0 8px 0;
+        color: var(--primary);
+        font-size: 14px;
+      }
+      .running-task-card .sheet-name {
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .running-task-card .timer {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--success);
+        margin-bottom: 8px;
+      }
+      .running-task-card button {
+        width: 100%;
+        padding: 8px;
+        background: var(--danger);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .running-task-card button:hover {
+        background: #dc2626;
+      }
+      .no-running {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .home-btn {
+        margin-right: 10px;
+      }
+      @media (max-width: 1024px) {
+        .main-container {
+          grid-template-columns: 1fr;
+        }
+      }
+      #totalRunning {
+        font-size: 26px;
+        font-weight: 600;
+        text-align: center;
+        margin: 20px 0;
+        white-space: nowrap;
+        color: var(--primary);
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 16px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+      .card h3 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+        color: var(--primary);
+      }
+      .controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+      .total-time {
+        color: var(--success);
+        font-weight: 600;
+      }
+      input[type="text"] {
+        border: 1px solid var(--border);
+        padding: 6px;
+        border-radius: 6px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 6px;
+        text-align: center;
+      }
+      th {
+        background: #f0f4ff;
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .analytics {
+        margin-top: 0;
+        border-color: var(--accent);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .analytics h3 {
+        color: var(--primary);
+        margin: 0 0 16px 0;
+      }
+      .analytics canvas {
+        flex: 1;
+      }
+      .toggle-mode {
+        display: inline-block;
+        margin-left: 10px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .toggle-mode.single {
+        background: var(--primary);
+        color: #fff;
+      }
+      .toggle-mode.multi {
+        background: #f0f0f0;
+        color: var(--muted);
+      }
+      canvas {
+        max-height: 260px;
+      }
+      .login-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 320px;
+        background: #fff;
+        border: 2px solid var(--primary);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        z-index: 200;
+      }
+      .login-modal.active {
+        display: block;
+      }
+      .login-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 199;
+      }
+      .login-overlay.active {
+        display: block;
+      }
+      .login-container {
+        background: transparent;
+        border: none;
+        padding: 0;
+        box-shadow: none;
+        text-align: left;
+      }
+      .login-container h2 {
+        margin: 0 0 16px 0;
+        color: var(--primary);
+        font-size: 16px;
+        text-align: center;
+      }
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .login-form input {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 12px;
+        font-family: inherit;
+      }
+      .login-form input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+      }
+      .login-btn {
+        padding: 8px 16px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.2s;
+        width: 100%;
+      }
+      .login-btn:hover {
+        background: #4338ca;
+      }
+      .username-display {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 10px;
+      }
+      .user-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0 10px;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+      }
+      .user-badge.fixed-left {
+        margin: 0 5px;
+        position: static;
+      }
+      .welcome-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: 201;
+        align-items: center;
+        justify-content: center;
+      }
+      .welcome-modal.active {
+        display: flex;
+      }
+      .welcome-container {
+        background: #fff;
+        border-radius: 16px;
+        padding: 60px 40px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+      .welcome-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+      }
+      .welcome-container h2 {
+        margin: 0 0 16px 0;
+        color: var(--primary);
+        font-size: 28px;
+        font-weight: 700;
+      }
+      .welcome-container p {
+        margin: 0 0 30px 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+      }
+      .user-stats {
+        background: #f0f4ff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: left;
+      }
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+      .stat-item:last-child {
+        margin-bottom: 0;
+      }
+      .stat-label {
+        color: var(--muted);
+        font-weight: 500;
+      }
+      .stat-value {
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .welcome-btn {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        color: #fff;
+        border: none;
+        padding: 12px 40px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .welcome-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+      }
+      .logout-btn {
+        background: var(--danger);
+        color: #fff;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 12px;
+      }
+      .logout-btn:hover {
+        background: #dc2626;
+      }
+      .logout-btn.fixed-left {
+        margin: 0;
+        position: static;
+      }
+      .login-error {
+        color: var(--danger);
+        font-size: 12px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <button class="home-btn" onclick="toggleHomeSidebar()">🏠 Home</button>
+      <h1>
+        Pro Work Time Tracker -
+        <span
+          id="sheetNameHeader"
+          style="color: var(--success); font-size: 16px"
+          >Sheet 1</span
+        >
+      </h1>
+      <div class="right">
+        <button onclick="downloadAll()">Download CSV</button>
+        <button onclick="addTracker()">＋</button>
+        <button onclick="openSheetsModal()">📑 Sheets</button>
+        <button
+          id="modeBtn"
+          class="toggle-mode single"
+          onclick="toggleMode()"
+          title="Single Task Mode: ON (click to allow multiple tasks)"
+        >
+          Single Task
+        </button>
+        <span id="userDisplay" class="user-badge" style="display: none"></span>
+        <button
+          class="logout-btn"
+          onclick="handleLogout()"
+          style="display: none"
+          id="logoutBtn"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div id="totalRunning">Total Running Time: 00:00:00.000</div>
+      <div class="main-container">
+        <div class="left-panel">
+          <div class="running-section">
+            <h2>📌 Currently Running</h2>
+            <div id="runningTrackers"></div>
+          </div>
+          <div class="task-list-section">
+            <h2>📋 All Tasks</h2>
+            <ul class="task-list" id="taskList"></ul>
+          </div>
+        </div>
+        <div class="right-panel">
+          <div id="trackers"></div>
+          <div class="card analytics">
+            <h3>Activity Analytics</h3>
+            <canvas id="barChart"></canvas>
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="homeSidebar" class="home-sidebar">
+      <div class="sidebar-header">
+        <h2>⚡ Running Tasks</h2>
+        <button class="sidebar-close" onclick="toggleHomeSidebar()">✕</button>
+      </div>
+      <div id="runningTasksList" class="running-tasks-list"></div>
+    </div>
+
+    <div id="loginOverlay" class="login-overlay active"></div>
+
+    <div id="welcomeModal" class="welcome-modal">
+      <div class="welcome-container">
+        <div class="welcome-icon">👋</div>
+        <h2 id="welcomeTitle">Welcome!</h2>
+        <p id="welcomeMessage">
+          You're all set! Let's start tracking your work time.
+        </p>
+        <div id="userStats" class="user-stats" style="display: none">
+          <div class="stat-item">
+            <span class="stat-label">Sheets Created:</span>
+            <span class="stat-value" id="statSheets">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Tasks:</span>
+            <span class="stat-value" id="statTasks">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Time Tracked:</span>
+            <span class="stat-value" id="statTime">0h 0m</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Member Since:</span>
+            <span class="stat-value" id="statJoined">-</span>
+          </div>
+        </div>
+        <button class="welcome-btn" onclick="closeWelcomeModal()">
+          Get Started
+        </button>
+      </div>
+    </div>
+
+    <div id="loginModal" class="login-modal active">
+      <div class="login-container">
+        <h2>Pro Work Time Tracker</h2>
+        <div class="login-form">
+          <input
+            type="text"
+            id="loginUsername"
+            placeholder="Username"
+            autofocus
+          />
+          <input type="password" id="loginPassword" placeholder="Password" />
+          <button class="login-btn" onclick="handleLogin()">Login</button>
+          <div style="text-align: center; margin-top: 10px; font-size: 12px">
+            <span
+              id="toggleMode"
+              style="color: var(--primary); cursor: pointer; font-weight: 600"
+              >Create Account</span
+            >
+          </div>
+          <div id="loginError" class="login-error"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="sheetsModal" class="modal">
+      <div class="modal-content">
+        <h2>📑 Your Sheets</h2>
+        <button class="create-sheet-btn" onclick="createNewSheet()">
+          + Create New Sheet
+        </button>
+        <ul class="sheet-list" id="sheetsList"></ul>
+      </div>
+    </div>
+
+    <script>
+      /* -------------------- LOGIN SYSTEM -------------------- */
+      let currentUser = localStorage.getItem("currentUser");
+
+      let isLoginMode = true; // true = login, false = register
+
+      document.getElementById("toggleMode").addEventListener("click", () => {
+        isLoginMode = !isLoginMode;
+        document.getElementById("toggleMode").textContent = isLoginMode
+          ? "Create Account"
+          : "Back to Login";
+        document.querySelector(".login-btn").textContent = isLoginMode
+          ? "Login"
+          : "Register";
+        document.querySelector(".login-container h2").textContent = isLoginMode
+          ? "Login"
+          : "Create Account";
+      });
+
+      function handleLogin() {
+        const username = document.getElementById("loginUsername").value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+        const errorEl = document.getElementById("loginError");
+
+        errorEl.textContent = "";
+
+        if (!username || !password) {
+          errorEl.textContent = "Please enter both username and password";
+          return;
+        }
+
+        if (username.length < 3) {
+          errorEl.textContent = "Username must be at least 3 characters";
+          return;
+        }
+
+        if (password.length < 3) {
+          errorEl.textContent = "Password must be at least 3 characters";
+          return;
+        }
+
+        let result;
+
+        if (isLoginMode) {
+          // Login existing user
+          result = db.authenticateUser(username, password);
+          if (!result.success) {
+            errorEl.textContent = result.message;
+            return;
+          }
+        } else {
+          // Register new user
+          if (db.userExists(username)) {
+            errorEl.textContent = "User already exists!";
+            return;
+          }
+          result = db.registerUser(username, password);
+          if (!result.success) {
+            errorEl.textContent = result.message;
+            return;
+          }
+        }
+
+        // Login successful
+        currentUser = username;
+        db.setCurrentUser(currentUser);
+
+        // Load user's sheets and data
+        loadUserData();
+
+        // Hide login modal and overlay
+        document.getElementById("loginOverlay").classList.remove("active");
+        document.getElementById("loginModal").classList.remove("active");
+
+        // Show username badge and logout button
+        displayUserBadge();
+
+        // Show welcome modal if new user
+        if (result.isNew) {
+          showWelcomeModal();
+        } else {
+          // Initialize app for existing user
+          render();
+          drawCharts();
+        }
+      }
+
+      function displayUserBadge() {
+        if (currentUser) {
+          const badge = document.getElementById("userDisplay");
+          const logoutBtn = document.getElementById("logoutBtn");
+          badge.innerHTML = `👤 ${currentUser.toUpperCase()}`;
+          badge.classList.add("fixed-left");
+          logoutBtn.classList.add("fixed-left");
+          badge.style.display = "inline-block";
+          logoutBtn.style.display = "block";
+        }
+      }
+
+      function showWelcomeModal() {
+        const stats = db.getUserStats(currentUser);
+
+        // Update welcome message
+        document.getElementById("welcomeTitle").textContent =
+          `Welcome, ${currentUser}!`;
+        document.getElementById("welcomeMessage").textContent =
+          "Your account has been created successfully. Let's start tracking your work time!";
+
+        // Show stats if not new
+        if (!db.getUserData(currentUser).isNew || stats.totalTasks > 0) {
+          document.getElementById("userStats").style.display = "block";
+          document.getElementById("statSheets").textContent = stats.totalSheets;
+          document.getElementById("statTasks").textContent = stats.totalTasks;
+          document.getElementById("statTime").textContent =
+            stats.totalTimeFormatted;
+          document.getElementById("statJoined").textContent = stats.joinedDate;
+        }
+
+        document.getElementById("welcomeModal").classList.add("active");
+      }
+
+      function closeWelcomeModal() {
+        document.getElementById("welcomeModal").classList.remove("active");
+        render();
+        drawCharts();
+      }
+
+      function handleLogout() {
+        if (confirm("Are you sure you want to logout?")) {
+          currentUser = null;
+          db.logout();
+
+          // Clear app data from memory
+          currentSheet = null;
+          sheets = {};
+          trackers = [];
+          runningTimers = {};
+          singleTaskMode = true;
+
+          // Hide username badge and logout button
+          const badge = document.getElementById("userDisplay");
+          const logoutBtn = document.getElementById("logoutBtn");
+          badge.style.display = "none";
+          badge.classList.remove("fixed-left");
+          logoutBtn.style.display = "none";
+          logoutBtn.classList.remove("fixed-left");
+
+          // Show login modal and overlay (centered)
+          document.getElementById("loginOverlay").classList.add("active");
+          document.getElementById("loginModal").classList.add("active");
+          setTimeout(
+            () => document.getElementById("loginUsername").focus(),
+            100,
+          );
+
+          // Clear form
+          document.getElementById("loginUsername").value = "";
+          document.getElementById("loginPassword").value = "";
+          document.getElementById("loginError").textContent = "";
+          isLoginMode = true;
+          document.getElementById("toggleMode").textContent = "Create Account";
+          document.querySelector(".login-btn").textContent = "Login";
+          document.querySelector(".login-container h2").textContent = "Login";
+
+          // Clear main content
+          document.getElementById("trackers").innerHTML = "";
+          document.getElementById("runningTrackers").innerHTML = "";
+          document.getElementById("taskList").innerHTML = "";
+        }
+      }
+
+      function loadUserData() {
+        const userData = db.getUserData(currentUser);
+        if (!userData) return;
+
+        currentSheet = userData.currentSheet;
+        sheets = userData.sheets;
+        trackers = sheets[currentSheet] || [];
+        runningTimers = userData.runningTimers || {};
+        singleTaskMode = userData.singleTaskMode !== false;
+
+        // Update UI
+        document.getElementById("sheetNameHeader").textContent = currentSheet;
+        const modeBtn = document.getElementById("modeBtn");
+        if (!singleTaskMode) {
+          modeBtn.textContent = "Multiple Tasks";
+          modeBtn.className = "toggle-mode multi";
+          modeBtn.title =
+            "Multiple Tasks Mode: ON (click to restrict to single task)";
+        } else {
+          modeBtn.textContent = "Single Task";
+          modeBtn.className = "toggle-mode single";
+          modeBtn.title =
+            "Single Task Mode: ON (click to allow multiple tasks)";
+        }
+      }
+
+      function saveUserData() {
+        if (!currentUser) return;
+        const userData = {
+          password: db.getUserData(currentUser).password,
+          createdAt: db.getUserData(currentUser).createdAt,
+          currentSheet: currentSheet,
+          sheets: sheets,
+          runningTimers: runningTimers,
+          singleTaskMode: singleTaskMode,
+          isNew: db.getUserData(currentUser).isNew,
+        };
+        db.saveUserData(currentUser, userData);
+      }
+
+      /* -------------------- STORAGE -------------------- */
+      let currentSheet = "Sheet 1";
+      let sheets = { "Sheet 1": [] };
+      let trackers = [];
+      let runningTimers = {};
+      let singleTaskMode = true;
+
+      // If user is logged in, load their data and show app
+      if (currentUser) {
+        loadUserData();
+        displayUserBadge();
+        document.getElementById("loginOverlay").classList.remove("active");
+        document.getElementById("loginModal").classList.remove("active");
+      }
+
+      window.addEventListener("beforeunload", (e) => {
+        e.preventDefault();
+        e.returnValue = "Your data is saved. Use delete to remove items.";
+      });
+
+      function save() {
+        sheets[currentSheet] = trackers;
+        saveUserData();
+      }
+
+      function toggleMode() {
+        singleTaskMode = !singleTaskMode;
+        const btn = document.getElementById("modeBtn");
+        if (singleTaskMode) {
+          btn.textContent = "Single Task";
+          btn.className = "toggle-mode single";
+          btn.title = "Single Task Mode: ON (click to allow multiple tasks)";
+        } else {
+          btn.textContent = "Multiple Tasks";
+          btn.className = "toggle-mode multi";
+          btn.title =
+            "Multiple Tasks Mode: ON (click to restrict to single task)";
+        }
+        save();
+      }
+
+      /* -------------------- TIME HELPERS -------------------- */
+      function fmtTime(d) {
+        return d.toLocaleTimeString("en-US", { hour12: true });
+      }
+      function fmtDate(d) {
+        return d.toLocaleDateString();
+      }
+      function dur(ms) {
+        let s = Math.floor(ms / 1000),
+          m = Math.floor(s / 60),
+          h = Math.floor(m / 60);
+        return `${String(h).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}.${String(ms % 1000).padStart(3, "0")}`;
+      }
+
+      /* -------------------- TRACKERS -------------------- */
+      function addTracker() {
+        const name = prompt("Work name");
+        if (!name) return;
+        trackers.push({ name, rows: [], total: 0 });
+        save();
+        render();
+      }
+
+      function start(i) {
+        const timerKey = `${currentSheet}-${i}`;
+        if (runningTimers[timerKey]) return;
+
+        // Check if single task mode is enabled and another task is already running on CURRENT sheet
+        if (singleTaskMode) {
+          // Count how many tasks are running on the current sheet
+          const currentSheetRunningTasks = Object.keys(runningTimers).filter(
+            (key) => key.startsWith(currentSheet + "-"),
+          );
+
+          if (currentSheetRunningTasks.length > 0) {
+            alert("Single Task Mode: Stop all tasks and kindly run one.");
+            return;
+          }
+        }
+
+        runningTimers[timerKey] = Date.now();
+        // Create a new row immediately when start is clicked
+        trackers[i].rows.push({
+          sd: fmtDate(new Date(runningTimers[timerKey])),
+          st: fmtTime(new Date(runningTimers[timerKey])),
+          ed: "",
+          et: "",
+          dur: 0,
+          running: true,
+          rowIndex: trackers[i].rows.length,
+        });
+        save();
+        render();
+        updateTimer(i);
+      }
+
+      function updateTimer(i) {
+        const timerKey = `${currentSheet}-${i}`;
+        const trackerIndex = i;
+        const sheetAtStart = currentSheet;
+        const interval = setInterval(() => {
+          if (!runningTimers[timerKey]) {
+            clearInterval(interval);
+            return;
+          }
+          // Only update if we're still on the same sheet and the tracker still exists
+          if (currentSheet !== sheetAtStart) {
+            return; // Don't update, we've switched sheets
+          }
+          if (!trackers[trackerIndex]) {
+            clearInterval(interval);
+            return;
+          }
+          // Update only the total time display and running time, not full render to prevent chart blink
+          const running = runningTimers[timerKey];
+          const elapsed = running ? Date.now() - running : 0;
+          const t = trackers[trackerIndex];
+          const total = t.total + elapsed;
+
+          const totalEl = document.getElementById(`total-${trackerIndex}`);
+          if (totalEl) {
+            totalEl.textContent = `Total: ${dur(total)}`;
+          }
+
+          const runningTimeEl = document.getElementById(
+            `running-time-${trackerIndex}`,
+          );
+          if (runningTimeEl) {
+            runningTimeEl.textContent = dur(elapsed);
+          }
+
+          // Update the running row duration in real-time
+          const lastRowIdx = trackers[trackerIndex].rows.length - 1;
+          if (
+            lastRowIdx >= 0 &&
+            trackers[trackerIndex].rows[lastRowIdx].running
+          ) {
+            const rowElement = document.getElementById(
+              `row-${trackerIndex}-${lastRowIdx}`,
+            );
+            if (rowElement) {
+              const cells = rowElement.querySelectorAll("td");
+              if (cells[4]) {
+                cells[4].textContent = dur(elapsed);
+              }
+            }
+          }
+        }, 100);
+      }
+
+      function stop(i) {
+        const timerKey = `${currentSheet}-${i}`;
+        const start = runningTimers[timerKey];
+        if (!start) return;
+        const end = Date.now();
+        const d = end - start;
+
+        // Update the last running row with end time and duration
+        const lastRowIdx = trackers[i].rows.length - 1;
+        if (lastRowIdx >= 0 && trackers[i].rows[lastRowIdx].running) {
+          trackers[i].rows[lastRowIdx].ed = fmtDate(new Date(end));
+          trackers[i].rows[lastRowIdx].et = fmtTime(new Date(end));
+          trackers[i].rows[lastRowIdx].dur = d;
+          trackers[i].rows[lastRowIdx].running = false;
+        }
+
+        trackers[i].total += d;
+        delete runningTimers[timerKey];
+        save();
+        render();
+        drawCharts();
+      }
+
+      function downloadTask(i) {
+        const t = trackers[i];
+        let csv = "Start Date,Start Time,End Date,End Time,Duration(Minutes)\n";
+        t.rows.forEach((r) => {
+          const minutes = (r.dur / 60000).toFixed(2);
+          csv += `${r.sd},${r.st},${r.ed},${r.et},${minutes}\n`;
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv]));
+        a.download = `${t.name}.csv`;
+        a.click();
+      }
+
+      function del(i) {
+        if (confirm("Delete tracker?")) {
+          trackers.splice(i, 1);
+          save();
+          render();
+        }
+      }
+
+      /* -------------------- DOWNLOAD -------------------- */
+      function downloadAll() {
+        let csv =
+          "Work,Start Date,Start Time,End Date,End Time,Duration(Minutes)\n";
+        trackers.forEach((t) =>
+          t.rows.forEach((r) => {
+            const minutes = (r.dur / 60000).toFixed(2);
+            csv += `${t.name},${r.sd},${r.st},${r.ed},${r.et},${minutes}\n`;
+          }),
+        );
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv]));
+        a.download = "All_Tasks.csv";
+        a.click();
+      }
+
+      /* -------------------- RENDER -------------------- */
+      let bar, pie;
+      function render() {
+        const trackerBox = document.getElementById("trackers");
+        const runningBox = document.getElementById("runningTrackers");
+        const taskListBox = document.getElementById("taskList");
+        trackerBox.innerHTML = "";
+        runningBox.innerHTML = "";
+        taskListBox.innerHTML = "";
+
+        let grand = 0;
+        let runningCount = 0;
+
+        trackers.forEach((t, i) => {
+          grand += t.total;
+          const timerKey = `${currentSheet}-${i}`;
+          const running = runningTimers[timerKey];
+          const elapsed = running ? Date.now() - running : 0;
+          const total = t.total + elapsed;
+
+          // Add card to right panel (both running and not running)
+          const c = document.createElement("div");
+          c.id = `task-${i}`;
+          c.className = "card";
+          c.innerHTML = `<h3>${t.name}</h3>
+      <div class=controls>
+        <button id="start-${i}" class="${running ? "running" : ""}" onclick="start(${i})" ${running ? "disabled" : ""}>${running ? "Running" : "Start"}</button>
+        <button id="stop-${i}" onclick="stop(${i})" ${!running ? "disabled" : ""}>Stop</button>
+        <button id="del-${i}" onclick="del(${i})">Delete</button>
+        <button id="download-${i}" onclick="downloadTask(${i})">Download CSV</button>
+        <strong id="total-${i}" class="total-time">Total: ${dur(total)}</strong>
+      </div>
+      <table><tr><th>Start Date</th><th>Start Time</th><th>End Date</th><th>End Time</th><th>Duration</th></tr>
+      ${t.rows.map((r, rIdx) => `<tr id="row-${i}-${rIdx}"><td>${r.sd}</td><td>${r.st}</td><td>${r.ed || (r.running ? "Running..." : "")}</td><td>${r.et || (r.running ? "" : "")}</td><td>${r.running ? dur(elapsed) : dur(r.dur)}</td></tr>`).join("")}
+      </table>`;
+          trackerBox.appendChild(c);
+
+          // Also add to running section if currently running (compact)
+          if (running) {
+            const runningCard = document.createElement("div");
+            runningCard.className = "running-card";
+            runningCard.innerHTML = `<h4>${t.name}</h4>
+              <div class="time-display" id="running-time-${i}">${dur(elapsed)}</div>
+              <button id="running-stop-${i}" onclick="stop(${i})">Stop</button>`;
+            runningBox.appendChild(runningCard);
+            runningCount++;
+          }
+
+          // Add to task list (shows all tasks)
+          const listItem = document.createElement("li");
+          const listLink = document.createElement("a");
+          listLink.className = running
+            ? "task-list-link running"
+            : "task-list-link completed";
+          listLink.innerHTML =
+            t.name +
+            (running
+              ? ` <span style="font-size: 10px; margin-left: 4px;" id="list-time-${i}">${dur(elapsed)}</span>`
+              : "");
+          listLink.onclick = (e) => {
+            e.preventDefault();
+            const taskCard = document.getElementById(`task-${i}`);
+            if (taskCard) {
+              taskCard.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          };
+          listItem.appendChild(listLink);
+          taskListBox.appendChild(listItem);
+        });
+
+        // Show message if no trackers running
+        if (runningCount === 0) {
+          runningBox.innerHTML =
+            '<p style="color: var(--muted); text-align: center; padding: 20px; font-size: 12px;">No tasks running</p>';
+        }
+
+        // Initialize total running time
+        document.getElementById("totalRunning").textContent =
+          "Total Running Time: " + dur(grand);
+      }
+
+      function drawCharts() {
+        const labels = trackers.map((t) => t.name);
+        const durationData = trackers.map((t) =>
+          (t.total / 3600000).toFixed(2),
+        );
+        const countData = trackers.map((t) => t.rows.length);
+        const total = trackers.reduce((a, t) => a + t.total, 0) || 1;
+        const colors = [
+          "#4f46e5",
+          "#10b981",
+          "#ef4444",
+          "#f59e0b",
+          "#3b82f6",
+          "#8b5cf6",
+          "#ec4899",
+        ];
+
+        if (bar) bar.destroy();
+        if (pie) pie.destroy();
+
+        if (labels.length === 0) return;
+
+        // Mixed chart: Bar for duration + Line for count
+        bar = new Chart(barChart, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Duration (Hours)",
+                data: durationData,
+                backgroundColor: colors.slice(0, labels.length),
+                borderColor: colors.slice(0, labels.length),
+                borderWidth: 1,
+                yAxisID: "y",
+                type: "bar",
+                order: 2,
+              },
+              {
+                label: "Count (Sessions)",
+                data: countData,
+                borderColor: "#ef4444",
+                backgroundColor: "rgba(239, 68, 68, 0.2)",
+                borderWidth: 3,
+                yAxisID: "y1",
+                type: "line",
+                tension: 0.3,
+                pointRadius: 6,
+                pointBorderColor: "#fff",
+                pointBorderWidth: 2,
+                pointBackgroundColor: "#ef4444",
+                order: 1,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+              mode: "index",
+              intersect: false,
+            },
+            scales: {
+              y: {
+                type: "linear",
+                display: true,
+                position: "left",
+                title: {
+                  display: true,
+                  text: "Duration (Hours)",
+                },
+              },
+              y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+                title: {
+                  display: true,
+                  text: "Count (Sessions)",
+                },
+                grid: {
+                  drawOnChartArea: false,
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    const idx = ctx.dataIndex;
+                    const t = trackers[idx];
+                    const durations = t.rows
+                      .map((r) => r.dur)
+                      .sort((a, b) => a - b);
+                    const pct = ((t.total / total) * 100).toFixed(1);
+                    if (ctx.dataset.label.includes("Duration")) {
+                      return [
+                        `Duration: ${dur(t.total)}`,
+                        `Min: ${durations.length ? dur(durations[0]) : "N/A"}`,
+                        `Max: ${durations.length ? dur(durations[durations.length - 1]) : "N/A"}`,
+                        `Percentage: ${pct}%`,
+                      ];
+                    } else {
+                      return `Count: ${t.rows.length} sessions`;
+                    }
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        // Pie chart with legend on sides
+        pie = new Chart(pieChart, {
+          type: "pie",
+          data: {
+            labels: labels.map((label, idx) => {
+              const pct = ((trackers[idx].total / total) * 100).toFixed(1);
+              return `${label} (${pct}%)`;
+            }),
+            datasets: [
+              {
+                data: trackers.map((t) => t.total),
+                backgroundColor: colors.slice(0, labels.length),
+                borderColor: "#fff",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: {
+                  padding: 15,
+                  font: {
+                    size: 12,
+                  },
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    const idx = ctx.dataIndex;
+                    const t = trackers[idx];
+                    const durations = t.rows
+                      .map((r) => r.dur)
+                      .sort((a, b) => a - b);
+                    const pct = ((t.total / total) * 100).toFixed(1);
+                    return [
+                      `Count: ${t.rows.length} sessions`,
+                      `Total: ${dur(t.total)}`,
+                      `Min: ${durations.length ? dur(durations[0]) : "N/A"}`,
+                      `Max: ${durations.length ? dur(durations[durations.length - 1]) : "N/A"}`,
+                      `Percentage: ${pct}%`,
+                    ];
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      render();
+      drawCharts();
+
+      // Display current user if logged in
+      if (currentUser) {
+        displayUserBadge();
+      }
+
+      // Initialize mode button on load
+      const modeBtn = document.getElementById("modeBtn");
+      if (!singleTaskMode) {
+        modeBtn.textContent = "Multiple Tasks";
+        modeBtn.className = "toggle-mode multi";
+        modeBtn.title =
+          "Multiple Tasks Mode: ON (click to restrict to single task)";
+      }
+
+      // Update sheet name header on load
+      document.getElementById("sheetNameHeader").textContent = currentSheet;
+
+      // Restart running timers on page load
+      Object.keys(runningTimers).forEach((timerKey) => {
+        const parts = timerKey.split("-");
+        const idx = parseInt(parts[parts.length - 1]);
+        const sheetKey = parts.slice(0, -1).join("-");
+
+        // Restart the timer update for currently running tasks
+        if (sheetKey === currentSheet && trackers[idx]) {
+          updateTimer(idx);
+        }
+      });
+
+      // Update task list timers every 100ms
+      setInterval(() => {
+        Object.keys(runningTimers).forEach((timerKey) => {
+          const parts = timerKey.split("-");
+          const idx = parseInt(parts[parts.length - 1]);
+          const sheetKey = parts.slice(0, -1).join("-");
+
+          if (sheetKey === currentSheet) {
+            const listTimeEl = document.getElementById(`list-time-${idx}`);
+            if (listTimeEl) {
+              const elapsed = Date.now() - runningTimers[timerKey];
+              listTimeEl.textContent = dur(elapsed);
+            }
+          }
+        });
+      }, 100);
+
+      // Also set up a continuous update for all running tasks in real-time
+      setInterval(() => {
+        // Only get running timers from the CURRENT sheet
+        const currentSheetRunningTimers = Object.keys(runningTimers).filter(
+          (key) => key.startsWith(currentSheet + "-"),
+        );
+
+        if (currentSheetRunningTimers.length > 0) {
+          // Update total running time display only if there are running timers on current sheet
+          const timerValues = currentSheetRunningTimers.map(
+            (key) => Date.now() - runningTimers[key],
+          );
+          const totalElapsed = timerValues.reduce((a, b) => a + b, 0);
+          const grand = trackers.reduce((a, t) => a + t.total, 0);
+          document.getElementById("totalRunning").textContent =
+            "Total Running Time: " + dur(grand + totalElapsed);
+        } else {
+          // Show only total completed time when no timers running on current sheet
+          const grand = trackers.reduce((a, t) => a + t.total, 0);
+          document.getElementById("totalRunning").textContent =
+            "Total Running Time: " + dur(grand);
+        }
+      }, 100);
+
+      /* -------------------- SHEET MANAGEMENT -------------------- */
+      function openSheetsModal() {
+        const modal = document.getElementById("sheetsModal");
+        modal.classList.add("active");
+        renderSheetsList();
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("sheetsModal");
+        modal.classList.remove("active");
+      }
+
+      function renderSheetsList() {
+        const sheetsList = document.getElementById("sheetsList");
+        sheetsList.innerHTML = "";
+
+        Object.keys(sheets).forEach((sheetName) => {
+          const li = document.createElement("li");
+          li.className = "sheet-item";
+          if (sheetName === currentSheet) {
+            li.classList.add("active");
+          }
+
+          const nameSpan = document.createElement("span");
+          nameSpan.textContent = sheetName;
+          nameSpan.style.cursor = "pointer";
+          nameSpan.style.flex = "1";
+          nameSpan.onclick = () => switchSheet(sheetName);
+
+          const actionsDiv = document.createElement("div");
+          actionsDiv.className = "sheet-actions";
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.textContent = "🗑️";
+          deleteBtn.onclick = () => deleteSheet(sheetName);
+
+          actionsDiv.appendChild(deleteBtn);
+          li.appendChild(nameSpan);
+          li.appendChild(actionsDiv);
+          sheetsList.appendChild(li);
+        });
+      }
+
+      function switchSheet(sheetName) {
+        if (!sheets[sheetName]) {
+          alert("Sheet not found!");
+          return;
+        }
+        if (sheetName === currentSheet) {
+          closeModal();
+          return;
+        }
+        currentSheet = sheetName;
+        trackers = sheets[currentSheet] || [];
+        document.getElementById("sheetNameHeader").textContent = currentSheet;
+        save();
+        render();
+        drawCharts();
+        renderSheetsList();
+      }
+
+      function createNewSheet() {
+        const newName = prompt("Enter new sheet name:");
+        if (!newName || newName.trim() === "") return;
+        const trimmedName = newName.trim();
+
+        if (sheets[trimmedName]) {
+          alert("Sheet already exists!");
+          return;
+        }
+
+        sheets[trimmedName] = [];
+        save();
+        switchSheet(trimmedName);
+      }
+
+      function deleteSheet(sheetName) {
+        if (sheetName === currentSheet) {
+          alert(
+            "Cannot delete the current sheet! Switch to another sheet first.",
+          );
+          return;
+        }
+
+        if (confirm(`Delete sheet "${sheetName}"?`)) {
+          delete sheets[sheetName];
+          save();
+          renderSheetsList();
+        }
+      }
+
+      // Close modal when clicking outside
+      document.getElementById("sheetsModal").onclick = (e) => {
+        if (e.target.id === "sheetsModal") {
+          closeModal();
+        }
+      };
+
+      /* -------------------- HOME SIDEBAR -------------------- */
+      function toggleHomeSidebar() {
+        const sidebar = document.getElementById("homeSidebar");
+        sidebar.classList.toggle("active");
+        if (sidebar.classList.contains("active")) {
+          renderRunningTasks();
+        }
+      }
+
+      function renderRunningTasks() {
+        const runningTasksList = document.getElementById("runningTasksList");
+        runningTasksList.innerHTML = "";
+
+        let hasRunning = false;
+
+        // Get all running tasks from all sheets
+        Object.entries(sheets).forEach(([sheetName, sheetTrackers]) => {
+          sheetTrackers.forEach((t, idx) => {
+            if (runningTimers[`${sheetName}-${idx}`]) {
+              hasRunning = true;
+              const startTime = runningTimers[`${sheetName}-${idx}`];
+              const elapsed = Date.now() - startTime;
+
+              const card = document.createElement("div");
+              card.className = "running-task-card";
+              card.style.cursor = "pointer";
+              card.innerHTML = `
+                <div class="sheet-name">Sheet: ${sheetName}</div>
+                <h4>${t.name}</h4>
+                <div class="timer" id="timer-${sheetName}-${idx}">${dur(elapsed)}</div>
+                <button onclick="stopTaskFromHome('${sheetName}', ${idx})">Stop</button>
+              `;
+              card.onclick = (e) => {
+                if (e.target.textContent !== "Stop") {
+                  switchSheet(sheetName);
+                  toggleHomeSidebar();
+                }
+              };
+              runningTasksList.appendChild(card);
+            }
+          });
+        });
+
+        if (!hasRunning) {
+          runningTasksList.innerHTML =
+            '<div class="no-running">No running tasks</div>';
+        }
+
+        // Update timers every 100ms
+        updateRunningTimersDisplay();
+      }
+
+      function updateRunningTimersDisplay() {
+        Object.keys(runningTimers).forEach((key) => {
+          const timerEl = document.getElementById(`timer-${key}`);
+          if (timerEl) {
+            const startTime = runningTimers[key];
+            const elapsed = Date.now() - startTime;
+            timerEl.textContent = dur(elapsed);
+          }
+        });
+
+        if (
+          document.getElementById("homeSidebar").classList.contains("active")
+        ) {
+          setTimeout(updateRunningTimersDisplay, 100);
+        }
+      }
+
+      function stopTaskFromHome(sheetName, trackerIdx) {
+        const timerKey = `${sheetName}-${trackerIdx}`;
+        if (!runningTimers[timerKey]) return;
+
+        // Switch to the sheet and stop the task
+        currentSheet = sheetName;
+        trackers = sheets[currentSheet] || [];
+        stop(trackerIdx);
+
+        // Close the sidebar and scroll to the task
+        toggleHomeSidebar();
+        setTimeout(() => {
+          const taskCard = document.getElementById(`task-${trackerIdx}`);
+          if (taskCard) {
+            taskCard.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 300);
+      }
+
+      // Update running timers display every 100ms when sidebar is active
+      setInterval(() => {
+        if (
+          document.getElementById("homeSidebar").classList.contains("active")
+        ) {
+          updateRunningTimersDisplay();
+        }
+      }, 100);
+
+      // Add keyboard support for login
+      document
+        .getElementById("loginUsername")
+        .addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            document.getElementById("loginPassword").focus();
+          }
+        });
+
+      document
+        .getElementById("loginPassword")
+        .addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            handleLogin();
+          }
+        });
+    </script>
+  </body>
+</html>
