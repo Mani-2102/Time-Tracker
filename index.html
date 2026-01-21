@@ -779,31 +779,24 @@
   </head>
   <body>
     <header>
+    <div class="left">
       <button class="home-btn" onclick="toggleHomeSidebar()">🏠 Home</button>
+      <!-- Create by me for link the todo.html file by button -->
+      <button onclick="window.location.href = 'todo.html'" title="Track your To-Do list">📝 To-Do</button>
+      <button onclick="window.location.href = 'Timer.html'" title="Tap Timer (Alt+T)">⏱️ Timer</button>
+      <button onclick="window.location.href = 'NotificationTimer.html'" title="Smart Timer (Alt+S)">🔔 Smart Timer</button>
+    </div>
+
       <h1>
         Pro Work Time Tracker -
         <span
           id="sheetNameHeader"
-          style="color: var(--success); font-size: 16px"
-          >Sheet 1</span
-        >
+          style="color: var(--success); font-size: 16px">Sheet 1</span>
       </h1>
       <div class="right">
         <button onclick="downloadAll()">Download CSV</button>
         <button onclick="addTracker()">＋</button>
         <button onclick="openSheetsModal()">📑 Sheets</button>
-        <button
-          onclick="window.location.href = 'Timer.html'"
-          title="Tap Timer (Alt+T)"
-        >
-          ⏱️ Timer
-        </button>
-        <button
-          onclick="window.location.href = 'NotificationTimer.html'"
-          title="Smart Timer (Alt+S)"
-        >
-          🔔 Smart Timer
-        </button>
         <button
           id="modeBtn"
           class="toggle-mode single"
