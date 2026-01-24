@@ -779,31 +779,65 @@
   </head>
   <body>
     <header>
-    <div class="left">
-      <button class="home-btn" onclick="toggleHomeSidebar()">🏠 Home</button>
-      <!-- create the link for welcome.html page button -->
-      <button onclick="window.location.href = 'welcome.html'" title="Welcome Page">Know me</button>
-      <!-- Create by me for link the todo.html file by button -->
-      <button onclick="window.location.href = 'todo.html'" title="Track your To-Do list">📝 To-Do</button>
-      <button onclick="window.location.href = 'Timer.html'" title="Tap Timer (Alt+T)">⏱️ Timer</button>
-      <button onclick="window.location.href = 'NotificationTimer.html'" title="Smart Timer (Alt+S)">🔔 Smart Timer</button>
-    </div>
+      <div class="left">
+        <button
+          class="home-btn"
+          onclick="toggleHomeSidebar()"
+          title="Home (Alt+H)"
+        >
+          🏠 Home
+        </button>
+        <!-- create the link for welcome.html page button -->
+        <button
+          onclick="window.location.href = 'welcome.html'"
+          title="Welcome Page"
+        >
+          Know me
+        </button>
+        <!-- Create by me for link the todo.html file by button -->
+        <button
+          onclick="window.location.href = 'todo.html'"
+          title="Track your To-Do list"
+        >
+          📝 To-Do
+        </button>
+        <button
+          id="timerBtn"
+          onclick="window.location.href = 'Timer.html'"
+          onmousedown="handleTimerClick(event)"
+          title="Tap Timer (Alt+T)"
+        >
+          ⏱️ Timer
+        </button>
+        <button
+          onclick="window.location.href = 'NotificationTimer.html'"
+          title="Smart Timer (Alt+S)"
+        >
+          🔔 Smart Timer
+        </button>
+      </div>
 
       <h1>
         Pro Work Time Tracker -
         <span
           id="sheetNameHeader"
-          style="color: var(--success); font-size: 16px">Sheet 1</span>
+          style="color: var(--success); font-size: 16px"
+          >Sheet 1</span
+        >
       </h1>
       <div class="right">
         <button onclick="downloadAll()">Download CSV</button>
-        <button onclick="addTracker()">＋</button>
-        <button onclick="openSheetsModal()">📑 Sheets</button>
+        <button onclick="addTracker()" title="Create New Task (Alt+1)">
+          ＋
+        </button>
+        <button onclick="openSheetsModal()" title="Sheet List (Alt+2)">
+          📑 Sheets
+        </button>
         <button
           id="modeBtn"
           class="toggle-mode single"
           onclick="toggleMode()"
-          title="Single Task Mode: ON (click to allow multiple tasks)"
+          title="Single Task Mode: ON (click to allow multiple tasks) - Toggle (Alt+3)"
         >
           Single Task
         </button>
@@ -835,9 +869,39 @@
         <div class="right-panel">
           <div id="trackers"></div>
           <div class="card analytics">
-            <h3>Activity Analytics</h3>
-            <canvas id="barChart"></canvas>
-            <canvas id="pieChart"></canvas>
+            <h3>📊 Activity Analytics</h3>
+            <div style="margin-bottom: 30px">
+              <h4
+                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              >
+                Duration & Session Count
+              </h4>
+              <canvas id="barChart"></canvas>
+            </div>
+            <div style="margin-bottom: 30px">
+              <h4
+                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              >
+                Task Distribution
+              </h4>
+              <canvas id="pieChart"></canvas>
+            </div>
+            <div style="margin-bottom: 30px">
+              <h4
+                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              >
+                Time Trend Analysis
+              </h4>
+              <canvas id="lineChart"></canvas>
+            </div>
+            <div style="margin-bottom: 30px">
+              <h4
+                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              >
+                Task Completion Rate
+              </h4>
+              <canvas id="doughnutChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -1085,7 +1149,8 @@
 
     <script>
       /* -------------------- LOGIN SYSTEM -------------------- */
-      let currentUser = localStorage.getItem("currentUser");
+      // Always read the logged-in user from DatabaseManager so reloads keep the session
+      let currentUser = db.getCurrentUser();
 
       let isLoginMode = true; // true = login, false = register
 
@@ -1303,10 +1368,17 @@
 
       // If user is logged in, load their data and show app
       if (currentUser) {
-        loadUserData();
-        displayUserBadge();
-        document.getElementById("loginOverlay").classList.remove("active");
-        document.getElementById("loginModal").classList.remove("active");
+        const existing = db.getUserData(currentUser);
+        if (existing) {
+          loadUserData();
+          displayUserBadge();
+          document.getElementById("loginOverlay").classList.remove("active");
+          document.getElementById("loginModal").classList.remove("active");
+        } else {
+          // Stored session key is stale; clear and prompt for login
+          db.logout();
+          currentUser = null;
+        }
       }
 
       window.addEventListener("beforeunload", (e) => {
@@ -1739,7 +1811,8 @@
       }
 
       /* -------------------- RENDER -------------------- */
-      let bar, pie;
+      let bar, pie, lineChart, doughnutChart;
+      let pieSelectedTasks = null; // Track selected tasks for pie chart
       function render() {
         const trackerBox = document.getElementById("trackers");
         const runningBox = document.getElementById("runningTrackers");
@@ -1808,6 +1881,28 @@
           taskListBox.appendChild(listItem);
         });
 
+        // Add Activity Analytics link to task list
+        const analyticsItem = document.createElement("li");
+        const analyticsLink = document.createElement("a");
+        analyticsLink.className = "task-list-link";
+        analyticsLink.style.background =
+          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+        analyticsLink.style.color = "#fff";
+        analyticsLink.style.fontWeight = "600";
+        analyticsLink.innerHTML = "📊 Activity Analytics";
+        analyticsLink.onclick = (e) => {
+          e.preventDefault();
+          const analyticsSection = document.querySelector(".analytics");
+          if (analyticsSection) {
+            analyticsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        };
+        analyticsItem.appendChild(analyticsLink);
+        taskListBox.appendChild(analyticsItem);
+
         // Show message if no trackers running
         if (runningCount === 0) {
           runningBox.innerHTML =
@@ -1838,6 +1933,8 @@
 
         if (bar) bar.destroy();
         if (pie) pie.destroy();
+        if (lineChart) lineChart.destroy();
+        if (doughnutChart) doughnutChart.destroy();
 
         if (labels.length === 0) return;
 
@@ -1936,6 +2033,9 @@
           },
         });
 
+        // Prepare pie data
+        const basePieData = trackers.map((t) => t.total);
+
         // Pie chart with legend on sides
         pie = new Chart(pieChart, {
           type: "pie",
@@ -1946,7 +2046,7 @@
             }),
             datasets: [
               {
-                data: trackers.map((t) => t.total),
+                data: basePieData,
                 backgroundColor: colors.slice(0, labels.length),
                 borderColor: "#fff",
                 borderWidth: 2,
@@ -1963,6 +2063,86 @@
                   font: {
                     size: 12,
                   },
+                  usePointStyle: true,
+                  textDecoration: function (ctx) {
+                    const index = ctx.index;
+                    if (pieSelectedTasks && !pieSelectedTasks.includes(index)) {
+                      return "line-through";
+                    }
+                  },
+                  color: function (ctx) {
+                    const index = ctx.index;
+                    if (pieSelectedTasks && !pieSelectedTasks.includes(index)) {
+                      return "rgba(100, 100, 100, 0.5)";
+                    }
+                    return "#111111";
+                  },
+                },
+                onClick: function (e, legendItem, legend) {
+                  const index = legendItem.index;
+
+                  // Initialize selected tasks if not set
+                  if (pieSelectedTasks === null) {
+                    pieSelectedTasks = [];
+                  }
+
+                  // Toggle selection
+                  if (pieSelectedTasks.includes(index)) {
+                    pieSelectedTasks = pieSelectedTasks.filter(
+                      (i) => i !== index,
+                    );
+                  } else {
+                    pieSelectedTasks.push(index);
+                  }
+
+                  // If no tasks selected, reset to show all
+                  if (pieSelectedTasks.length === 0) {
+                    pieSelectedTasks = null;
+                  }
+
+                  // Recalculate totals
+                  let selectedTotal = 0;
+                  if (pieSelectedTasks) {
+                    selectedTotal = pieSelectedTasks.reduce(
+                      (sum, idx) => sum + trackers[idx].total,
+                      0,
+                    );
+                  } else {
+                    selectedTotal = total;
+                  }
+
+                  // Update dataset data to hide non-selected slices
+                  pie.data.datasets[0].data = basePieData.map((v, idx) => {
+                    if (!pieSelectedTasks) return v; // all visible
+                    return pieSelectedTasks.includes(idx) ? v : 0;
+                  });
+
+                  // Hide meta elements for non-selected slices
+                  const meta = legend.chart.getDatasetMeta(0);
+                  meta.data.forEach((el, idx) => {
+                    el.hidden = !!(
+                      pieSelectedTasks && !pieSelectedTasks.includes(idx)
+                    );
+                  });
+
+                  // Update labels with recalculated percentages
+                  pie.data.labels = labels.map((label, idx) => {
+                    let pct = 0;
+                    if (pieSelectedTasks) {
+                      pct =
+                        pieSelectedTasks.includes(idx) && selectedTotal > 0
+                          ? (
+                              (trackers[idx].total / selectedTotal) *
+                              100
+                            ).toFixed(1)
+                          : 0;
+                    } else {
+                      pct = ((trackers[idx].total / total) * 100).toFixed(1);
+                    }
+                    return `${label} (${pct}%)`;
+                  });
+
+                  pie.update();
                 },
               },
               tooltip: {
@@ -1973,13 +2153,158 @@
                     const durations = t.rows
                       .map((r) => r.dur)
                       .sort((a, b) => a - b);
-                    const pct = ((t.total / total) * 100).toFixed(1);
+
+                    // Calculate percentage based on selected data
+                    let selectedTotal = total;
+                    if (pieSelectedTasks) {
+                      selectedTotal = pieSelectedTasks.reduce(
+                        (sum, i) => sum + trackers[i].total,
+                        0,
+                      );
+                    }
+
+                    const pct =
+                      pieSelectedTasks && !pieSelectedTasks.includes(idx)
+                        ? 0
+                        : selectedTotal > 0
+                          ? ((t.total / selectedTotal) * 100).toFixed(1)
+                          : 0;
+
                     return [
                       `Count: ${t.rows.length} sessions`,
                       `Total: ${dur(t.total)}`,
                       `Min: ${durations.length ? dur(durations[0]) : "N/A"}`,
                       `Max: ${durations.length ? dur(durations[durations.length - 1]) : "N/A"}`,
                       `Percentage: ${pct}%`,
+                    ];
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        // Line Chart: Time Trend Analysis (showing cumulative time per task)
+        const lineChartCanvas = document.getElementById("lineChart");
+        const cumulativeData = trackers.map((t, idx) => {
+          return (
+            trackers
+              .slice(0, idx + 1)
+              .reduce((sum, tracker) => sum + tracker.total, 0) / 3600000
+          );
+        });
+
+        lineChart = new Chart(lineChartCanvas, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Cumulative Time (Hours)",
+                data: cumulativeData,
+                borderColor: "#8b5cf6",
+                backgroundColor: "rgba(139, 92, 246, 0.1)",
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5,
+                pointBackgroundColor: "#8b5cf6",
+                pointBorderColor: "#fff",
+                pointBorderWidth: 2,
+              },
+              {
+                label: "Individual Task Time (Hours)",
+                data: durationData,
+                borderColor: "#10b981",
+                backgroundColor: "rgba(16, 185, 129, 0.1)",
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false,
+                pointRadius: 4,
+                pointBackgroundColor: "#10b981",
+                pointBorderColor: "#fff",
+                pointBorderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+              mode: "index",
+              intersect: false,
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Time (Hours)",
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} hours`;
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        // Doughnut Chart: Task Completion Rate (showing sessions vs time efficiency)
+        const doughnutChartCanvas = document.getElementById("doughnutChart");
+        const avgSessionDuration = trackers.map((t) => {
+          if (t.rows.length === 0) return 0;
+          return t.total / t.rows.length / 60000; // in minutes
+        });
+
+        doughnutChart = new Chart(doughnutChartCanvas, {
+          type: "doughnut",
+          data: {
+            labels: labels.map((label, idx) => {
+              return `${label} (${avgSessionDuration[idx].toFixed(0)} min/session)`;
+            }),
+            datasets: [
+              {
+                label: "Average Session Duration (Minutes)",
+                data: avgSessionDuration,
+                backgroundColor: colors.slice(0, labels.length),
+                borderColor: "#fff",
+                borderWidth: 3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  padding: 15,
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    const idx = ctx.dataIndex;
+                    const t = trackers[idx];
+                    return [
+                      `Task: ${t.name}`,
+                      `Avg Session: ${avgSessionDuration[idx].toFixed(1)} minutes`,
+                      `Total Sessions: ${t.rows.length}`,
+                      `Total Time: ${dur(t.total)}`,
                     ];
                   },
                 },
@@ -2304,6 +2629,45 @@
             handleLogin();
           }
         });
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", (e) => {
+        // Check if Alt key is pressed
+        if (e.altKey) {
+          switch (e.key) {
+            case "1":
+              // Alt+1: Create new task
+              e.preventDefault();
+              addTracker();
+              break;
+            case "2":
+              // Alt+2: Open sheet list popup
+              e.preventDefault();
+              openSheetsModal();
+              break;
+            case "3":
+              // Alt+3: Toggle single/multiple tasks mode
+              e.preventDefault();
+              toggleMode();
+              break;
+            case "h":
+            case "H":
+              // Alt+H: Open home tab
+              e.preventDefault();
+              toggleHomeSidebar();
+              break;
+          }
+        }
+      });
+
+      // Middle-click handler for Timer button
+      function handleTimerClick(event) {
+        // Check if middle mouse button (button === 1)
+        if (event.button === 1) {
+          event.preventDefault();
+          window.open("Timer.html", "_blank");
+        }
+      }
     </script>
   </body>
 </html>
