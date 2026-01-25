@@ -75,6 +75,12 @@
         opacity: 0.5;
         cursor: not-allowed;
       }
+      @media (max-width: 600px) {
+        button {
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+        }
+      }
       main {
         padding: 20px;
         max-width: 1400px;
@@ -359,9 +365,372 @@
       .home-btn {
         margin-right: 10px;
       }
+      /* Right-side menu drawer (20% width) */
+      .menu-drawer {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 20%;
+        height: 100%;
+        background: #fff;
+        border-left: 3px solid var(--primary);
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
+        z-index: 101;
+        overflow-y: auto;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      }
+      .menu-drawer.active {
+        transform: translateX(0);
+      }
+      .menu-drawer .drawer-header {
+        padding: 16px;
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 102;
+      }
+      .menu-drawer .drawer-header h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+      .drawer-close {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        transition: transform 0.2s;
+      }
+      .drawer-close:hover {
+        transform: scale(1.1);
+      }
+      @media (max-width: 600px) {
+        .menu-drawer .drawer-content a:hover {
+          background: var(--primary);
+          color: #fff;
+        }
+      }
+      .menu-drawer .drawer-content {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
       @media (max-width: 1024px) {
         .main-container {
           grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 768px) {
+        header {
+          padding: 10px 12px;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        header h1 {
+          font-size: 16px;
+          flex-basis: 100%;
+          order: 2;
+          margin-top: 8px;
+        }
+        header .left {
+          order: 1;
+          flex: 1;
+          min-width: 100%;
+        }
+        header .right {
+          order: 3;
+          flex: 1;
+          min-width: 100%;
+          flex-wrap: wrap;
+        }
+        header .left button,
+        header .right button {
+          padding: 6px 8px;
+          font-size: 12px;
+          flex: 1;
+          min-width: 50px;
+        }
+        .menu-drawer {
+          width: 100%;
+        }
+        main {
+          padding: 12px;
+        }
+        .card {
+          padding: 12px;
+          margin-bottom: 12px;
+        }
+        .controls {
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .controls button {
+          padding: 6px 8px;
+          font-size: 11px;
+          flex: 1;
+          min-width: 45px;
+        }
+      }
+      @media (max-width: 600px) {
+        body {
+          font-size: 13px;
+        }
+        header {
+          padding: 8px 10px;
+          gap: 6px;
+        }
+        header h1 {
+          font-size: 14px;
+          margin: 6px 0;
+        }
+        header .left,
+        header .right {
+          flex: 1;
+          min-width: 100%;
+          gap: 6px;
+        }
+        header .left button,
+        header .right button {
+          padding: 6px 6px;
+          font-size: 11px;
+          flex: 1;
+          min-width: 40px;
+        }
+        .menu-drawer {
+          width: 100%;
+          border-left: 2px solid var(--primary);
+        }
+        .menu-drawer .drawer-header {
+          padding: 12px;
+        }
+        .menu-drawer .drawer-header h2 {
+          font-size: 16px;
+        }
+        .menu-drawer .drawer-content {
+          padding: 6px;
+          gap: 4px;
+        }
+        .menu-drawer .drawer-content a {
+          padding: 12px 10px;
+          font-size: 13px;
+          border-radius: 6px;
+          margin-bottom: 2px;
+        }
+        main {
+          padding: 10px;
+          max-width: 100%;
+        }
+        .main-container {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .card {
+          padding: 10px;
+          margin-bottom: 10px;
+          border-radius: 8px;
+        }
+        .card h3 {
+          font-size: 13px;
+          margin-bottom: 8px;
+        }
+        .controls {
+          gap: 4px;
+          margin-bottom: 6px;
+          flex-wrap: wrap;
+        }
+        .controls button {
+          padding: 6px 6px;
+          font-size: 10px;
+          flex: 1;
+          min-width: 35px;
+          border-radius: 4px;
+        }
+        .controls .total-time {
+          flex-basis: 100%;
+          font-size: 11px;
+          text-align: center;
+          padding: 6px 0;
+        }
+        .card table {
+          font-size: 10px;
+          width: 100%;
+        }
+        .card table th,
+        .card table td {
+          padding: 4px 3px;
+          word-break: break-word;
+        }
+        .running-section {
+          padding: 10px;
+          border-radius: 8px;
+        }
+        .running-section h2 {
+          font-size: 13px;
+          margin-bottom: 8px;
+        }
+        .running-card {
+          padding: 8px;
+          margin-bottom: 6px;
+          border-radius: 6px;
+        }
+        .running-card h4 {
+          font-size: 11px;
+          margin-bottom: 4px;
+        }
+        .running-card .time-display {
+          font-size: 12px;
+          margin-bottom: 6px;
+        }
+        .task-list-section {
+          padding: 10px;
+          border-radius: 8px;
+        }
+        .task-list-section h2 {
+          font-size: 13px;
+          margin-bottom: 8px;
+        }
+        .task-list li {
+          margin-bottom: 4px;
+        }
+        .task-list-link {
+          padding: 10px 10px;
+          font-size: 12px;
+          border-radius: 6px;
+          margin-bottom: 2px;
+        }
+        .modal-content {
+          width: 95%;
+          padding: 15px;
+        }
+        .modal-content h2 {
+          font-size: 16px;
+          margin-bottom: 12px;
+        }
+        .sheet-item {
+          padding: 10px;
+          margin-bottom: 6px;
+          font-size: 12px;
+        }
+        .analytics-icon {
+          margin-left: 2px;
+          font-size: 14px;
+          cursor: pointer;
+        }
+        .home-sidebar {
+          width: 100%;
+          border-right: 2px solid var(--primary);
+        }
+        .sidebar-header {
+          padding: 12px;
+        }
+        .sidebar-header h2 {
+          font-size: 16px;
+        }
+        .running-tasks-list {
+          padding: 10px;
+        }
+        .running-task-card {
+          padding: 10px;
+          margin-bottom: 8px;
+          border-radius: 6px;
+        }
+        .running-task-card h4 {
+          font-size: 12px;
+          margin-bottom: 4px;
+        }
+        .analytics {
+          padding: 10px;
+        }
+        .analytics h3 {
+          font-size: 13px;
+        }
+        .chart-container {
+          margin-bottom: 20px;
+          min-height: 250px;
+        }
+        canvas {
+          max-width: 100% !important;
+          height: auto !important;
+        }
+        .login-container {
+          width: 95%;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        .login-container h2 {
+          font-size: 16px;
+          margin-bottom: 12px;
+        }
+        .login-form input {
+          padding: 10px;
+          font-size: 14px;
+          margin-bottom: 8px;
+          border-radius: 6px;
+        }
+        .login-btn {
+          padding: 10px;
+          font-size: 14px;
+          width: 100%;
+          border-radius: 6px;
+        }
+        .welcome-container {
+          width: 95%;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        .welcome-icon {
+          font-size: 48px;
+          margin-bottom: 10px;
+        }
+        .welcome-container h2 {
+          font-size: 16px;
+          margin-bottom: 10px;
+        }
+      }
+      @media (max-width: 480px) {
+        header {
+          padding: 6px 8px;
+          gap: 4px;
+        }
+        header h1 {
+          font-size: 12px;
+          margin: 4px 0;
+        }
+        header .left button,
+        header .right button {
+          padding: 5px 5px;
+          font-size: 10px;
+        }
+        .card h3 {
+          font-size: 12px;
+        }
+        .card table {
+          font-size: 9px;
+          display: block;
+          width: 100%;
+        }
+        .card table thead {
+          display: none;
+        }
+        .card table tr {
+          display: block;
+          margin-bottom: 10px;
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          padding: 8px;
+          background: #f8f9fa;
+        }
+        .card table td {
+          display: block;
+          padding: 4px 0;
+          text-align: left;
         }
       }
       #totalRunning {
@@ -405,17 +774,29 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 13px;
+        background: #fff;
+        color: var(--fg);
       }
       th,
       td {
         border: 1px solid var(--border);
-        padding: 6px;
+        padding: 8px 6px;
         text-align: center;
+        color: var(--fg);
+        background: #fff;
       }
       th {
-        background: #f0f4ff;
+        background: #eef2ff;
         color: var(--primary);
-        font-weight: 600;
+        font-weight: 700;
+      }
+      .card {
+        color: var(--fg);
+      }
+      .running-card,
+      .running-section,
+      .task-list-section {
+        color: var(--fg);
       }
       .analytics {
         margin-top: 0;
@@ -787,33 +1168,12 @@
         >
           🏠 Home
         </button>
-        <!-- create the link for welcome.html page button -->
-        <button
-          onclick="window.location.href = 'welcome.html'"
-          title="Welcome Page"
-        >
-          Know me
+        <button onclick="downloadAll()">⬇️ CSV</button>
+        <button onclick="addTracker()" title="Create New Task (Alt+1)">
+          ＋ Task
         </button>
-        <!-- Create by me for link the todo.html file by button -->
-        <button
-          onclick="window.location.href = 'todo.html'"
-          title="Track your To-Do list"
-        >
-          📝 To-Do
-        </button>
-        <button
-          id="timerBtn"
-          onclick="window.location.href = 'Timer.html'"
-          onmousedown="handleTimerClick(event)"
-          title="Tap Timer (Alt+T)"
-        >
-          ⏱️ Timer
-        </button>
-        <button
-          onclick="window.location.href = 'NotificationTimer.html'"
-          title="Smart Timer (Alt+S)"
-        >
-          🔔 Smart Timer
+        <button onclick="openSheetsModal()" title="Sheet List (Alt+2)">
+          📑 Sheets
         </button>
       </div>
 
@@ -826,13 +1186,6 @@
         >
       </h1>
       <div class="right">
-        <button onclick="downloadAll()">Download CSV</button>
-        <button onclick="addTracker()" title="Create New Task (Alt+1)">
-          ＋
-        </button>
-        <button onclick="openSheetsModal()" title="Sheet List (Alt+2)">
-          📑 Sheets
-        </button>
         <button
           id="modeBtn"
           class="toggle-mode single"
@@ -850,8 +1203,75 @@
         >
           Logout
         </button>
+        <button onclick="toggleMenuDrawer(true)" title="Open Menu">Menu</button>
       </div>
     </header>
+    <!-- Right-side Menu Drawer -->
+    <div id="menuDrawer" class="menu-drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <h2>Menu</h2>
+        <button
+          class="drawer-close"
+          onclick="toggleMenuDrawer(false)"
+          aria-label="Close Menu"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="drawer-content">
+        <a class="task-list-link" href="welcome.html" title="Welcome Page"
+          >😎 Know Me</a
+        >
+        <button
+          id="themeToggleBtn"
+          class="task-list-link"
+          style="text-align: left"
+          onclick="toggleThemeMode()"
+          title="Toggle Dark/Day Mode"
+        >
+          🌙 Night Mode
+        </button>
+        <a class="task-list-link" href="todo.html" title="Track your To-Do list"
+          >📝 To-Do</a
+        >
+        <a
+          class="task-list-link"
+          href="Timer.html"
+          onmousedown="handleTimerClick(event)"
+          title="Tap Timer (Alt+T)"
+          >⏱️ Timer</a
+        >
+        <a
+          class="task-list-link"
+          href="NotificationTimer.html"
+          title="Smart Timer (Alt+S)"
+          >🔔 Smart Timer</a
+        >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            gap: 8px;
+          "
+        >
+          <span
+            id="drawerUserDisplay"
+            class="user-badge"
+            style="display: none"
+          ></span>
+          <button
+            class="logout-btn"
+            onclick="handleLogout()"
+            id="drawerLogoutBtn"
+            style="display: none"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
 
     <main>
       <div id="totalRunning">Total Running Time: 00:00:00.000</div>
@@ -1147,6 +1567,8 @@
       </div>
     </div>
 
+    <!-- Removed old ad-hoc menu; replaced by header button and drawer -->
+
     <script>
       /* -------------------- LOGIN SYSTEM -------------------- */
       // Always read the logged-in user from DatabaseManager so reloads keep the session
@@ -1359,6 +1781,54 @@
         db.saveUserData(currentUser, userData);
       }
 
+      /* -------------------- THEME -------------------- */
+      const THEME_KEY = "tt_theme";
+
+      function applyTheme(theme) {
+        const root = document.documentElement;
+        const isDark = theme === "dark";
+
+        if (isDark) {
+          root.style.setProperty("--bg", "#0f172a");
+          root.style.setProperty("--fg", "#e5e7eb");
+          root.style.setProperty("--muted", "#9ca3af");
+          root.style.setProperty("--border", "#1f2937");
+          root.style.setProperty("--primary", "#3b82f6");
+          root.style.setProperty("--success", "#22c55e");
+          root.style.setProperty("--danger", "#ef4444");
+          root.style.setProperty("--accent", "#8b5cf6");
+          document.body.style.background = "var(--bg)";
+          document.body.classList.add("theme-dark");
+        } else {
+          root.style.setProperty("--bg", "#f8f9fa");
+          root.style.setProperty("--fg", "#111111");
+          root.style.setProperty("--muted", "#666");
+          root.style.setProperty("--border", "#ddd");
+          root.style.setProperty("--primary", "#4f46e5");
+          root.style.setProperty("--success", "#10b981");
+          root.style.setProperty("--danger", "#ef4444");
+          root.style.setProperty("--accent", "#3b82f6");
+          document.body.style.background = "var(--bg)";
+          document.body.classList.remove("theme-dark");
+        }
+
+        const btn = document.getElementById("themeToggleBtn");
+        if (btn) {
+          btn.textContent = isDark ? "☀️ Day Mode" : "🌙 Night Mode";
+        }
+      }
+
+      function toggleThemeMode() {
+        const current = localStorage.getItem(THEME_KEY) || "light";
+        const next = current === "dark" ? "light" : "dark";
+        localStorage.setItem(THEME_KEY, next);
+        applyTheme(next);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        applyTheme(localStorage.getItem(THEME_KEY) || "light");
+      });
+
       /* -------------------- STORAGE -------------------- */
       let currentSheet = "Sheet 1";
       let sheets = { "Sheet 1": [] };
@@ -1541,10 +2011,34 @@
       }
 
       function del(i) {
+        const timerKey = `${currentSheet}-${i}`;
+        const isRunning = runningTimers[timerKey];
+
+        if (isRunning) {
+          alert(
+            "Cannot delete a running task! Please stop the task first before deleting.",
+          );
+          return;
+        }
+
         if (confirm("Delete tracker?")) {
           trackers.splice(i, 1);
+
+          // Update runningTimers keys for tasks that come after the deleted one
+          // If a task at index j (where j > i) is running, move its timer from
+          // ${currentSheet}-j to ${currentSheet}-(j-1)
+          for (let j = i + 1; j < trackers.length + 1; j++) {
+            const oldKey = `${currentSheet}-${j}`;
+            const newKey = `${currentSheet}-${j - 1}`;
+            if (runningTimers[oldKey]) {
+              runningTimers[newKey] = runningTimers[oldKey];
+              delete runningTimers[oldKey];
+            }
+          }
+
           save();
           render();
+          drawCharts();
         }
       }
 
@@ -1839,7 +2333,7 @@
       <div class=controls>
         <button id="start-${i}" class="${running ? "running" : ""}" onclick="start(${i})" ${running ? "disabled" : ""}>${running ? "Running" : "Start"}</button>
         <button id="stop-${i}" onclick="stop(${i})" ${!running ? "disabled" : ""}>Stop</button>
-        <button id="del-${i}" onclick="del(${i})">Delete</button>
+        <button id="del-${i}" onclick="del(${i})" ${running ? "disabled" : ""}>Delete</button>
         <button id="download-${i}" onclick="downloadTask(${i})">Download CSV</button>
         <strong id="total-${i}" class="total-time">Total: ${dur(total)}</strong>
       </div>
@@ -2659,6 +3153,39 @@
           }
         }
       });
+
+      // Toggle right-side menu drawer
+      function toggleMenuDrawer(force) {
+        const drawer = document.getElementById("menuDrawer");
+        if (!drawer) return;
+        const isActive = drawer.classList.contains("active");
+        const shouldOpen = typeof force === "boolean" ? force : !isActive;
+        drawer.classList.toggle("active", shouldOpen);
+
+        // Sync user info visibility and content
+        const headerUser = document.getElementById("userDisplay");
+        const drawerUser = document.getElementById("drawerUserDisplay");
+        if (drawerUser) {
+          if (
+            headerUser &&
+            headerUser.style.display !== "none" &&
+            headerUser.textContent
+          ) {
+            drawerUser.style.display = "inline-flex";
+            drawerUser.textContent = headerUser.textContent;
+          } else {
+            drawerUser.style.display = "none";
+            drawerUser.textContent = "";
+          }
+        }
+
+        // Sync logout button visibility
+        const headerLogout = document.getElementById("logoutBtn");
+        const drawerLogout = document.getElementById("drawerLogoutBtn");
+        if (drawerLogout && headerLogout) {
+          drawerLogout.style.display = headerLogout.style.display || "none";
+        }
+      }
 
       // Middle-click handler for Timer button
       function handleTimerClick(event) {

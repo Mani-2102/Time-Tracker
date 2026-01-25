@@ -28,6 +28,82 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+      #backgroundAnalytics {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.45;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #backgroundAnalytics canvas {
+        max-width: 100%;
+        max-height: 100%;
+      }
+      .timer-center {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .save-session-inline {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        border-radius: 10px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(79, 70, 229, 0.2);
+      }
+      .save-session-inline input {
+        padding: 8px 12px !important;
+        border: 1px solid rgba(79, 70, 229, 0.3) !important;
+        border-radius: 6px !important;
+        background: #fff !important;
+        color: #0f172a !important;
+        font-size: 12px !important;
+        min-width: 100px;
+        margin: 0 !important;
+      }
+      .save-session-inline input::placeholder {
+        color: #4b5563;
+      }
+      .save-session-inline input:focus {
+        outline: none;
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2) !important;
+      }
+      .save-session-inline button {
+        padding: 8px 16px !important;
+        background: linear-gradient(
+          135deg,
+          var(--accent) 0%,
+          #3b82f6 100%
+        ) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600;
+        font-size: 12px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .save-session-inline button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
       }
       #timeDisplay {
         font-size: 36px;
@@ -78,58 +154,164 @@
       #panel {
         position: fixed;
         top: 0;
-        right: -90vw;
-        width: 90vw;
+        right: -35vw;
+        width: 35vw;
         height: 100vh;
-        background: var(--panel);
-        box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
-        transition: 0.4s;
-        padding: 15px;
+        background: linear-gradient(
+          135deg,
+          var(--panel) 0%,
+          rgba(79, 70, 229, 0.05) 100%
+        );
+        box-shadow: -8px 0 25px rgba(0, 0, 0, 0.25);
+        transition: right 0.4s ease;
+        padding: 0;
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        z-index: 999;
       }
       #panel.open {
         right: 0;
       }
-      #closeBtn {
-        background: #ef4444;
+      #panel > h3 {
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
         color: #fff;
-        float: right;
+        font-size: 18px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #closeBtn {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: auto;
+        float: none;
+      }
+      #closeBtn:hover {
+        transform: scale(1.1);
+        transition: all 0.2s;
+      }
+      .panel-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
       }
       input,
       select {
         width: 100%;
-        padding: 8px;
-        margin-bottom: 8px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        background: var(--panel);
+        color: var(--text);
+        transition: all 0.3s;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+      .panel-section {
+        margin-bottom: 20px;
+      }
+      .panel-section h4 {
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .font-size-controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .font-size-controls button {
+        flex: 1;
+        padding: 8px 12px;
+        background: #f0f0f0;
+        border: 1.5px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .font-size-controls button:hover {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
       }
       table {
         width: 100%;
         border-collapse: collapse;
+        margin-top: 12px;
+        border-radius: 8px;
+        overflow: hidden;
+        font-size: 11px;
       }
       th,
       td {
-        border: 1px solid #ddd;
-        padding: 6px;
+        border: 1px solid #e0e0e0;
+        padding: 8px 4px;
         text-align: center;
       }
       th {
-        background: #f0f0f0;
+        background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+        color: #fff;
+        font-weight: 600;
+      }
+      tr:nth-child(even) {
+        background: rgba(79, 70, 229, 0.05);
       }
       #csvBtn,
       #saveBtn,
       #clearBtn {
         width: 100%;
         color: #fff;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 10px;
+        transition: all 0.3s;
       }
       #csvBtn {
-        background: #16a34a;
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      }
+      #csvBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
       }
       #saveBtn {
-        background: #0ea5e9;
-        margin-bottom: 6px;
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      }
+      #saveBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
       }
       #clearBtn {
-        background: #dc2626;
-        margin-bottom: 10px;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      }
+      #clearBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      }
+      #chart {
+        margin: 20px 0;
+        max-height: 250px;
       }
       .resetBtn {
         margin-top: 10px;
@@ -157,55 +339,230 @@
     </div>
 
     <div id="timerScreen">
-      <div id="timeDisplay">00:00:00.000</div>
-      <div id="stats">Best: -- | Avg: --</div>
-      <button class="resetBtn" id="resetBtn">Reset Timer</button>
-      <div id="hint">Tap / Press SPACE</div>
+      <div id="backgroundAnalytics"></div>
+
+      <div class="timer-center">
+        <div id="timeDisplay">00:00:00.000</div>
+        <div id="stats">Best: -- | Avg: --</div>
+
+        <div class="save-session-inline">
+          <input id="title" placeholder="Title" style="max-width: 80px" />
+          <input
+            id="subtitle"
+            placeholder="Sub-title"
+            style="max-width: 80px"
+          />
+          <button id="saveBtn">💾 Save</button>
+        </div>
+
+        <button class="resetBtn" id="resetBtn">Reset Timer</button>
+        <div id="hint">Tap / Press SPACE</div>
+      </div>
     </div>
 
     <div id="dataPanel"><button id="openBtn">View Details</button></div>
 
     <div id="panel">
-      <button id="closeBtn">Close</button>
-      <h3>Session Details</h3>
+      <h3>
+        ⚙️ Session Details
+        <button id="closeBtn">✕</button>
+      </h3>
+      <div class="panel-content">
+        <div class="panel-section">
+          <h4>🎨 Appearance</h4>
+          <label
+            style="
+              font-size: 12px;
+              color: var(--text);
+              margin-bottom: 8px;
+              display: block;
+            "
+          >
+            Theme Mode
+          </label>
+          <select id="modeDropdown">
+            <option value="day">☀️ Day Mode</option>
+            <option value="dark">🌙 Dark Mode</option>
+          </select>
 
-      <h4>Theme Mode</h4>
-      <select id="modeDropdown">
-        <option value="day">Day Mode</option>
-        <option value="dark">Dark Mode</option>
-      </select>
+          <label
+            style="
+              font-size: 12px;
+              color: var(--text);
+              margin-bottom: 8px;
+              display: block;
+            "
+          >
+            Color Theme
+          </label>
+          <select id="colorDropdown"></select>
 
-      <h4>Color Theme</h4>
-      <select id="colorDropdown"></select>
+          <label
+            style="
+              font-size: 12px;
+              color: var(--text);
+              margin-bottom: 8px;
+              display: block;
+            "
+          >
+            Font Style
+          </label>
+          <select id="fontDropdown"></select>
 
-      <h4>Font Picker</h4>
-      <select id="fontDropdown"></select>
+          <label
+            style="
+              font-size: 12px;
+              color: var(--text);
+              margin-bottom: 8px;
+              display: block;
+            "
+          >
+            Font Size
+          </label>
+          <div class="font-size-controls">
+            <button onclick="fontSize('+')">A+</button>
+            <button onclick="fontSize('-')">A−</button>
+          </div>
+        </div>
 
-      <h4>Font Size</h4>
-      <button onclick="fontSize('+')">A+</button>
-      <button onclick="fontSize('-')">A-</button><br /><br />
+        <div class="panel-section">
+          <h4>📊 Sessions History</h4>
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Sub</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
-      <input id="title" placeholder="Title" />
-      <input id="subtitle" placeholder="Sub-title" />
-      <button id="saveBtn">Save Session</button>
-      <button id="clearBtn">Clear All Saved Data</button>
+        <div class="panel-section">
+          <h4>📈 Analytics</h4>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+              margin-bottom: 15px;
+            "
+          >
+            <div
+              style="
+                background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+                color: #fff;
+                padding: 12px;
+                border-radius: 8px;
+                text-align: center;
+              "
+            >
+              <div style="font-size: 11px; opacity: 0.9">Total Sessions</div>
+              <div style="font-size: 18px; font-weight: 700" id="statSessions">
+                0
+              </div>
+            </div>
+            <div
+              style="
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: #fff;
+                padding: 12px;
+                border-radius: 8px;
+                text-align: center;
+              "
+            >
+              <div style="font-size: 11px; opacity: 0.9">Total Time</div>
+              <div style="font-size: 18px; font-weight: 700" id="statTotalTime">
+                00:00:00
+              </div>
+            </div>
+            <div
+              style="
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                color: #fff;
+                padding: 12px;
+                border-radius: 8px;
+                text-align: center;
+              "
+            >
+              <div style="font-size: 11px; opacity: 0.9">Avg Duration</div>
+              <div style="font-size: 18px; font-weight: 700" id="statAvgTime">
+                00:00:00
+              </div>
+            </div>
+            <div
+              style="
+                background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+                color: #fff;
+                padding: 12px;
+                border-radius: 8px;
+                text-align: center;
+              "
+            >
+              <div style="font-size: 11px; opacity: 0.9">Best Time</div>
+              <div style="font-size: 18px; font-weight: 700" id="statBestTime">
+                00:00:00
+              </div>
+            </div>
+          </div>
 
-      <table id="dataTable">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Sub</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Duration</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+          <div
+            style="
+              margin-bottom: 15px;
+              background: rgba(79, 70, 229, 0.05);
+              padding: 12px;
+              border-radius: 8px;
+            "
+          >
+            <h5
+              style="margin: 0 0 10px 0; font-size: 13px; color: var(--accent)"
+            >
+              Duration Trend
+            </h5>
+            <canvas id="lineChart" style="max-height: 200px"></canvas>
+          </div>
 
-      <canvas id="chart"></canvas>
+          <div
+            style="
+              margin-bottom: 15px;
+              background: rgba(79, 70, 229, 0.05);
+              padding: 12px;
+              border-radius: 8px;
+            "
+          >
+            <h5
+              style="margin: 0 0 10px 0; font-size: 13px; color: var(--accent)"
+            >
+              Tasks Distribution
+            </h5>
+            <canvas id="pieChart" style="max-height: 180px"></canvas>
+          </div>
 
-      <button id="csvBtn">Download CSV</button>
+          <div
+            style="
+              margin-bottom: 15px;
+              background: rgba(79, 70, 229, 0.05);
+              padding: 12px;
+              border-radius: 8px;
+            "
+          >
+            <h5
+              style="margin: 0 0 10px 0; font-size: 13px; color: var(--accent)"
+            >
+              Duration by Task
+            </h5>
+            <canvas id="barChart" style="max-height: 180px"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <button id="csvBtn">📥 Download CSV</button>
+          <button id="clearBtn">🗑️ Clear All Data</button>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -273,6 +630,19 @@
       document
         .getElementById("timerScreen")
         .addEventListener("click", toggleTimer);
+
+      // Prevent timer start when clicking on inputs
+      document.getElementById("title").addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+      document.getElementById("subtitle").addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+
+      document.getElementById("saveBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+
       document.getElementById("resetBtn").addEventListener("click", (e) => {
         e.stopPropagation();
         resetTimer();
@@ -328,28 +698,359 @@
       };
 
       /* STATS */
+      let chartLine, chartPie, chartBar;
+
       function calcStats() {
         if (!data.length) {
           stats.innerText = "Best: -- | Avg: --";
+          document.getElementById("statSessions").innerText = "0";
+          document.getElementById("statTotalTime").innerText = "00:00:00";
+          document.getElementById("statAvgTime").innerText = "00:00:00";
+          document.getElementById("statBestTime").innerText = "00:00:00";
           return;
         }
-        let best = data[0].ms;
-        let avg = data.reduce((a, b) => a + b.ms, 0) / data.length;
+
+        let best = Math.min(...data.map((d) => d.ms));
+        let total = data.reduce((a, b) => a + b.ms, 0);
+        let avg = total / data.length;
+
+        // Update top stats
         stats.innerText = `Best: ${format(best)} | Avg: ${format(avg)}`;
+
+        // Update analytics stats
+        document.getElementById("statSessions").innerText = data.length;
+        document.getElementById("statTotalTime").innerText = formatTime(total);
+        document.getElementById("statAvgTime").innerText = formatTime(avg);
+        document.getElementById("statBestTime").innerText = formatTime(best);
       }
 
-      /* CHART */
-      let chart;
+      function formatTime(ms) {
+        let sec = Math.floor(ms / 1000);
+        let h = String(Math.floor(sec / 3600)).padStart(2, "0");
+        let m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+        let s = String(sec % 60).padStart(2, "0");
+        return `${h}:${m}:${s}`;
+      }
+
+      /* CHARTS */
       function drawChart() {
-        let ctx = document.getElementById("chart");
-        if (chart) chart.destroy();
-        chart = new Chart(ctx, {
+        if (!data.length) return;
+
+        // Line Chart - Duration Trend
+        const lineCtx = document.getElementById("lineChart");
+        if (chartLine) chartLine.destroy();
+        chartLine = new Chart(lineCtx, {
+          type: "line",
+          data: {
+            labels: data.map((_, i) => `#${i + 1}`),
+            datasets: [
+              {
+                label: "Duration (sec)",
+                data: data.map((x) => Math.round(x.ms / 1000)),
+                borderColor: "#4f46e5",
+                backgroundColor: "rgba(79, 70, 229, 0.1)",
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: "#4f46e5",
+                pointBorderColor: "#fff",
+                pointBorderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { display: true, position: "top" } },
+            scales: { y: { beginAtZero: true } },
+          },
+        });
+
+        // Pie Chart - Tasks Distribution
+        const pieCtx = document.getElementById("pieChart");
+        if (chartPie) chartPie.destroy();
+
+        // Group by task name
+        const taskGroups = {};
+        data.forEach((d) => {
+          if (!taskGroups[d.t]) taskGroups[d.t] = 0;
+          taskGroups[d.t]++;
+        });
+
+        chartPie = new Chart(pieCtx, {
+          type: "doughnut",
+          data: {
+            labels: Object.keys(taskGroups),
+            datasets: [
+              {
+                data: Object.values(taskGroups),
+                backgroundColor: [
+                  "#4f46e5",
+                  "#10b981",
+                  "#f59e0b",
+                  "#ef4444",
+                  "#8b5cf6",
+                  "#0ea5e9",
+                  "#ec4899",
+                  "#14b8a6",
+                ],
+                borderColor: "#fff",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { position: "bottom" } },
+          },
+        });
+
+        // Bar Chart - Duration by Task
+        const barCtx = document.getElementById("barChart");
+        if (chartBar) chartBar.destroy();
+
+        // Group by task and sum duration
+        const taskDuration = {};
+        data.forEach((d) => {
+          if (!taskDuration[d.t]) taskDuration[d.t] = 0;
+          taskDuration[d.t] += Math.round(d.ms / 1000);
+        });
+
+        chartBar = new Chart(barCtx, {
+          type: "bar",
+          data: {
+            labels: Object.keys(taskDuration),
+            datasets: [
+              {
+                label: "Total Duration (sec)",
+                data: Object.values(taskDuration),
+                backgroundColor: [
+                  "#4f46e5",
+                  "#10b981",
+                  "#f59e0b",
+                  "#ef4444",
+                  "#8b5cf6",
+                  "#0ea5e9",
+                  "#ec4899",
+                  "#14b8a6",
+                ],
+                borderRadius: 6,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true } },
+          },
+        });
+
+        // Draw background chart
+        drawBackgroundAnalytics();
+      }
+
+      /* BACKGROUND ANALYTICS */
+      let bgCharts = { line: null, pie: null, bar: null };
+      function drawBackgroundAnalytics() {
+        if (!data.length) return;
+
+        const bgContainer = document.getElementById("backgroundAnalytics");
+        bgContainer.innerHTML = "";
+        bgContainer.style.display = "grid";
+        bgContainer.style.gridTemplateColumns = "60% 40%";
+        bgContainer.style.gridTemplateRows = "60% 40%";
+        bgContainer.style.gap = "12px";
+        bgContainer.style.padding = "20px";
+        bgContainer.style.alignItems = "start";
+        bgContainer.style.justifyContent = "start";
+
+        // Canvases
+        const lineCanvas = document.createElement("canvas");
+        lineCanvas.style.width = "100%";
+        lineCanvas.style.height = "100%";
+        lineCanvas.style.aspectRatio = "16 / 9";
+        lineCanvas.style.objectFit = "contain";
+        bgContainer.appendChild(lineCanvas);
+
+        const pieCanvas = document.createElement("canvas");
+        pieCanvas.style.width = "100%";
+        pieCanvas.style.height = "100%";
+        pieCanvas.style.aspectRatio = "1 / 1";
+        pieCanvas.style.objectFit = "contain";
+        bgContainer.appendChild(pieCanvas);
+
+        const barCanvas = document.createElement("canvas");
+        barCanvas.style.width = "100%";
+        barCanvas.style.height = "100%";
+        barCanvas.style.aspectRatio = "16 / 9";
+        barCanvas.style.objectFit = "contain";
+        bgContainer.appendChild(barCanvas);
+
+        // Mini table overlay (latest 4 rows)
+        const tableWrap = document.createElement("div");
+        tableWrap.style.background = "rgba(255,255,255,0.78)";
+        tableWrap.style.color = "#0b1221";
+        tableWrap.style.border = "1px solid rgba(0,0,0,0.06)";
+        tableWrap.style.borderRadius = "10px";
+        tableWrap.style.padding = "10px";
+        tableWrap.style.fontSize = "11px";
+        tableWrap.style.lineHeight = "1.4";
+        tableWrap.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
+        tableWrap.style.overflow = "hidden";
+        tableWrap.style.backdropFilter = "blur(4px)";
+        tableWrap.style.width = "100%";
+        const tbl = document.createElement("table");
+        tbl.style.width = "100%";
+        tbl.style.borderCollapse = "collapse";
+        const head = document.createElement("thead");
+        head.innerHTML =
+          "<tr><th style='text-align:left;padding:6px 4px;'>Title</th><th style='text-align:left;padding:6px 4px;'>Sub</th><th style='text-align:left;padding:6px 4px;'>Duration</th></tr>";
+        const body = document.createElement("tbody");
+        data.slice(-4).forEach((row) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td style='padding:4px 4px;border-top:1px solid rgba(0,0,0,0.05);'>${row.t}</td><td style='padding:4px 4px;border-top:1px solid rgba(0,0,0,0.05);'>${row.s}</td><td style='padding:4px 4px;border-top:1px solid rgba(0,0,0,0.05);'>${row.du}</td>`;
+          body.appendChild(tr);
+        });
+        tbl.appendChild(head);
+        tbl.appendChild(body);
+        tableWrap.appendChild(tbl);
+        bgContainer.appendChild(tableWrap);
+
+        // Destroy existing charts
+        Object.values(bgCharts).forEach((chart) => {
+          if (chart) chart.destroy();
+        });
+
+        // Line Chart - Duration Trend
+        bgCharts.line = new Chart(lineCanvas, {
           type: "line",
           data: {
             labels: data.map((_, i) => i + 1),
-            datasets: [{ label: "Time", data: data.map((x) => x.ms) }],
+            datasets: [
+              {
+                label: "Duration (sec)",
+                data: data.map((x) => Math.round(x.ms / 1000)),
+                borderColor: "rgba(79, 70, 229, 0.7)",
+                backgroundColor: "rgba(79, 70, 229, 0.3)",
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: "rgba(79, 70, 229, 0.9)",
+                pointBorderColor: "#fff",
+                pointBorderWidth: 2,
+              },
+            ],
           },
-          options: { scales: { y: { ticks: { callback: (v) => format(v) } } } },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { display: true, labels: { color: "rgba(0,0,0,0.6)" } },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(0,0,0,0.08)" },
+                ticks: { color: "rgba(0,0,0,0.5)" },
+              },
+              x: {
+                grid: { color: "rgba(0,0,0,0.08)" },
+                ticks: { color: "rgba(0,0,0,0.5)" },
+              },
+            },
+          },
+        });
+
+        // Pie Chart - Task Distribution
+        const taskGroups = {};
+        data.forEach((d) => {
+          if (!taskGroups[d.t]) taskGroups[d.t] = 0;
+          taskGroups[d.t]++;
+        });
+
+        bgCharts.pie = new Chart(pieCanvas, {
+          type: "doughnut",
+          data: {
+            labels: Object.keys(taskGroups),
+            datasets: [
+              {
+                data: Object.values(taskGroups),
+                backgroundColor: [
+                  "rgba(79, 70, 229, 0.7)",
+                  "rgba(16, 185, 129, 0.7)",
+                  "rgba(245, 158, 11, 0.7)",
+                  "rgba(239, 68, 68, 0.7)",
+                  "rgba(139, 92, 246, 0.7)",
+                  "rgba(14, 165, 233, 0.7)",
+                ],
+                borderColor: "#fff",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { color: "rgba(0,0,0,0.6)" },
+              },
+            },
+          },
+        });
+
+        // Bar Chart - Duration by Task
+        const taskDuration = {};
+        data.forEach((d) => {
+          if (!taskDuration[d.t]) taskDuration[d.t] = 0;
+          taskDuration[d.t] += Math.round(d.ms / 1000);
+        });
+
+        bgCharts.bar = new Chart(barCanvas, {
+          type: "bar",
+          data: {
+            labels: Object.keys(taskDuration),
+            datasets: [
+              {
+                label: "Total Duration (sec)",
+                data: Object.values(taskDuration),
+                backgroundColor: [
+                  "rgba(79, 70, 229, 0.7)",
+                  "rgba(16, 185, 129, 0.7)",
+                  "rgba(245, 158, 11, 0.7)",
+                  "rgba(239, 68, 68, 0.7)",
+                  "rgba(139, 92, 246, 0.7)",
+                  "rgba(14, 165, 233, 0.7)",
+                ],
+                borderRadius: 5,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                beginAtZero: true,
+                grid: { color: "rgba(0,0,0,0.08)" },
+                ticks: { color: "rgba(0,0,0,0.5)" },
+              },
+              y: {
+                grid: { color: "rgba(0,0,0,0.08)" },
+                ticks: { color: "rgba(0,0,0,0.5)" },
+              },
+            },
+          },
         });
       }
 
@@ -423,6 +1124,7 @@
         if (x === "+") fontSizeVal += 4;
         if (x === "-") fontSizeVal -= 4;
         display.style.fontSize = fontSizeVal + "px";
+        localStorage.setItem("userFontSize", fontSizeVal);
       }
 
       /* LOAD USER PREFS */
@@ -430,6 +1132,7 @@
         let c = localStorage.getItem("userColor");
         let f = localStorage.getItem("userFont");
         let m = localStorage.getItem("userMode");
+        let fs = localStorage.getItem("userFontSize");
 
         if (c) {
           colorDD.value = c;
@@ -442,6 +1145,10 @@
         if (m) {
           modeDD.value = m;
           applyMode(m);
+        }
+        if (fs) {
+          fontSizeVal = parseInt(fs, 10) || fontSizeVal;
+          display.style.fontSize = fontSizeVal + "px";
         }
       };
 
