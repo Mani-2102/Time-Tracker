@@ -2631,37 +2631,42 @@
             // Try different date formats
             let day, month, year;
 
-            // Try D/M/YYYY or M/D/YYYY format
-            const slashParts = dateStr.match(/(\d+)\/(\d+)\/(\d+)/);
-            if (slashParts) {
-              const part1 = parseInt(slashParts[1]);
-              const part2 = parseInt(slashParts[2]);
-              year = parseInt(slashParts[3]);
-
-              // If first part > 12, it must be day (D/M/YYYY format)
-              if (part1 > 12) {
-                day = part1;
-                month = part2 - 1; // JS months are 0-indexed
-              } else if (part2 > 12) {
-                // If second part > 12, it must be day (M/D/YYYY format)
-                month = part1 - 1;
-                day = part2;
-              } else {
-                // Ambiguous - assume D/M/YYYY based on user's locale
-                day = part1;
-                month = part2 - 1;
-              }
-            }
-
-            // Try YYYY-MM-DD format
+            // Try YYYY-MM-DD format first (ISO format)
             const isoParts = dateStr.match(/(\d{4})-(\d+)-(\d+)/);
             if (isoParts) {
               year = parseInt(isoParts[1]);
               month = parseInt(isoParts[2]) - 1;
               day = parseInt(isoParts[3]);
+            } else {
+              // Try D/M/YYYY or M/D/YYYY format
+              const slashParts = dateStr.match(/(\d+)\/(\d+)\/(\d+)/);
+              if (slashParts) {
+                const part1 = parseInt(slashParts[1]);
+                const part2 = parseInt(slashParts[2]);
+                year = parseInt(slashParts[3]);
+
+                // If first part > 12, it must be day (D/M/YYYY format)
+                if (part1 > 12) {
+                  day = part1;
+                  month = part2 - 1; // JS months are 0-indexed
+                } else if (part2 > 12) {
+                  // If second part > 12, it must be day (M/D/YYYY format)
+                  month = part1 - 1;
+                  day = part2;
+                } else {
+                  // Ambiguous - assume D/M/YYYY based on user's locale
+                  day = part1;
+                  month = part2 - 1;
+                }
+              }
             }
 
-            if (!day || !month === undefined || !year) {
+            if (
+              day === undefined ||
+              month === undefined ||
+              year === undefined
+            ) {
+              console.error("Failed to parse date:", dateStr);
               return new Date(NaN); // Invalid
             }
 
@@ -2679,26 +2684,65 @@
                 if (ampm.toUpperCase() === "PM" && hours !== 12) hours += 12;
                 if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
               }
+            } else {
+              // Try simpler HH:MM format
+              const simpleTime = timeStr.match(/(\d+):(\d+)/);
+              if (simpleTime) {
+                hours = parseInt(simpleTime[1]);
+                minutes = parseInt(simpleTime[2]);
+              } else {
+                console.error("Failed to parse time:", timeStr);
+                return new Date(NaN);
+              }
             }
 
-            return new Date(year, month, day, hours, minutes, seconds);
+            const result = new Date(year, month, day, hours, minutes, seconds);
+            console.log(`Parsed: "${dateStr} ${timeStr}" => ${result}`);
+            return result;
           }
 
           // Validate timestamps using proper parsing
+          console.log("Parsing values:", { newSd, newSt, newEd, newEt });
           const startTime = parseLocalDate(newSd, newSt);
           const endTime = parseLocalDate(newEd, newEt);
-          const now = Date.now();
-          if (
-            isNaN(startTime.getTime()) ||
-            isNaN(endTime.getTime()) ||
-            startTime.getTime() > now ||
-            endTime.getTime() > now ||
-            endTime.getTime() < startTime.getTime()
-          ) {
+          const now = new Date();
+
+          console.log("Parsed times:", {
+            startTime: startTime.toString(),
+            endTime: endTime.toString(),
+            now: now.toString(),
+            startValid: !isNaN(startTime.getTime()),
+            endValid: !isNaN(endTime.getTime()),
+            startInFuture: startTime > now,
+            endInFuture: endTime > now,
+            endBeforeStart: endTime < startTime,
+          });
+
+          if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
             alert(
-              "Invalid time. Ensure dates are not in the future and end is after start.",
+              "Invalid date/time format. Please use the picker to select dates and times.",
             );
-            return; // stay in edit mode
+            return;
+          }
+
+          if (endTime.getTime() < startTime.getTime()) {
+            alert("End time must be after start time.");
+            return;
+          }
+
+          // Allow times up to end of current day (not strict now check)
+          const endOfToday = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            23,
+            59,
+            59,
+            999,
+          );
+          if (startTime > endOfToday || endTime > endOfToday) {
+            alert("Dates cannot be in the future.");
+            return;
           }
 
           row.sd = newSd;
