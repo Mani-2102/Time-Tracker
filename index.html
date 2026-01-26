@@ -775,14 +775,14 @@
         border-collapse: collapse;
         font-size: 13px;
         background: #fff;
-        color: var(--fg);
+        color: #0f172a;
       }
       th,
       td {
         border: 1px solid var(--border);
         padding: 8px 6px;
         text-align: center;
-        color: var(--fg);
+        color: #0f172a;
         background: #fff;
       }
       th {
@@ -791,12 +791,23 @@
         font-weight: 700;
       }
       .card {
-        color: var(--fg);
+        color: #0f172a;
       }
       .running-card,
       .running-section,
       .task-list-section {
-        color: var(--fg);
+        color: #0f172a;
+      }
+      /* Dark theme specific link contrast */
+      body.theme-dark .task-list-link {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e5e7eb;
+      }
+      body.theme-dark .task-list-link.running {
+        background: #052e1b;
+        border-color: #16a34a;
+        color: #22c55e;
       }
       .analytics {
         margin-top: 0;
@@ -1024,6 +1035,138 @@
         margin: 0;
         position: static;
       }
+      /* ===================== DARK THEME OVERRIDES ===================== */
+      body.theme-dark {
+        background: var(--bg);
+        color: #e5e7eb;
+      }
+      body.theme-dark header {
+        background: #111827;
+        border-bottom-color: #334155;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+      body.theme-dark header h1 {
+        color: var(--primary);
+      }
+      body.theme-dark button {
+        background: #1f2937;
+        color: #e5e7eb;
+        border-color: #334155;
+      }
+      body.theme-dark button:hover {
+        background: #374151;
+        border-color: var(--primary);
+      }
+      body.theme-dark .card,
+      body.theme-dark .running-section,
+      body.theme-dark .task-list-section {
+        background: #0f172a;
+        border-color: #1f2937;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        color: #e5e7eb;
+      }
+      body.theme-dark .running-card {
+        background: #071a13;
+        border-color: #14532d;
+        color: #d1fae5;
+      }
+      body.theme-dark table {
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      body.theme-dark th,
+      body.theme-dark td {
+        background: #0f172a;
+        color: #e5e7eb;
+        border-color: #1f2937;
+      }
+      body.theme-dark th {
+        background: #111827;
+        color: #93c5fd;
+      }
+      body.theme-dark .menu-drawer {
+        background: #0f172a;
+        border-left-color: #334155;
+      }
+      body.theme-dark .drawer-header {
+        background: var(--primary);
+      }
+      body.theme-dark .home-sidebar {
+        background: #0f172a;
+        border-right-color: #334155;
+      }
+      body.theme-dark .sidebar-header {
+        background: var(--primary);
+      }
+      /* Sheets Modal dark styling */
+      body.theme-dark .modal-content {
+        background: #0f172a;
+        border-color: #334155;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        color: #e5e7eb;
+      }
+      body.theme-dark .modal-content h2 {
+        color: #93c5fd;
+      }
+      body.theme-dark .sheet-item {
+        background: #0b1221;
+        border-color: #1f2937;
+        color: #e5e7eb;
+      }
+      body.theme-dark .sheet-item:hover {
+        background: #111827;
+        border-color: #334155;
+      }
+      body.theme-dark .sheet-item.active {
+        background: #2563eb;
+        color: #fff;
+        border-color: #2563eb;
+      }
+      body.theme-dark .sheet-actions button {
+        background: #1f2937;
+        border: 1px solid #334155;
+        color: #e5e7eb;
+      }
+      body.theme-dark .sheet-actions button:hover {
+        background: #374151;
+        border-color: #3b82f6;
+        color: #fff;
+      }
+      body.theme-dark .create-sheet-btn {
+        background: #111827;
+        color: #e5e7eb;
+        border: 1px solid #334155;
+      }
+      body.theme-dark .create-sheet-btn:hover {
+        background: #1f2937;
+        border-color: #3b82f6;
+        color: #93c5fd;
+      }
+      /* Home sidebar running tasks readability */
+      body.theme-dark .running-task-card {
+        background: #071a13;
+        border-color: #14532d;
+        color: #d1fae5;
+      }
+      body.theme-dark .running-task-card .sheet-name {
+        color: #cbd5e1;
+      }
+      /* Toggle mode button dark styles */
+      body.theme-dark .toggle-mode.single {
+        background: #2563eb;
+        color: #fff;
+      }
+      body.theme-dark .toggle-mode.single:hover {
+        background: #1d4ed8;
+      }
+      body.theme-dark .toggle-mode.multi {
+        background: #111827;
+        color: #e5e7eb;
+        border: 1px solid #334155;
+      }
+      body.theme-dark .toggle-mode.multi:hover {
+        background: #1f2937;
+      }
       /* Analytics Modal Styles */
       #analyticsModal {
         display: none;
@@ -1240,6 +1383,13 @@
           onmousedown="handleTimerClick(event)"
           title="Tap Timer (Alt+T)"
           >⏱️ Timer</a
+        >
+        <!-- Create by me, button for the ProDoc.html -->
+        <a
+          class="task-list-link"
+          href="E:\Folder Management-25-2\Organising\1_Lerning\Project verson 2 vs code\Time-Tracker\ProDoc\ProDoc.html"
+          title="ProDoc (Alt+D)"
+          >📄 ProDoc (In development)</a
         >
         <a
           class="task-list-link"
@@ -2444,6 +2594,8 @@
                 backgroundColor: colors.slice(0, labels.length),
                 borderColor: colors.slice(0, labels.length),
                 borderWidth: 1,
+                borderRadius: 12,
+                borderSkipped: false,
                 yAxisID: "y",
                 type: "bar",
                 order: 2,

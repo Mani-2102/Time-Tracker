@@ -20,6 +20,43 @@
         justify-content: center;
         padding: 20px;
       }
+      /* Dark theme overrides */
+      body.theme-dark {
+        background: #0f172a;
+      }
+      body.theme-dark .container {
+        background: #0f172a;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        border: 1px solid #1f2937;
+      }
+      body.theme-dark .header h1 {
+        color: #93c5fd;
+      }
+      body.theme-dark .header p,
+      body.theme-dark .timer-item-time,
+      body.theme-dark .timer-item-name,
+      body.theme-dark .info-box {
+        color: #e5e7eb;
+      }
+      body.theme-dark .input-group label {
+        color: #e5e7eb;
+      }
+      body.theme-dark .input-group input,
+      body.theme-dark .input-group select {
+        background: #111827;
+        border-color: #1f2937;
+        color: #e5e7eb;
+      }
+      body.theme-dark .timer-display {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      }
+      body.theme-dark .timer-item {
+        background: #0b1221;
+      }
+      body.theme-dark .nav-back {
+        background: #1f2937;
+        color: #e5e7eb;
+      }
 
       .container {
         background: white;
@@ -447,6 +484,15 @@
     </div>
 
     <script>
+      // Apply app-wide theme
+      (function syncTheme() {
+        const theme = localStorage.getItem("tt_theme");
+        if (theme === "dark") {
+          document.body.classList.add("theme-dark");
+        } else {
+          document.body.classList.remove("theme-dark");
+        }
+      })();
       // Timer Manager
       class TimerManager {
         constructor() {
