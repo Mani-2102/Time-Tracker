@@ -561,11 +561,384 @@
         .card table {
           font-size: 10px;
           width: 100%;
+          border-collapse: collapse;
+          border: 1px solid var(--border);
         }
         .card table th,
         .card table td {
           padding: 4px 3px;
           word-break: break-word;
+          border: 1px solid var(--border);
+        }
+        .card table th {
+          background: linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 100%);
+          color: #4338ca;
+          font-weight: 700;
+        }
+        .card table td.cell-date,
+        .card table td.cell-time {
+          position: relative;
+          padding-right: 22px;
+        }
+        .card table td.cell-date.editing::after {
+          content: "📅";
+          position: absolute;
+          right: 6px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 14px;
+          opacity: 0.95;
+          pointer-events: none;
+          z-index: 2;
+          display: inline-block;
+          width: 14px;
+          text-align: center;
+        }
+        .card table td.cell-time.editing::after {
+          content: "⏰";
+          position: absolute;
+          right: 6px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 14px;
+          opacity: 0.95;
+          pointer-events: none;
+          z-index: 2;
+          display: inline-block;
+          width: 14px;
+          text-align: center;
+        }
+        .card table tr.edit-mode {
+          background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+        }
+        .cell-picker {
+          position: absolute;
+          right: 4px;
+          top: 50%;
+          transform: translateY(-50%);
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          font-size: 14px;
+          line-height: 1;
+          padding: 0;
+          color: #6b21a8;
+        }
+        .cell-picker:hover {
+          color: #7c3aed;
+        }
+        .picker-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+        .picker-overlay.active {
+          display: flex;
+          animation: fadeInOverlay 0.3s ease-out;
+        }
+        @keyframes fadeInOverlay {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        .picker-modal {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 16px;
+          padding: 28px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          min-width: 340px;
+          animation: slideUp 0.3s ease-out;
+          border: 3px solid #fff;
+        }
+        @keyframes slideUp {
+          from {
+            transform: translateY(20px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        .picker-modal h3 {
+          margin: 0 0 20px 0;
+          color: #fff;
+          font-size: 20px;
+          text-align: center;
+          font-weight: 700;
+        }
+        .picker-modal input {
+          width: 100%;
+          padding: 14px 16px;
+          border: 2px solid #fff;
+          border-radius: 10px;
+          font-size: 16px;
+          margin-bottom: 20px;
+          background: #fff;
+          color: #333;
+          cursor: pointer;
+          box-sizing: border-box;
+          font-weight: 600;
+        }
+        .picker-modal input:focus {
+          outline: none;
+          border-color: #ffd700;
+          box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+        }
+        .picker-buttons {
+          display: flex;
+          gap: 12px;
+          margin-top: 20px;
+        }
+        .picker-buttons button {
+          flex: 1;
+          padding: 14px;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .picker-btn-ok {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: #fff;
+        }
+        .picker-btn-ok:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+        }
+        .picker-btn-cancel {
+          background: #f3f4f6;
+          color: #374151;
+        }
+        .picker-btn-cancel:hover {
+          background: #e5e7eb;
+          transform: translateY(-2px);
+        }
+        .calendar-popup {
+          background: #2d2d2d;
+          border: 1px solid #444;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+          z-index: 10000;
+          animation: slideUp 0.3s ease-out;
+          position: fixed;
+        }
+        .calendar-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+          color: #fff;
+          font-weight: 700;
+        }
+        .calendar-header .cal-month {
+          font-size: 18px;
+          flex: 1;
+          text-align: center;
+        }
+        .calendar-header .cal-nav {
+          background: transparent;
+          border: none;
+          color: #999;
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 18px;
+          font-weight: 400;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .calendar-header .cal-nav:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+        }
+        .calendar-weekdays {
+          display: grid;
+          grid-template-columns: repeat(7, 40px);
+          gap: 4px;
+          margin-bottom: 10px;
+          color: #999;
+          font-weight: 600;
+          text-align: center;
+          font-size: 11px;
+        }
+        .calendar-weekdays div {
+          padding: 8px 0;
+        }
+        .calendar-days {
+          display: grid;
+          grid-template-columns: repeat(7, 40px);
+          gap: 4px;
+          margin-bottom: 15px;
+        }
+        .cal-day {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          color: #fff;
+          font-weight: 500;
+          font-size: 14px;
+          background: transparent;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          user-select: none;
+        }
+        .cal-day.other-month {
+          color: #666;
+          background: transparent;
+          cursor: default;
+        }
+        .cal-day:not(.disabled):not(.other-month):hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .cal-day.selected {
+          background: #6366f1 !important;
+          color: #fff !important;
+          font-weight: 600;
+          border: 2px solid #8b5cf6;
+        }
+        .cal-day.disabled {
+          color: #555;
+          cursor: not-allowed !important;
+          pointer-events: none;
+        }
+        .calendar-footer {
+          text-align: center;
+          border-top: 1px solid #444;
+          padding-top: 12px;
+        }
+        .calendar-footer .cal-today {
+          background: transparent;
+          border: none;
+          color: #999;
+          padding: 6px 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          font-size: 13px;
+        }
+        .calendar-footer .cal-today:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+        }
+        .time-popup {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border: 3px solid #fff;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          z-index: 1001;
+          animation: slideUp 0.3s ease-out;
+          min-width: 300px;
+        }
+        .time-header {
+          font-size: 20px;
+          font-weight: 700;
+          color: #fff;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        .time-inputs {
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .time-field {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+        .time-field label {
+          color: #fff;
+          font-size: 13px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .time-field input {
+          width: 70px;
+          padding: 12px 8px;
+          border: 2px solid #fff;
+          border-radius: 10px;
+          background: #fff;
+          color: #333;
+          font-size: 20px;
+          font-weight: 700;
+          text-align: center;
+        }
+        .time-field input:focus {
+          outline: none;
+          border-color: #ffd700;
+          box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+        }
+        .time-separator {
+          color: #fff;
+          font-size: 32px;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        .time-buttons {
+          display: flex;
+          gap: 12px;
+        }
+        .time-btn-ok,
+        .time-btn-cancel {
+          flex: 1;
+          padding: 10px;
+          border: none;
+          border-radius: 8px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .time-btn-ok {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: #fff;
+        }
+        .time-btn-ok:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+        }
+        .time-btn-cancel {
+          background: #f3f4f6;
+          color: #374151;
+        }
+        .time-btn-cancel:hover {
+          background: #e5e7eb;
+          transform: translateY(-2px);
+        }
+        .card table tr.edit-mode td[contenteditable="true"] {
+          background: #fffacd;
+          border: 1px solid var(--primary);
+          border-radius: 3px;
+          outline: none;
+          padding: 3px 2px;
+        }
+        .card table tr.edit-mode td[contenteditable="true"]:focus {
+          background: #ffffcc;
+          box-shadow: inset 0 0 3px rgba(79, 70, 229, 0.3);
         }
         .running-section {
           padding: 10px;
@@ -2192,11 +2565,129 @@
         }
       }
 
+      function recalcTaskTotal(taskIdx) {
+        const task = trackers[taskIdx];
+        if (!task) return;
+        const completed = task.rows
+          .filter((r) => !r.running && typeof r.dur === "number")
+          .reduce((sum, r) => sum + (isNaN(r.dur) ? 0 : r.dur), 0);
+        task.total = completed;
+      }
+
       function editTask(i) {
         const currentName = trackers[i].name;
         const newName = prompt("Edit task name:", currentName);
         if (newName && newName.trim() !== "" && newName !== currentName) {
           trackers[i].name = newName.trim();
+          save();
+          render();
+          drawCharts();
+        }
+      }
+
+      function editRowData(taskIdx, rowIdx, iconEl) {
+        const row = trackers[taskIdx].rows[rowIdx];
+        const tableRow = document.getElementById(`row-${taskIdx}-${rowIdx}`);
+
+        function addPicker(cell, isDate) {
+          if (cell.querySelector(".cell-picker")) return;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "cell-picker";
+          btn.textContent = isDate ? "📅" : "⏰";
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            if (isDate) {
+              openDatePickerPopup(cell, row, isDate);
+            } else {
+              openTimePickerPopup(cell, row, isDate);
+            }
+          };
+          cell.appendChild(btn);
+        }
+
+        function clearPickers() {
+          tableRow.querySelectorAll(".cell-picker").forEach((b) => b.remove());
+        }
+
+        // Check if already in edit mode
+        if (tableRow.classList.contains("edit-mode")) {
+          // Save the edits - get text content excluding picker buttons
+          const newSd =
+            tableRow.cells[0].childNodes[0]?.textContent?.trim() ||
+            tableRow.cells[0].innerText.trim().replace(/📅/g, "").trim();
+          const newSt =
+            tableRow.cells[1].childNodes[0]?.textContent?.trim() ||
+            tableRow.cells[1].innerText.trim().replace(/⏰/g, "").trim();
+          const newEd =
+            tableRow.cells[2].childNodes[0]?.textContent?.trim() ||
+            tableRow.cells[2].innerText.trim().replace(/📅/g, "").trim();
+          const newEt =
+            tableRow.cells[3].childNodes[0]?.textContent?.trim() ||
+            tableRow.cells[3].innerText.trim().replace(/⏰/g, "").trim();
+
+          // Validate timestamps
+          const startTime = new Date(`${newSd} ${newSt}`);
+          const endTime = new Date(`${newEd} ${newEt}`);
+          const now = Date.now();
+          if (
+            isNaN(startTime.getTime()) ||
+            isNaN(endTime.getTime()) ||
+            startTime.getTime() > now ||
+            endTime.getTime() > now ||
+            endTime.getTime() < startTime.getTime()
+          ) {
+            alert(
+              "Invalid time. Ensure dates are not in the future and end is after start.",
+            );
+            return; // stay in edit mode
+          }
+
+          row.sd = newSd;
+          row.st = newSt;
+          row.ed = newEd;
+          row.et = newEt;
+          row.dur = endTime - startTime;
+
+          tableRow.classList.remove("edit-mode");
+          tableRow.cells[0].classList.remove("editing");
+          tableRow.cells[1].classList.remove("editing");
+          tableRow.cells[2].classList.remove("editing");
+          tableRow.cells[3].classList.remove("editing");
+          tableRow.cells[0].contentEditable = false;
+          tableRow.cells[1].contentEditable = false;
+          tableRow.cells[2].contentEditable = false;
+          tableRow.cells[3].contentEditable = false;
+          clearPickers();
+          if (iconEl) iconEl.textContent = "✏️";
+          recalcTaskTotal(taskIdx);
+          save();
+          render();
+          drawCharts();
+        } else {
+          // Enter edit mode
+          tableRow.classList.add("edit-mode");
+          tableRow.cells[0].classList.add("editing");
+          tableRow.cells[1].classList.add("editing");
+          tableRow.cells[2].classList.add("editing");
+          tableRow.cells[3].classList.add("editing");
+          // Don't allow manual typing - only picker selection
+          tableRow.cells[0].contentEditable = false;
+          tableRow.cells[1].contentEditable = false;
+          tableRow.cells[2].contentEditable = false;
+          tableRow.cells[3].contentEditable = false;
+          addPicker(tableRow.cells[0], true);
+          addPicker(tableRow.cells[1], false);
+          addPicker(tableRow.cells[2], true);
+          addPicker(tableRow.cells[3], false);
+          if (iconEl) iconEl.textContent = "✔️";
+        }
+      }
+
+      function deleteRow(taskIdx, rowIdx) {
+        if (confirm("Delete this row?")) {
+          trackers[taskIdx].rows.splice(rowIdx, 1);
+          recalcTaskTotal(taskIdx);
           save();
           render();
           drawCharts();
@@ -2487,8 +2978,8 @@
         <button id="download-${i}" onclick="downloadTask(${i})">Download CSV</button>
         <strong id="total-${i}" class="total-time">Total: ${dur(total)}</strong>
       </div>
-      <table><tr><th>Start Date</th><th>Start Time</th><th>End Date</th><th>End Time</th><th>Duration</th></tr>
-      ${t.rows.map((r, rIdx) => `<tr id="row-${i}-${rIdx}"><td>${r.sd}</td><td>${r.st}</td><td>${r.ed || (r.running ? "Running..." : "")}</td><td>${r.et || (r.running ? "" : "")}</td><td>${r.running ? dur(elapsed) : dur(r.dur)}</td></tr>`).join("")}
+      <table><tr><th>Start Date</th><th>Start Time</th><th>End Date</th><th>End Time</th><th>Duration</th><th>Actions</th></tr>
+      ${t.rows.map((r, rIdx) => `<tr id="row-${i}-${rIdx}"><td class="cell-sd cell-date">${r.sd}</td><td class="cell-st cell-time">${r.st}</td><td class="cell-ed cell-date">${r.ed || (r.running ? "Running..." : "")}</td><td class="cell-et cell-time">${r.et || (r.running ? "" : "")}</td><td class="cell-dur">${r.running ? dur(elapsed) : dur(r.dur)}</td><td class="cell-actions" style="text-align: center;"><span class="row-edit" style="cursor: pointer; color: var(--primary); font-size: 14px; margin: 0 4px;" onclick="editRowData(${i}, ${rIdx}, this)" title="Edit row">✏️</span><span class="row-delete" style="cursor: pointer; color: var(--danger); font-size: 14px; margin: 0 4px;" onclick="deleteRow(${i}, ${rIdx})" title="Delete row">🗑️</span></td></tr>`).join("")}
       </table>`;
           trackerBox.appendChild(c);
 
@@ -3347,6 +3838,456 @@
           window.open("Timer.html", "_blank");
         }
       }
+    </script>
+
+    <script>
+      let currentPickerCell = null;
+      let currentPickerRow = null;
+
+      function openDatePickerPopup(cellElement, rowData, isDate) {
+        currentPickerCell = cellElement;
+        currentPickerRow = rowData;
+        const currentDate = cellElement.textContent.trim();
+        showCalendarPopup(currentDate, cellElement);
+      }
+
+      function openTimePickerPopup(cellElement, rowData, isDate) {
+        currentPickerCell = cellElement;
+        currentPickerRow = rowData;
+        const currentTime = cellElement.textContent.trim();
+        showTimePopup(currentTime, cellElement);
+      }
+
+      function showCalendarPopup(dateStr, cellElement) {
+        const existingPopup = document.getElementById("calendarPopup");
+        if (existingPopup) existingPopup.remove();
+
+        let date = new Date();
+        if (dateStr) {
+          const parsed = new Date(dateStr + "T00:00:00");
+          if (!isNaN(parsed.getTime())) date = parsed;
+        }
+
+        const popup = document.createElement("div");
+        popup.id = "calendarPopup";
+        popup.style.cssText = `
+          position: fixed;
+          background: #2d2d2d;
+          border: 1px solid #444;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+          z-index: 99999;
+        `;
+
+        const header = document.createElement("div");
+        header.style.cssText =
+          "display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;color:#fff;";
+        header.innerHTML = `
+          <button onclick="previousMonth()" style="background:transparent;border:none;color:#999;font-size:18px;cursor:pointer;padding:5px 10px;">↑</button>
+          <span class="cal-month" style="font-size:18px;font-weight:600;">${date.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+          <button onclick="nextMonth()" style="background:transparent;border:none;color:#999;font-size:18px;cursor:pointer;padding:5px 10px;">↓</button>
+        `;
+        popup.appendChild(header);
+
+        const weekdays = document.createElement("div");
+        weekdays.style.cssText =
+          "display:grid;grid-template-columns:repeat(7,40px);gap:4px;margin-bottom:10px;color:#999;font-size:12px;text-align:center;";
+        weekdays.innerHTML =
+          "<div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>";
+        popup.appendChild(weekdays);
+
+        const daysGrid = document.createElement("div");
+        daysGrid.id = "calendarDays";
+        daysGrid.style.cssText =
+          "display:grid;grid-template-columns:repeat(7,40px);gap:4px;margin-bottom:15px;";
+        popup.appendChild(daysGrid);
+
+        const footer = document.createElement("div");
+        footer.style.cssText =
+          "text-align:center;border-top:1px solid #444;padding-top:12px;";
+        footer.innerHTML = `<button onclick="selectToday()" style="background:transparent;border:none;color:#999;cursor:pointer;font-size:13px;">Go to today</button>`;
+        popup.appendChild(footer);
+
+        popup.dataset.year = date.getFullYear();
+        popup.dataset.month = date.getMonth();
+        popup.dataset.selectedDate = dateStr;
+
+        renderCalendarDays(popup, date, dateStr);
+
+        document.body.appendChild(popup);
+
+        // Position popup and scroll to ensure visibility
+        const popupHeight = popup.offsetHeight;
+        const popupWidth = popup.offsetWidth;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Scroll cell into view first
+        cellElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Wait for scroll to complete then position popup
+        setTimeout(() => {
+          const rect = cellElement.getBoundingClientRect();
+          let left = rect.left;
+          let top = rect.bottom + 5;
+
+          // Adjust if popup goes off right edge
+          if (left + popupWidth > viewportWidth - 10) {
+            left = viewportWidth - popupWidth - 10;
+          }
+          // Adjust if popup goes off left edge
+          if (left < 10) left = 10;
+
+          // Adjust if popup goes off bottom edge - show above cell
+          if (top + popupHeight > viewportHeight - 10) {
+            top = rect.top - popupHeight - 5;
+          }
+          // If still off top, just position at top
+          if (top < 10) top = 10;
+
+          popup.style.left = left + "px";
+          popup.style.top = top + "px";
+        }, 300);
+      }
+
+      function renderCalendarDays(popup, date, selectedDateStr) {
+        const year = parseInt(popup.dataset.year);
+        const month = parseInt(popup.dataset.month);
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+        const daysContainer = popup.querySelector("#calendarDays");
+        daysContainer.innerHTML = "";
+
+        const dayStyle =
+          "width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:14px;cursor:pointer;";
+
+        for (let i = firstDay - 1; i >= 0; i--) {
+          const dayDiv = document.createElement("div");
+          dayDiv.style.cssText = dayStyle + "color:#555;";
+          dayDiv.textContent = daysInPrevMonth - i;
+          daysContainer.appendChild(dayDiv);
+        }
+
+        const today = new Date();
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dayDiv = document.createElement("div");
+          const dateObj = new Date(year, month, day);
+          // Use local date values instead of toISOString() which converts to UTC
+          const dateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+          let style = dayStyle + "color:#fff;";
+          if (dateString === selectedDateStr) {
+            style += "background:#6366f1;border:2px solid #8b5cf6;";
+          }
+          if (dateObj > today) {
+            style += "color:#555;cursor:not-allowed;";
+            dayDiv.style.cssText = style;
+          } else {
+            dayDiv.style.cssText = style;
+            dayDiv.onmouseover = () => {
+              if (dateObj <= today)
+                dayDiv.style.background = "rgba(255,255,255,0.1)";
+            };
+            dayDiv.onmouseout = () => {
+              if (dateString !== selectedDateStr) dayDiv.style.background = "";
+            };
+            dayDiv.onclick = () => selectDate(dateString);
+          }
+          dayDiv.textContent = day;
+          daysContainer.appendChild(dayDiv);
+        }
+
+        const totalCells = daysContainer.children.length;
+        const remainingCells = 42 - totalCells;
+        for (let day = 1; day <= remainingCells; day++) {
+          const dayDiv = document.createElement("div");
+          dayDiv.style.cssText = dayStyle + "color:#555;";
+          dayDiv.textContent = day;
+          daysContainer.appendChild(dayDiv);
+        }
+      }
+
+      function previousMonth() {
+        const popup = document.getElementById("calendarPopup");
+        if (!popup) return;
+        let month = parseInt(popup.dataset.month);
+        let year = parseInt(popup.dataset.year);
+        month--;
+        if (month < 0) {
+          month = 11;
+          year--;
+        }
+        popup.dataset.month = month;
+        popup.dataset.year = year;
+        const date = new Date(year, month, 1);
+        popup.querySelector(".cal-month").textContent = date.toLocaleDateString(
+          "en-US",
+          { month: "long", year: "numeric" },
+        );
+        renderCalendarDays(popup, date, popup.dataset.selectedDate);
+      }
+
+      function nextMonth() {
+        const popup = document.getElementById("calendarPopup");
+        if (!popup) return;
+        let month = parseInt(popup.dataset.month);
+        let year = parseInt(popup.dataset.year);
+        month++;
+        if (month > 11) {
+          month = 0;
+          year++;
+        }
+        popup.dataset.month = month;
+        popup.dataset.year = year;
+        const date = new Date(year, month, 1);
+        popup.querySelector(".cal-month").textContent = date.toLocaleDateString(
+          "en-US",
+          { month: "long", year: "numeric" },
+        );
+        renderCalendarDays(popup, date, popup.dataset.selectedDate);
+      }
+
+      function selectDate(dateString) {
+        if (currentPickerCell) {
+          // Convert ISO date (YYYY-MM-DD) to locale format (M/D/YYYY)
+          const dateObj = new Date(dateString + "T00:00:00");
+          const localeDateStr = dateObj.toLocaleDateString();
+
+          // Clear text nodes but keep picker button
+          const pickerBtn = currentPickerCell.querySelector(".cell-picker");
+          currentPickerCell.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              node.remove();
+            }
+          });
+
+          // Set the new date as text node before the picker button
+          const textNode = document.createTextNode(localeDateStr);
+          if (pickerBtn) {
+            currentPickerCell.insertBefore(textNode, pickerBtn);
+          } else {
+            currentPickerCell.appendChild(textNode);
+          }
+
+          if (currentPickerRow) currentPickerRow.sd = localeDateStr;
+        }
+        closeCalendarPopup();
+      }
+
+      function selectToday() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        selectDate(`${year}-${month}-${day}`);
+      }
+
+      function closeCalendarPopup() {
+        const popup = document.getElementById("calendarPopup");
+        if (popup) popup.remove();
+      }
+
+      function showTimePopup(timeStr, cellElement) {
+        const existingPopup = document.getElementById("timePopup");
+        if (existingPopup) existingPopup.remove();
+
+        // Parse time - could be HH:MM or HH:MM:SS or HH:MM:SS AM/PM
+        let hours = "12",
+          minutes = "00",
+          seconds = "00",
+          ampm = "AM";
+        if (timeStr) {
+          // Match time like "12:23:31 AM" or "1:05:30 PM"
+          const timeParts = timeStr.match(/(\d+):(\d+):(\d+)\s*(AM|PM)/i);
+          if (timeParts) {
+            hours = timeParts[1];
+            minutes = timeParts[2].padStart(2, "0");
+            seconds = timeParts[3].padStart(2, "0");
+            ampm = timeParts[4].toUpperCase();
+          } else {
+            // Try simpler format HH:MM
+            const simpleParts = timeStr.match(/(\d+):(\d+)/);
+            if (simpleParts) {
+              hours = simpleParts[1];
+              minutes = simpleParts[2].padStart(2, "0");
+            }
+          }
+        }
+
+        const popup = document.createElement("div");
+        popup.id = "timePopup";
+        popup.style.cssText = `
+          position: fixed;
+          background: #2d2d2d;
+          border: 1px solid #444;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+          z-index: 99999;
+          min-width: 280px;
+        `;
+
+        const header = document.createElement("div");
+        header.style.cssText =
+          "text-align:center;color:#fff;font-size:18px;font-weight:600;margin-bottom:20px;";
+        header.textContent = "⏰ Select Time";
+        popup.appendChild(header);
+
+        const inputsDiv = document.createElement("div");
+        inputsDiv.style.cssText =
+          "display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px;";
+
+        const inputStyle =
+          "width:50px;padding:8px;border:1px solid #555;border-radius:8px;background:#3d3d3d;color:#fff;font-size:16px;text-align:center;font-weight:600;";
+        const labelStyle =
+          "color:#999;font-size:11px;margin-bottom:5px;display:block;text-align:center;";
+        const selectStyle =
+          "width:60px;padding:8px;border:1px solid #555;border-radius:8px;background:#3d3d3d;color:#fff;font-size:16px;text-align:center;font-weight:600;cursor:pointer;";
+
+        inputsDiv.innerHTML = `
+          <div>
+            <label style="${labelStyle}">Hours</label>
+            <input type="number" id="hoursInput" min="1" max="12" value="${hours}" style="${inputStyle}" />
+          </div>
+          <div style="color:#fff;font-size:20px;font-weight:700;margin-top:18px;">:</div>
+          <div>
+            <label style="${labelStyle}">Min</label>
+            <input type="number" id="minutesInput" min="0" max="59" value="${minutes}" style="${inputStyle}" />
+          </div>
+          <div style="color:#fff;font-size:20px;font-weight:700;margin-top:18px;">:</div>
+          <div>
+            <label style="${labelStyle}">Sec</label>
+            <input type="number" id="secondsInput" min="0" max="59" value="${seconds}" style="${inputStyle}" />
+          </div>
+          <div>
+            <label style="${labelStyle}">AM/PM</label>
+            <select id="ampmSelect" style="${selectStyle}">
+              <option value="AM" ${ampm === "AM" ? "selected" : ""}>AM</option>
+              <option value="PM" ${ampm === "PM" ? "selected" : ""}>PM</option>
+            </select>
+          </div>
+        `;
+        popup.appendChild(inputsDiv);
+
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.style.cssText = "display:flex;gap:10px;";
+
+        const okBtn = document.createElement("button");
+        okBtn.textContent = "OK";
+        okBtn.style.cssText =
+          "flex:1;padding:10px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;";
+        okBtn.onclick = selectTime;
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.textContent = "Cancel";
+        cancelBtn.style.cssText =
+          "flex:1;padding:10px;background:#555;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;";
+        cancelBtn.onclick = closeTimePopup;
+
+        buttonsDiv.appendChild(okBtn);
+        buttonsDiv.appendChild(cancelBtn);
+        popup.appendChild(buttonsDiv);
+
+        document.body.appendChild(popup);
+
+        // Position popup and scroll to ensure visibility
+        const popupHeight = popup.offsetHeight;
+        const popupWidth = popup.offsetWidth;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Scroll cell into view first
+        cellElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Wait for scroll to complete then position popup
+        setTimeout(() => {
+          const rect = cellElement.getBoundingClientRect();
+          let left = rect.left;
+          let top = rect.bottom + 5;
+
+          // Adjust if popup goes off right edge
+          if (left + popupWidth > viewportWidth - 10) {
+            left = viewportWidth - popupWidth - 10;
+          }
+          // Adjust if popup goes off left edge
+          if (left < 10) left = 10;
+
+          // Adjust if popup goes off bottom edge - show above cell
+          if (top + popupHeight > viewportHeight - 10) {
+            top = rect.top - popupHeight - 5;
+          }
+          // If still off top, just position at top
+          if (top < 10) top = 10;
+
+          popup.style.left = left + "px";
+          popup.style.top = top + "px";
+
+          document.getElementById("hoursInput")?.focus();
+        }, 300);
+      }
+
+      function selectTime() {
+        const hours = document.getElementById("hoursInput").value || "12";
+        const minutes = (
+          document.getElementById("minutesInput").value || "00"
+        ).padStart(2, "0");
+        const seconds = (
+          document.getElementById("secondsInput").value || "00"
+        ).padStart(2, "0");
+        const ampm = document.getElementById("ampmSelect").value || "AM";
+
+        // Format: "H:MM:SS AM/PM" (matches toLocaleTimeString format)
+        const timeString = `${hours}:${minutes}:${seconds} ${ampm}`;
+
+        if (currentPickerCell) {
+          // Clear text nodes but keep picker button
+          const pickerBtn = currentPickerCell.querySelector(".cell-picker");
+          currentPickerCell.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              node.remove();
+            }
+          });
+
+          // Set the new time as text node before the picker button
+          const textNode = document.createTextNode(timeString);
+          if (pickerBtn) {
+            currentPickerCell.insertBefore(textNode, pickerBtn);
+          } else {
+            currentPickerCell.appendChild(textNode);
+          }
+
+          if (currentPickerRow) currentPickerRow.st = timeString;
+        }
+        closeTimePopup();
+      }
+
+      function closeTimePopup() {
+        const popup = document.getElementById("timePopup");
+        if (popup) popup.remove();
+      }
+
+      document.addEventListener("click", (e) => {
+        const calPopup = document.getElementById("calendarPopup");
+        const timePopup = document.getElementById("timePopup");
+        if (
+          calPopup &&
+          !calPopup.contains(e.target) &&
+          e.target.className !== "cell-picker"
+        ) {
+          closeCalendarPopup();
+        }
+        if (
+          timePopup &&
+          !timePopup.contains(e.target) &&
+          e.target.className !== "cell-picker"
+        ) {
+          closeTimePopup();
+        }
+      });
     </script>
   </body>
 </html>
