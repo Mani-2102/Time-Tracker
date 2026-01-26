@@ -2626,9 +2626,67 @@
             tableRow.cells[3].childNodes[0]?.textContent?.trim() ||
             tableRow.cells[3].innerText.trim().replace(/⏰/g, "").trim();
 
-          // Validate timestamps
-          const startTime = new Date(`${newSd} ${newSt}`);
-          const endTime = new Date(`${newEd} ${newEt}`);
+          // Helper function to parse date in various formats (D/M/YYYY, M/D/YYYY, YYYY-MM-DD)
+          function parseLocalDate(dateStr, timeStr) {
+            // Try different date formats
+            let day, month, year;
+
+            // Try D/M/YYYY or M/D/YYYY format
+            const slashParts = dateStr.match(/(\d+)\/(\d+)\/(\d+)/);
+            if (slashParts) {
+              const part1 = parseInt(slashParts[1]);
+              const part2 = parseInt(slashParts[2]);
+              year = parseInt(slashParts[3]);
+
+              // If first part > 12, it must be day (D/M/YYYY format)
+              if (part1 > 12) {
+                day = part1;
+                month = part2 - 1; // JS months are 0-indexed
+              } else if (part2 > 12) {
+                // If second part > 12, it must be day (M/D/YYYY format)
+                month = part1 - 1;
+                day = part2;
+              } else {
+                // Ambiguous - assume D/M/YYYY based on user's locale
+                day = part1;
+                month = part2 - 1;
+              }
+            }
+
+            // Try YYYY-MM-DD format
+            const isoParts = dateStr.match(/(\d{4})-(\d+)-(\d+)/);
+            if (isoParts) {
+              year = parseInt(isoParts[1]);
+              month = parseInt(isoParts[2]) - 1;
+              day = parseInt(isoParts[3]);
+            }
+
+            if (!day || !month === undefined || !year) {
+              return new Date(NaN); // Invalid
+            }
+
+            // Parse time - handle "H:MM:SS AM/PM" format
+            let hours = 0,
+              minutes = 0,
+              seconds = 0;
+            const timeParts = timeStr.match(/(\d+):(\d+):(\d+)\s*(AM|PM)?/i);
+            if (timeParts) {
+              hours = parseInt(timeParts[1]);
+              minutes = parseInt(timeParts[2]);
+              seconds = parseInt(timeParts[3]);
+              const ampm = timeParts[4];
+              if (ampm) {
+                if (ampm.toUpperCase() === "PM" && hours !== 12) hours += 12;
+                if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
+              }
+            }
+
+            return new Date(year, month, day, hours, minutes, seconds);
+          }
+
+          // Validate timestamps using proper parsing
+          const startTime = parseLocalDate(newSd, newSt);
+          const endTime = parseLocalDate(newEd, newEt);
           const now = Date.now();
           if (
             isNaN(startTime.getTime()) ||
