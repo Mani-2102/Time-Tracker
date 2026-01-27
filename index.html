@@ -398,6 +398,66 @@
         margin: 0;
         font-size: 18px;
       }
+      .menu-toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 12px;
+        margin: 8px 0;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #f8f9fa;
+      }
+      .menu-toggle-row .toggle-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--fg);
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 22px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.2s;
+        border-radius: 999px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 2px;
+        top: 2px;
+        background-color: #fff;
+        transition: 0.2s;
+        border-radius: 50%;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .switch input:checked + .slider {
+        background-color: var(--success);
+      }
+      .switch input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+      body.hide-actions .actions-header,
+      body.hide-actions .cell-actions {
+        display: none;
+      }
       .drawer-close {
         background: transparent;
         border: none;
@@ -1464,6 +1524,16 @@
       body.theme-dark .drawer-header {
         background: var(--primary);
       }
+      body.theme-dark .menu-toggle-row {
+        background: #111827;
+        border-color: #1f2937;
+      }
+      body.theme-dark .menu-toggle-row .toggle-label {
+        color: #e5e7eb;
+      }
+      body.theme-dark .slider {
+        background-color: #374151;
+      }
       body.theme-dark .home-sidebar {
         background: #0f172a;
         border-right-color: #334155;
@@ -1738,6 +1808,20 @@
         <a class="task-list-link" href="welcome.html" title="Welcome Page"
           >😎 Know Me</a
         >
+        <div class="menu-toggle-row" title="Show or hide Actions column">
+          <span class="toggle-label" id="actionsToggleLabel">Actions: ON</span>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="actionsToggle"
+              onchange="toggleActionsColumn(this.checked)"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <a class="task-list-link" href="todo.html" title="Track your To-Do list"
+          >📝 To-Do</a
+        >
         <button
           id="themeToggleBtn"
           class="task-list-link"
@@ -1747,9 +1831,6 @@
         >
           🌙 Night Mode
         </button>
-        <a class="task-list-link" href="todo.html" title="Track your To-Do list"
-          >📝 To-Do</a
-        >
         <a
           class="task-list-link"
           href="Timer.html"
@@ -2306,6 +2387,7 @@
 
       /* -------------------- THEME -------------------- */
       const THEME_KEY = "tt_theme";
+      const ACTIONS_VISIBILITY_KEY = "tt_actions_column";
 
       function applyTheme(theme) {
         const root = document.documentElement;
@@ -2348,8 +2430,27 @@
         applyTheme(next);
       }
 
+      function applyActionsVisibility(isVisible) {
+        document.body.classList.toggle("hide-actions", !isVisible);
+        const toggle = document.getElementById("actionsToggle");
+        if (toggle) {
+          toggle.checked = isVisible;
+        }
+        const label = document.getElementById("actionsToggleLabel");
+        if (label) {
+          label.textContent = isVisible ? "Actions: ON" : "Actions: OFF";
+        }
+      }
+
+      function toggleActionsColumn(isVisible) {
+        localStorage.setItem(ACTIONS_VISIBILITY_KEY, isVisible ? "on" : "off");
+        applyActionsVisibility(isVisible);
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         applyTheme(localStorage.getItem(THEME_KEY) || "light");
+        const stored = localStorage.getItem(ACTIONS_VISIBILITY_KEY);
+        applyActionsVisibility(stored !== "off");
       });
 
       /* -------------------- STORAGE -------------------- */
@@ -3069,6 +3170,7 @@
           const total = t.total + elapsed;
 
           // Add card to right panel (both running and not running)
+          // Change the "Download CSV" button name for each task to icon with CSV, like "⬇️ CSV" by myself (in line 3183).
           const c = document.createElement("div");
           c.id = `task-${i}`;
           c.className = "card";
@@ -3077,10 +3179,10 @@
         <button id="start-${i}" class="${running ? "running" : ""}" onclick="start(${i})" ${running ? "disabled" : ""}>${running ? "Running" : "Start"}</button>
         <button id="stop-${i}" onclick="stop(${i})" ${!running ? "disabled" : ""}>Stop</button>
         <button id="del-${i}" onclick="del(${i})" ${running ? "disabled" : ""}>Delete</button>
-        <button id="download-${i}" onclick="downloadTask(${i})">Download CSV</button>
+        <button id="download-${i}" onclick="downloadTask(${i})">⬇️ CSV</button>
         <strong id="total-${i}" class="total-time">Total: ${dur(total)}</strong>
       </div>
-      <table><tr><th>Start Date</th><th>Start Time</th><th>End Date</th><th>End Time</th><th>Duration</th><th>Actions</th></tr>
+      <table><tr><th>Start Date</th><th>Start Time</th><th>End Date</th><th>End Time</th><th>Duration</th><th class="actions-header">Actions</th></tr>
       ${t.rows.map((r, rIdx) => `<tr id="row-${i}-${rIdx}"><td class="cell-sd cell-date">${r.sd}</td><td class="cell-st cell-time">${r.st}</td><td class="cell-ed cell-date">${r.ed || (r.running ? "Running..." : "")}</td><td class="cell-et cell-time">${r.et || (r.running ? "" : "")}</td><td class="cell-dur">${r.running ? dur(elapsed) : dur(r.dur)}</td><td class="cell-actions" style="text-align: center;"><span class="row-edit" style="cursor: pointer; color: var(--primary); font-size: 14px; margin: 0 4px;" onclick="editRowData(${i}, ${rIdx}, this)" title="Edit row">✏️</span><span class="row-delete" style="cursor: pointer; color: var(--danger); font-size: 14px; margin: 0 4px;" onclick="deleteRow(${i}, ${rIdx})" title="Delete row">🗑️</span></td></tr>`).join("")}
       </table>`;
           trackerBox.appendChild(c);
