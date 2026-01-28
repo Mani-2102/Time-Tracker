@@ -1819,9 +1819,6 @@
             <span class="slider"></span>
           </label>
         </div>
-        <a class="task-list-link" href="todo.html" title="Track your To-Do list"
-          >📝 To-Do</a
-        >
         <button
           id="themeToggleBtn"
           class="task-list-link"
@@ -1831,6 +1828,25 @@
         >
           🌙 Night Mode
         </button>
+        <button
+          class="task-list-link"
+          style="text-align: left"
+          onclick="exportAllSheetsCsv()"
+          title="Export all sheets to CSV"
+        >
+          ⬇️ Export CSV
+        </button>
+        <button
+          class="task-list-link"
+          style="text-align: left"
+          onclick="importAllSheetsCsv()"
+          title="Import CSV to all sheets"
+        >
+          ⬆️ Import CSV
+        </button>
+        <a class="task-list-link" href="todo.html" title="Track your To-Do list"
+          >📝 To-Do</a
+        >
         <a
           class="task-list-link"
           href="Timer.html"
@@ -1876,6 +1892,13 @@
         </div>
       </div>
     </div>
+    <input
+      type="file"
+      id="csvImportInput"
+      accept=".csv,text/csv"
+      style="display: none"
+      onchange="handleCsvImport(event)"
+    />
 
     <main>
       <div id="totalRunning">Total Running Time: 00:00:00.000</div>
@@ -1925,6 +1948,14 @@
                 Task Completion Rate
               </h4>
               <canvas id="doughnutChart"></canvas>
+            </div>
+            <div style="margin-bottom: 30px">
+              <h4
+                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              >
+                Days and Task
+              </h4>
+              <canvas id="stackedDayChart"></canvas>
             </div>
           </div>
         </div>
@@ -2515,6 +2546,42 @@
         return `${String(h).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}.${String(ms % 1000).padStart(3, "0")}`;
       }
 
+      function parseDateOnly(dateStr) {
+        if (!dateStr) return null;
+        const iso = dateStr.match(/(\d{4})-(\d+)-(\d+)/);
+        if (iso) {
+          const year = parseInt(iso[1]);
+          const month = parseInt(iso[2]) - 1;
+          const day = parseInt(iso[3]);
+          return new Date(year, month, day);
+        }
+
+        const slash = dateStr.match(/(\d+)\/(\d+)\/(\d+)/);
+        if (slash) {
+          const part1 = parseInt(slash[1]);
+          const part2 = parseInt(slash[2]);
+          const year = parseInt(slash[3]);
+          let day;
+          let month;
+
+          if (part1 > 12) {
+            day = part1;
+            month = part2 - 1;
+          } else if (part2 > 12) {
+            month = part1 - 1;
+            day = part2;
+          } else {
+            day = part1;
+            month = part2 - 1;
+          }
+
+          return new Date(year, month, day);
+        }
+
+        const parsed = new Date(dateStr);
+        return isNaN(parsed.getTime()) ? null : parsed;
+      }
+
       /* -------------------- TRACKERS -------------------- */
       function addTracker() {
         const name = prompt("Work name");
@@ -2898,6 +2965,210 @@
       }
 
       /* -------------------- DOWNLOAD -------------------- */
+      function escapeCsvValue(value) {
+        const str = value === null || value === undefined ? "" : String(value);
+        return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+      }
+
+      function parseCsvText(text) {
+        const rows = [];
+        let row = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          const next = text[i + 1];
+
+          if (char === '"') {
+            if (inQuotes && next === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === "," && !inQuotes) {
+            row.push(current);
+            current = "";
+          } else if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (char === "\r" && next === "\n") {
+              i++;
+            }
+            row.push(current);
+            current = "";
+            if (row.length > 1 || row.some((cell) => cell.trim() !== "")) {
+              rows.push(row);
+            }
+            row = [];
+          } else {
+            current += char;
+          }
+        }
+
+        if (current.length > 0 || row.length > 0) {
+          row.push(current);
+          if (row.length > 1 || row.some((cell) => cell.trim() !== "")) {
+            rows.push(row);
+          }
+        }
+
+        return rows;
+      }
+
+      function parseDateTime(dateStr, timeStr) {
+        if (!dateStr || !timeStr) return null;
+        const combined = new Date(`${dateStr} ${timeStr}`);
+        return isNaN(combined.getTime()) ? null : combined;
+      }
+
+      function importAllSheetsCsv() {
+        const input = document.getElementById("csvImportInput");
+        if (!input) return;
+        input.value = "";
+        input.click();
+      }
+
+      function handleCsvImport(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result || "";
+          const rows = parseCsvText(String(text));
+          if (!rows.length) {
+            alert("CSV is empty.");
+            return;
+          }
+
+          const header = rows[0].map((h) => h.trim());
+          const expected = [
+            "Sheets Name",
+            "Tasks Name",
+            "Start Date",
+            "Start Time",
+            "End Date",
+            "End Time",
+          ];
+
+          const isValidHeader = expected.every(
+            (name, idx) => header[idx] === name,
+          );
+
+          if (!isValidHeader) {
+            alert(
+              "Invalid CSV format. Expected headers: Sheets Name, Tasks Name, Start Date, Start Time, End Date, End Time.",
+            );
+            return;
+          }
+
+          const importMap = {};
+          rows.slice(1).forEach((row) => {
+            const sheetName = (row[0] || "").trim();
+            const taskName = (row[1] || "").trim();
+            const sd = (row[2] || "").trim();
+            const st = (row[3] || "").trim();
+            const ed = (row[4] || "").trim();
+            const et = (row[5] || "").trim();
+
+            if (!sheetName || !taskName) return;
+
+            const start = parseDateTime(sd, st);
+            const end = parseDateTime(ed, et);
+            const durMs = start && end && end > start ? end - start : 0;
+
+            if (!importMap[sheetName]) importMap[sheetName] = {};
+            if (!importMap[sheetName][taskName]) {
+              importMap[sheetName][taskName] = [];
+            }
+
+            importMap[sheetName][taskName].push({
+              sd,
+              st,
+              ed,
+              et,
+              dur: durMs,
+              running: false,
+            });
+          });
+
+          const sheetNames = Object.keys(importMap);
+          if (!sheetNames.length) {
+            alert("No valid rows found in the CSV.");
+            return;
+          }
+
+          sheetNames.forEach((sheetName) => {
+            if (!sheets[sheetName]) {
+              sheets[sheetName] = [];
+            }
+
+            const sheetTasks = sheets[sheetName];
+            const tasksInSheet = importMap[sheetName];
+
+            Object.keys(tasksInSheet).forEach((taskName) => {
+              const newRows = tasksInSheet[taskName].map((row, index) => ({
+                ...row,
+                rowIndex: index,
+              }));
+              const total = newRows.reduce(
+                (sum, row) => sum + (row.dur || 0),
+                0,
+              );
+              const existingIndex = sheetTasks.findIndex(
+                (task) => task.name === taskName,
+              );
+
+              if (existingIndex >= 0) {
+                sheetTasks[existingIndex].rows = newRows;
+                sheetTasks[existingIndex].total = total;
+              } else {
+                sheetTasks.push({ name: taskName, rows: newRows, total });
+              }
+            });
+          });
+
+          trackers = sheets[currentSheet] || [];
+          saveUserData();
+          render();
+          drawCharts();
+          alert("CSV import completed.");
+        };
+        reader.readAsText(file);
+      }
+
+      function exportAllSheetsCsv() {
+        if (!confirm("Export all sheets to CSV?")) {
+          return;
+        }
+
+        let csv =
+          "Sheets Name,Tasks Name,Start Date,Start Time,End Date,End Time\n";
+
+        Object.keys(sheets || {}).forEach((sheetName) => {
+          const sheetTasks = sheets[sheetName] || [];
+          sheetTasks.forEach((task) => {
+            const taskName = task && task.name ? task.name : "";
+            const rows = (task && task.rows) || [];
+
+            rows.forEach((row) => {
+              csv +=
+                `${escapeCsvValue(sheetName)},` +
+                `${escapeCsvValue(taskName)},` +
+                `${escapeCsvValue(row.sd)},` +
+                `${escapeCsvValue(row.st)},` +
+                `${escapeCsvValue(row.ed)},` +
+                `${escapeCsvValue(row.et)}\n`;
+            });
+          });
+        });
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv]));
+        a.download = "All_Sheets_Tasks.csv";
+        a.click();
+      }
+
       function downloadAll() {
         let csv =
           "Work,Start Date,Start Time,End Date,End Time,Duration(Minutes)\n";
@@ -3149,7 +3420,7 @@
       }
 
       /* -------------------- RENDER -------------------- */
-      let bar, pie, lineChart, doughnutChart;
+      let bar, pie, lineChart, doughnutChart, stackedDayChart;
       let pieSelectedTasks = null; // Track selected tasks for pie chart
       function render() {
         const trackerBox = document.getElementById("trackers");
@@ -3274,6 +3545,7 @@
         if (pie) pie.destroy();
         if (lineChart) lineChart.destroy();
         if (doughnutChart) doughnutChart.destroy();
+        if (stackedDayChart) stackedDayChart.destroy();
 
         if (labels.length === 0) return;
 
@@ -3648,6 +3920,92 @@
                       `Total Time: ${dur(t.total)}`,
                     ];
                   },
+                },
+              },
+            },
+          },
+        });
+
+        // Stacked Bar Chart: Days and Task (hours per day)
+        const dayLabels = [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ];
+        const dayTotals = new Array(7).fill(0);
+        const dayTaskSessions = trackers.map(() => new Array(7).fill(0));
+        const dayDatasets = trackers.map((t, idx) => {
+          const data = new Array(7).fill(0);
+          t.rows.forEach((r) => {
+            const d = parseDateOnly(r.sd);
+            if (!d) return;
+            const dayIndex = (d.getDay() + 6) % 7; // Monday=0
+            const hours = (r.dur || 0) / 3600000;
+            data[dayIndex] += hours;
+            dayTotals[dayIndex] += hours;
+            dayTaskSessions[idx][dayIndex] += 1;
+          });
+          return {
+            label: t.name,
+            data,
+            backgroundColor: colors[idx % colors.length],
+            borderColor: colors[idx % colors.length],
+            borderWidth: 1,
+            borderRadius: 6,
+          };
+        });
+
+        const stackedDayCanvas = document.getElementById("stackedDayChart");
+        stackedDayChart = new Chart(stackedDayCanvas, {
+          type: "bar",
+          data: {
+            labels: dayLabels,
+            datasets: dayDatasets,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    const dayIndex = ctx.dataIndex;
+                    const taskName = ctx.dataset.label;
+                    const hours = ctx.parsed.y || 0;
+                    const minutes = hours * 60;
+                    const taskIdx = ctx.datasetIndex;
+                    const sessions = dayTaskSessions[taskIdx][dayIndex] || 0;
+                    const dayTotal = dayTotals[dayIndex] || 0;
+                    const pct = dayTotal > 0 ? (hours / dayTotal) * 100 : 0;
+
+                    return [
+                      `Day: ${dayLabels[dayIndex]}`,
+                      `Task: ${taskName}`,
+                      `Hours: ${hours.toFixed(2)}h`,
+                      `Minutes: ${minutes.toFixed(0)}m`,
+                      `Sessions: ${sessions}`,
+                      `Day Total: ${dayTotal.toFixed(2)}h`,
+                      `Share: ${pct.toFixed(1)}%`,
+                    ];
+                  },
+                },
+              },
+            },
+            scales: {
+              x: { stacked: true },
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Hours",
                 },
               },
             },
