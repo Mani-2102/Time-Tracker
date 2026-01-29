@@ -1610,6 +1610,40 @@
       body.theme-dark .toggle-mode.multi:hover {
         background: #1f2937;
       }
+      body.theme-dark .analytics-content {
+        background: #0f172a;
+        border: 1px solid #1f2937;
+        color: #e5e7eb;
+      }
+      body.theme-dark .analytics-header {
+        border-bottom-color: #1f2937;
+      }
+      body.theme-dark .analytics-header h2 {
+        color: #93c5fd;
+      }
+      body.theme-dark .analytics-tab {
+        color: #cbd5f5;
+      }
+      body.theme-dark .analytics-tab.active {
+        color: #93c5fd;
+        border-bottom-color: #93c5fd;
+      }
+      body.theme-dark .analytics-tab-content h3 {
+        color: #93c5fd;
+      }
+      body.theme-dark .analytics-tab-content table {
+        background: #0f172a;
+      }
+      body.theme-dark .analytics-tab-content th {
+        background: #111827;
+        color: #93c5fd;
+        border-color: #1f2937;
+      }
+      body.theme-dark .analytics-tab-content td {
+        background: #0f172a;
+        color: #e5e7eb;
+        border-color: #1f2937;
+      }
       /* Analytics Modal Styles */
       #analyticsModal {
         display: none;
@@ -1694,6 +1728,90 @@
       }
       .analytics-tab-content.active {
         display: block;
+      }
+      .analytics-title-btn {
+        background: transparent;
+        border: none;
+        color: var(--primary);
+        font-size: 14px;
+        margin: 10px 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        font-weight: 600;
+      }
+      .analytics-title-btn:hover {
+        text-decoration: underline;
+      }
+      #analyticsDetailModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      #analyticsDetailModal.active {
+        display: flex;
+      }
+      .analytics-detail-content {
+        background: #fff;
+        border-radius: 12px;
+        width: 90vw;
+        height: 90vh;
+        padding: 24px;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+      .analytics-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 12px;
+      }
+      .analytics-detail-header h2 {
+        margin: 0;
+        color: var(--primary);
+        font-size: 22px;
+      }
+      .analytics-detail-chart {
+        height: 420px;
+        margin-bottom: 24px;
+      }
+      .analytics-detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+        font-size: 13px;
+      }
+      .analytics-detail-table th,
+      .analytics-detail-table td {
+        border: 1px solid var(--border);
+        padding: 8px 6px;
+        text-align: center;
+      }
+      .analytics-detail-note {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        color: #0f172a;
+      }
+      body.theme-dark .analytics-detail-content {
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      body.theme-dark .analytics-detail-note {
+        background: #111827;
+        border-color: #334155;
+        color: #e5e7eb;
       }
       .analytics-stats {
         display: grid;
@@ -1805,7 +1923,11 @@
         </button>
       </div>
       <div class="drawer-content">
-        <a class="task-list-link" href="welcome.html" title="Welcome Page"
+        <a
+          class="task-list-link"
+          href="welcome.html"
+          title="Welcome Page"
+          onmousedown="handleMenuLinkClick(event, 'welcome.html')"
           >😎 Know Me</a
         >
         <div class="menu-toggle-row" title="Show or hide Actions column">
@@ -1844,27 +1966,33 @@
         >
           ⬆️ Import CSV
         </button>
-        <a class="task-list-link" href="todo.html" title="Track your To-Do list"
+        <a
+          class="task-list-link"
+          href="todo.html"
+          title="Track your To-Do list"
+          onmousedown="handleMenuLinkClick(event, 'todo.html')"
           >📝 To-Do</a
         >
         <a
           class="task-list-link"
           href="Timer.html"
-          onmousedown="handleTimerClick(event)"
+          onmousedown="handleMenuLinkClick(event, 'Timer.html')"
           title="Tap Timer (Alt+T)"
           >⏱️ Timer</a
         >
         <!-- Create by me, button for the ProDoc.html -->
         <a
           class="task-list-link"
-          href="E:\Folder Management-25-2\Organising\1_Lerning\Project verson 2 vs code\Time-Tracker\ProDoc\ProDoc.html"
+          href="ProDoc/ProDoc.html"
           title="ProDoc (Alt+D)"
+          onmousedown="handleMenuLinkClick(event, 'ProDoc/ProDoc.html')"
           >📄 ProDoc (In development)</a
         >
         <a
           class="task-list-link"
           href="NotificationTimer.html"
           title="Smart Timer (Alt+S)"
+          onmousedown="handleMenuLinkClick(event, 'NotificationTimer.html')"
           >🔔 Smart Timer</a
         >
         <div
@@ -1918,43 +2046,55 @@
           <div class="card analytics">
             <h3>📊 Activity Analytics</h3>
             <div style="margin-bottom: 30px">
-              <h4
-                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              <button
+                class="analytics-title-btn"
+                onclick="openAnalyticsDetail('bar', 'Duration & Session Count')"
+                title="Open details"
               >
                 Duration & Session Count
-              </h4>
+              </button>
               <canvas id="barChart"></canvas>
             </div>
             <div style="margin-bottom: 30px">
-              <h4
-                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              <button
+                class="analytics-title-btn"
+                onclick="openAnalyticsDetail('pie', 'Task Distribution')"
+                title="Open details"
               >
                 Task Distribution
-              </h4>
+              </button>
               <canvas id="pieChart"></canvas>
             </div>
             <div style="margin-bottom: 30px">
-              <h4
-                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              <button
+                class="analytics-title-btn"
+                onclick="openAnalyticsDetail('line', 'Time Trend Analysis')"
+                title="Open details"
               >
                 Time Trend Analysis
-              </h4>
+              </button>
               <canvas id="lineChart"></canvas>
             </div>
             <div style="margin-bottom: 30px">
-              <h4
-                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              <button
+                class="analytics-title-btn"
+                onclick="
+                  openAnalyticsDetail('doughnut', 'Task Completion Rate')
+                "
+                title="Open details"
               >
                 Task Completion Rate
-              </h4>
+              </button>
               <canvas id="doughnutChart"></canvas>
             </div>
             <div style="margin-bottom: 30px">
-              <h4
-                style="margin: 10px 0; color: var(--primary); font-size: 14px"
+              <button
+                class="analytics-title-btn"
+                onclick="openAnalyticsDetail('stacked', 'Days and Task')"
+                title="Open details"
               >
                 Days and Task
-              </h4>
+              </button>
               <canvas id="stackedDayChart"></canvas>
             </div>
           </div>
@@ -2054,7 +2194,10 @@
             📊 Overview
           </button>
           <button class="analytics-tab" onclick="switchAnalyticsTab('byday')">
-            📅 By Day
+            📅 By Date
+          </button>
+          <button class="analytics-tab" onclick="switchAnalyticsTab('bydays')">
+            📅 By Days
           </button>
           <button
             class="analytics-tab"
@@ -2110,13 +2253,23 @@
           </div>
         </div>
 
-        <!-- By Day Tab -->
+        <!-- By Date Tab -->
         <div id="tab-byday" class="analytics-tab-content">
           <h3 style="color: var(--primary); margin-top: 0">
             Time Tracked by Day
           </h3>
           <div class="chart-container">
             <canvas id="analyticsDayChart"></canvas>
+          </div>
+        </div>
+
+        <!-- By Days Tab -->
+        <div id="tab-bydays" class="analytics-tab-content">
+          <h3 style="color: var(--primary); margin-top: 0">
+            Time Tracked by Days
+          </h3>
+          <div class="chart-container">
+            <canvas id="analyticsWeekdayChart"></canvas>
           </div>
         </div>
 
@@ -2180,12 +2333,30 @@
                   >
                     Duration
                   </th>
+                  <th
+                    style="
+                      padding: 12px;
+                      text-align: right;
+                      color: var(--primary);
+                    "
+                  >
+                    Rank
+                  </th>
+                  <th
+                    style="
+                      padding: 12px;
+                      text-align: right;
+                      color: var(--primary);
+                    "
+                  >
+                    Percentage
+                  </th>
                 </tr>
               </thead>
               <tbody id="sessionsTable">
                 <tr>
                   <td
-                    colspan="4"
+                    colspan="6"
                     style="
                       text-align: center;
                       padding: 20px;
@@ -2198,6 +2369,59 @@
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analyticsDetailModal" class="modal" aria-hidden="true">
+      <div class="analytics-detail-content">
+        <div class="analytics-detail-header">
+          <h2 id="analyticsDetailTitle">Analytics Detail</h2>
+          <button class="analytics-close" onclick="closeAnalyticsDetail()">
+            Close
+          </button>
+        </div>
+        <div class="analytics-detail-chart">
+          <canvas id="analyticsDetailChart"></canvas>
+        </div>
+        <div id="analyticsDayTableSection" style="display: none">
+          <h3 style="margin: 0 0 12px 0; color: var(--primary)">
+            Days Summary
+          </h3>
+          <div style="overflow-x: auto; margin-bottom: 24px">
+            <table class="analytics-detail-table">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Total Duration</th>
+                  <th>Total Sessions</th>
+                  <th>Rank</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody id="analyticsDayTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="overflow-x: auto">
+          <table class="analytics-detail-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Total Duration</th>
+                <th>Total Count</th>
+                <th>Min Duration</th>
+                <th>Max Duration</th>
+                <th>Rank</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsDetailTableBody"></tbody>
+          </table>
+        </div>
+        <div class="analytics-detail-note">
+          <h3 style="margin-top: 0">How to read this chart</h3>
+          <p id="analyticsDetailDescription" style="margin: 0"></p>
         </div>
       </div>
     </div>
@@ -3017,7 +3241,26 @@
 
       function parseDateTime(dateStr, timeStr) {
         if (!dateStr || !timeStr) return null;
-        const combined = new Date(`${dateStr} ${timeStr}`);
+        const baseDate = parseDateOnly(dateStr);
+        if (!baseDate) return null;
+
+        const timeMatch = timeStr
+          .trim()
+          .match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
+        if (!timeMatch) return null;
+
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2], 10);
+        const seconds = parseInt(timeMatch[3] || "0", 10);
+        const meridiem = timeMatch[4] ? timeMatch[4].toUpperCase() : null;
+
+        if (meridiem) {
+          if (meridiem === "PM" && hours < 12) hours += 12;
+          if (meridiem === "AM" && hours === 12) hours = 0;
+        }
+
+        const combined = new Date(baseDate);
+        combined.setHours(hours, minutes, seconds, 0);
         return isNaN(combined.getTime()) ? null : combined;
       }
 
@@ -3198,7 +3441,7 @@
       }
 
       /* -------------------- ANALYTICS -------------------- */
-      let analyticsCharts = { line: null, day: null, pie: null };
+      let analyticsCharts = { line: null, day: null, weekday: null, pie: null };
       let currentAnalyticsTaskIndex = null;
 
       function openAnalytics(taskIndex) {
@@ -3219,6 +3462,7 @@
         // Destroy charts
         if (analyticsCharts.line) analyticsCharts.line.destroy();
         if (analyticsCharts.day) analyticsCharts.day.destroy();
+        if (analyticsCharts.weekday) analyticsCharts.weekday.destroy();
         if (analyticsCharts.pie) analyticsCharts.pie.destroy();
       }
 
@@ -3243,6 +3487,8 @@
             generateOverviewAnalytics(task);
           } else if (tabName === "byday") {
             generateByDayAnalytics(task);
+          } else if (tabName === "bydays") {
+            generateByDaysAnalytics(task);
           } else if (tabName === "distribution") {
             generateDistributionAnalytics(task);
           } else if (tabName === "sessions") {
@@ -3347,6 +3593,60 @@
         });
       }
 
+      function generateByDaysAnalytics(task) {
+        const weekdayLabels = [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ];
+        const weekdayTotals = new Array(7).fill(0);
+
+        task.rows.forEach((r) => {
+          const d = parseDateOnly(r.sd);
+          if (!d) return;
+          const dayIndex = (d.getDay() + 6) % 7;
+          weekdayTotals[dayIndex] += r.dur || 0;
+        });
+
+        const hours = weekdayTotals.map((total) =>
+          (total / 3600000).toFixed(2),
+        );
+
+        if (analyticsCharts.weekday) analyticsCharts.weekday.destroy();
+
+        const ctx = document.getElementById("analyticsWeekdayChart");
+        analyticsCharts.weekday = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: weekdayLabels,
+            datasets: [
+              {
+                label: "Hours Tracked",
+                data: hours,
+                backgroundColor: "#3b82f6",
+                borderColor: "#2563eb",
+                borderWidth: 1,
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: true },
+            },
+            scales: {
+              y: { beginAtZero: true, ticks: { callback: (v) => v + "h" } },
+            },
+          },
+        });
+      }
+
       function generateDistributionAnalytics(task) {
         // Sessions grouped by duration ranges
         const ranges = {
@@ -3402,21 +3702,494 @@
 
         if (task.rows.length === 0) {
           tbody.innerHTML =
-            '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--muted);">No sessions recorded</td></tr>';
+            '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--muted);">No sessions recorded</td></tr>';
           return;
         }
 
-        task.rows.forEach((r) => {
+        const totalTime = task.rows.reduce((sum, r) => sum + (r.dur || 0), 0);
+        const ranked = task.rows
+          .map((r, idx) => ({ idx, dur: r.dur || 0 }))
+          .sort((a, b) => b.dur - a.dur)
+          .map((item, rank) => ({ ...item, rank: rank + 1 }));
+        const rankMap = ranked.reduce((acc, item) => {
+          acc[item.idx] = item.rank;
+          return acc;
+        }, {});
+
+        task.rows.forEach((r, idx) => {
           const row = document.createElement("tr");
           const minutes = (r.dur / 60000).toFixed(2);
+          const pct = totalTime > 0 ? ((r.dur || 0) / totalTime) * 100 : 0;
           row.innerHTML = `
             <td style="padding: 12px; border-bottom: 1px solid var(--border);">${r.sd}</td>
             <td style="padding: 12px; border-bottom: 1px solid var(--border);">${r.st}</td>
             <td style="padding: 12px; border-bottom: 1px solid var(--border);">${r.et || "-"}</td>
             <td style="padding: 12px; border-bottom: 1px solid var(--border); text-align: right; color: var(--success); font-weight: 600;">${minutes}m</td>
+            <td style="padding: 12px; border-bottom: 1px solid var(--border); text-align: right;">${rankMap[idx] || "-"}</td>
+            <td style="padding: 12px; border-bottom: 1px solid var(--border); text-align: right;">${pct.toFixed(1)}%</td>
           `;
           tbody.appendChild(row);
         });
+      }
+
+      /* -------------------- ANALYTICS DETAIL MODAL -------------------- */
+      let analyticsDetailChart = null;
+
+      function openAnalyticsDetail(chartKey, title) {
+        if (!trackers || trackers.length === 0) {
+          alert("No data available for analytics.");
+          return;
+        }
+
+        const modal = document.getElementById("analyticsDetailModal");
+        const titleEl = document.getElementById("analyticsDetailTitle");
+        titleEl.textContent = title;
+        modal.classList.add("active");
+
+        buildAnalyticsDayTable(chartKey);
+        buildAnalyticsDetailTable();
+        buildAnalyticsDetailDescription(chartKey);
+        buildAnalyticsDetailChart(chartKey);
+      }
+
+      function closeAnalyticsDetail() {
+        const modal = document.getElementById("analyticsDetailModal");
+        modal.classList.remove("active");
+        if (analyticsDetailChart) {
+          analyticsDetailChart.destroy();
+          analyticsDetailChart = null;
+        }
+      }
+
+      function buildAnalyticsDetailTable() {
+        const tbody = document.getElementById("analyticsDetailTableBody");
+        tbody.innerHTML = "";
+        const totalTime = trackers.reduce((sum, t) => sum + (t.total || 0), 0);
+
+        const stats = trackers
+          .map((t) => {
+            const durations = t.rows
+              .map((r) => r.dur || 0)
+              .sort((a, b) => a - b);
+            const min = durations.length ? durations[0] : 0;
+            const max = durations.length ? durations[durations.length - 1] : 0;
+            return {
+              name: t.name,
+              total: t.total || 0,
+              count: t.rows.length,
+              min,
+              max,
+            };
+          })
+          .sort((a, b) => b.total - a.total);
+
+        stats.forEach((item, idx) => {
+          const pct = totalTime > 0 ? (item.total / totalTime) * 100 : 0;
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${item.name}</td>
+            <td>${dur(item.total)}</td>
+            <td>${item.count}</td>
+            <td>${item.min ? dur(item.min) : "0"}</td>
+            <td>${item.max ? dur(item.max) : "0"}</td>
+            <td>${idx + 1}</td>
+            <td>${pct.toFixed(1)}%</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        if (stats.length === 0) {
+          const row = document.createElement("tr");
+          row.innerHTML =
+            '<td colspan="7" style="padding: 16px; color: var(--muted);">No task data available.</td>';
+          tbody.appendChild(row);
+        }
+      }
+
+      function buildAnalyticsDayTable(chartKey) {
+        const section = document.getElementById("analyticsDayTableSection");
+        const tbody = document.getElementById("analyticsDayTableBody");
+        if (!section || !tbody) return;
+
+        if (chartKey !== "stacked") {
+          section.style.display = "none";
+          tbody.innerHTML = "";
+          return;
+        }
+
+        section.style.display = "block";
+        tbody.innerHTML = "";
+
+        const dayLabels = [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ];
+
+        const dayTotals = new Array(7).fill(0);
+        const dayCounts = new Array(7).fill(0);
+
+        trackers.forEach((t) => {
+          t.rows.forEach((r) => {
+            const d = parseDateOnly(r.sd);
+            if (!d) return;
+            const dayIndex = (d.getDay() + 6) % 7;
+            dayTotals[dayIndex] += r.dur || 0;
+            dayCounts[dayIndex] += 1;
+          });
+        });
+
+        const weekTotal = dayTotals.reduce((sum, v) => sum + v, 0);
+
+        const ranked = dayTotals
+          .map((total, idx) => ({ idx, total }))
+          .sort((a, b) => b.total - a.total)
+          .map((item, rank) => ({ ...item, rank: rank + 1 }));
+
+        const rankMap = ranked.reduce((acc, item) => {
+          acc[item.idx] = item.rank;
+          return acc;
+        }, {});
+
+        dayLabels.forEach((label, idx) => {
+          const pct = weekTotal > 0 ? (dayTotals[idx] / weekTotal) * 100 : 0;
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${label}</td>
+            <td>${dayTotals[idx] ? dur(dayTotals[idx]) : "0"}</td>
+            <td>${dayCounts[idx]}</td>
+            <td>${rankMap[idx]}</td>
+            <td>${pct.toFixed(1)}%</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        if (weekTotal === 0) {
+          const row = document.createElement("tr");
+          row.innerHTML =
+            '<td colspan="5" style="padding: 16px; color: var(--muted);">No day data available.</td>';
+          tbody.appendChild(row);
+        }
+      }
+
+      function buildAnalyticsDetailDescription(chartKey) {
+        const description = document.getElementById(
+          "analyticsDetailDescription",
+        );
+        const descriptions = {
+          bar: "This chart compares total duration (hours) and session count for each task. Use it to spot which tasks take the most time and which ones happen most often.",
+          pie: "This chart shows the percentage share of total time by task. Use it to understand workload distribution and identify tasks that dominate your time.",
+          line: "This chart tracks time trend progression across tasks. Use it to compare cumulative growth and individual task duration patterns.",
+          doughnut:
+            "This chart shows average session duration by task. Use it to see efficiency per session and compare consistency across tasks.",
+          stacked:
+            "This chart breaks down hours by day and task. Use it to find your most productive days and how tasks are distributed across the week.",
+        };
+
+        description.textContent =
+          descriptions[chartKey] ||
+          "This chart provides a detailed view of your task analytics.";
+      }
+
+      function buildAnalyticsDetailChart(chartKey) {
+        const chartCanvas = document.getElementById("analyticsDetailChart");
+        if (!chartCanvas) return;
+
+        const labels = trackers.map((t) => t.name);
+        const durationData = trackers.map((t) =>
+          (t.total / 3600000).toFixed(2),
+        );
+        const countData = trackers.map((t) => t.rows.length);
+        const total = trackers.reduce((a, t) => a + t.total, 0) || 1;
+        const colors = [
+          "#4f46e5",
+          "#10b981",
+          "#ef4444",
+          "#f59e0b",
+          "#3b82f6",
+          "#8b5cf6",
+          "#ec4899",
+        ];
+
+        if (analyticsDetailChart) {
+          analyticsDetailChart.destroy();
+          analyticsDetailChart = null;
+        }
+
+        if (labels.length === 0) return;
+
+        if (chartKey === "bar") {
+          analyticsDetailChart = new Chart(chartCanvas, {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "Duration (Hours)",
+                  data: durationData,
+                  backgroundColor: colors.slice(0, labels.length),
+                  borderColor: colors.slice(0, labels.length),
+                  borderWidth: 1,
+                  borderRadius: 12,
+                  borderSkipped: false,
+                  yAxisID: "y",
+                  type: "bar",
+                  order: 2,
+                },
+                {
+                  label: "Count (Sessions)",
+                  data: countData,
+                  borderColor: "#ef4444",
+                  backgroundColor: "rgba(239, 68, 68, 0.2)",
+                  borderWidth: 3,
+                  yAxisID: "y1",
+                  type: "line",
+                  tension: 0.3,
+                  pointRadius: 6,
+                  pointBorderColor: "#fff",
+                  pointBorderWidth: 2,
+                  pointBackgroundColor: "#ef4444",
+                  order: 1,
+                  fill: false,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                mode: "index",
+                intersect: false,
+              },
+              scales: {
+                y: {
+                  type: "linear",
+                  display: true,
+                  position: "left",
+                  title: {
+                    display: true,
+                    text: "Duration (Hours)",
+                  },
+                },
+                y1: {
+                  type: "linear",
+                  display: true,
+                  position: "right",
+                  title: {
+                    display: true,
+                    text: "Count (Sessions)",
+                  },
+                  grid: {
+                    drawOnChartArea: false,
+                  },
+                },
+              },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "top",
+                },
+              },
+            },
+          });
+          return;
+        }
+
+        if (chartKey === "pie") {
+          analyticsDetailChart = new Chart(chartCanvas, {
+            type: "pie",
+            data: {
+              labels: labels.map((label, idx) => {
+                const pct = ((trackers[idx].total / total) * 100).toFixed(1);
+                return `${label} (${pct}%)`;
+              }),
+              datasets: [
+                {
+                  data: trackers.map((t) => t.total),
+                  backgroundColor: colors.slice(0, labels.length),
+                  borderColor: "#fff",
+                  borderWidth: 2,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "right",
+                },
+              },
+            },
+          });
+          return;
+        }
+
+        if (chartKey === "line") {
+          const cumulativeData = trackers.map((t, idx) => {
+            return (
+              trackers
+                .slice(0, idx + 1)
+                .reduce((sum, tracker) => sum + tracker.total, 0) / 3600000
+            );
+          });
+
+          analyticsDetailChart = new Chart(chartCanvas, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "Cumulative Time (Hours)",
+                  data: cumulativeData,
+                  borderColor: "#8b5cf6",
+                  backgroundColor: "rgba(139, 92, 246, 0.1)",
+                  borderWidth: 3,
+                  tension: 0.4,
+                  fill: true,
+                  pointRadius: 5,
+                  pointBackgroundColor: "#8b5cf6",
+                  pointBorderColor: "#fff",
+                  pointBorderWidth: 2,
+                },
+                {
+                  label: "Individual Task Time (Hours)",
+                  data: durationData,
+                  borderColor: "#10b981",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  borderWidth: 2,
+                  tension: 0.4,
+                  fill: false,
+                  pointRadius: 4,
+                  pointBackgroundColor: "#10b981",
+                  pointBorderColor: "#fff",
+                  pointBorderWidth: 2,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                mode: "index",
+                intersect: false,
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: "Time (Hours)",
+                  },
+                },
+              },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "top",
+                },
+              },
+            },
+          });
+          return;
+        }
+
+        if (chartKey === "doughnut") {
+          const avgSessionDuration = trackers.map((t) => {
+            if (t.rows.length === 0) return 0;
+            return t.total / t.rows.length / 60000;
+          });
+
+          analyticsDetailChart = new Chart(chartCanvas, {
+            type: "doughnut",
+            data: {
+              labels: labels.map((label, idx) => {
+                return `${label} (${avgSessionDuration[idx].toFixed(0)} min/session)`;
+              }),
+              datasets: [
+                {
+                  label: "Average Session Duration (Minutes)",
+                  data: avgSessionDuration,
+                  backgroundColor: colors.slice(0, labels.length),
+                  borderColor: "#fff",
+                  borderWidth: 3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                },
+              },
+            },
+          });
+          return;
+        }
+
+        if (chartKey === "stacked") {
+          const dayLabels = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ];
+          const dayDatasets = trackers.map((t, idx) => {
+            const data = new Array(7).fill(0);
+            t.rows.forEach((r) => {
+              const d = parseDateOnly(r.sd);
+              if (!d) return;
+              const dayIndex = (d.getDay() + 6) % 7;
+              const hours = (r.dur || 0) / 3600000;
+              data[dayIndex] += hours;
+            });
+            return {
+              label: t.name,
+              data,
+              backgroundColor: colors[idx % colors.length],
+              borderColor: colors[idx % colors.length],
+              borderWidth: 1,
+              borderRadius: 6,
+            };
+          });
+
+          analyticsDetailChart = new Chart(chartCanvas, {
+            type: "bar",
+            data: {
+              labels: dayLabels,
+              datasets: dayDatasets,
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                },
+              },
+              scales: {
+                x: { stacked: true },
+                y: {
+                  stacked: true,
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: "Hours",
+                  },
+                },
+              },
+            },
+          });
+        }
       }
 
       /* -------------------- RENDER -------------------- */
@@ -4331,6 +5104,12 @@
 
       // Keyboard shortcuts
       document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (closeAllPopups()) {
+            e.preventDefault();
+            return;
+          }
+        }
         // Check if Alt key is pressed
         if (e.altKey) {
           switch (e.key) {
@@ -4392,13 +5171,64 @@
         }
       }
 
-      // Middle-click handler for Timer button
-      function handleTimerClick(event) {
-        // Check if middle mouse button (button === 1)
+      function handleMenuLinkClick(event, url) {
         if (event.button === 1) {
           event.preventDefault();
-          window.open("Timer.html", "_blank");
+          window.open(url, "_blank");
         }
+      }
+
+      function closeAllPopups() {
+        let closed = false;
+
+        const menuDrawer = document.getElementById("menuDrawer");
+        if (menuDrawer && menuDrawer.classList.contains("active")) {
+          toggleMenuDrawer(false);
+          closed = true;
+        }
+
+        const homeSidebar = document.getElementById("homeSidebar");
+        if (homeSidebar && homeSidebar.classList.contains("active")) {
+          toggleHomeSidebar();
+          closed = true;
+        }
+
+        const sheetsModal = document.getElementById("sheetsModal");
+        if (sheetsModal && sheetsModal.classList.contains("active")) {
+          closeModal();
+          closed = true;
+        }
+
+        const analyticsModal = document.getElementById("analyticsModal");
+        if (analyticsModal && analyticsModal.classList.contains("active")) {
+          closeAnalytics();
+          closed = true;
+        }
+
+        const analyticsDetailModal = document.getElementById(
+          "analyticsDetailModal",
+        );
+        if (
+          analyticsDetailModal &&
+          analyticsDetailModal.classList.contains("active")
+        ) {
+          closeAnalyticsDetail();
+          closed = true;
+        }
+
+        const calPopup = document.getElementById("calendarPopup");
+        if (calPopup) {
+          closeCalendarPopup();
+          closed = true;
+        }
+
+        const timePopup = document.getElementById("timePopup");
+        if (timePopup) {
+          closeTimePopup();
+          closed = true;
+        }
+
+        return closed;
       }
     </script>
 
