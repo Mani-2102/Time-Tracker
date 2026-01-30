@@ -228,6 +228,35 @@
         color: var(--primary);
         font-size: 18px;
       }
+      .shortcut-modal-content {
+        width: 70%;
+        max-width: 1000px;
+        max-height: 80vh;
+        overflow: auto;
+      }
+      .shortcut-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 12px;
+      }
+      .shortcut-table th,
+      .shortcut-table td {
+        border: 1px solid var(--border);
+        padding: 8px 6px;
+        text-align: left;
+      }
+      .shortcut-table th {
+        background: var(--primary);
+        color: #fff;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      .shortcut-table tr:nth-child(even) {
+        background: rgba(79, 70, 229, 0.06);
+      }
       .sheet-list {
         list-style: none;
         margin: 0 0 16px 0;
@@ -1907,7 +1936,9 @@
         >
           Logout
         </button>
-        <button onclick="toggleMenuDrawer(true)" title="Open Menu">Menu</button>
+        <button onclick="toggleMenuDrawer(true)" title="Open Menu (Alt+M)">
+          Menu
+        </button>
       </div>
     </header>
     <!-- Right-side Menu Drawer -->
@@ -1930,7 +1961,10 @@
           onmousedown="handleMenuLinkClick(event, 'welcome.html')"
           >😎 Know Me</a
         >
-        <div class="menu-toggle-row" title="Show or hide Actions column">
+        <div
+          class="menu-toggle-row"
+          title="Show or hide Actions column (Alt+E)"
+        >
           <span class="toggle-label" id="actionsToggleLabel">Actions: ON</span>
           <label class="switch">
             <input
@@ -1946,9 +1980,17 @@
           class="task-list-link"
           style="text-align: left"
           onclick="toggleThemeMode()"
-          title="Toggle Dark/Day Mode"
+          title="Toggle Dark/Day Mode (Alt+/)"
         >
           🌙 Night Mode
+        </button>
+        <button
+          class="task-list-link"
+          style="text-align: left"
+          onclick="openShortcutModal()"
+          title="View shortcut keys"
+        >
+          ⌨️ Shortcut key
         </button>
         <button
           class="task-list-link"
@@ -1977,7 +2019,7 @@
           class="task-list-link"
           href="Timer.html"
           onmousedown="handleMenuLinkClick(event, 'Timer.html')"
-          title="Tap Timer (Alt+T)"
+          title="Tap Timer"
           >⏱️ Timer</a
         >
         <!-- Create by me, button for the ProDoc.html -->
@@ -2174,6 +2216,111 @@
           + Create New Sheet
         </button>
         <ul class="sheet-list" id="sheetsList"></ul>
+      </div>
+    </div>
+
+    <div id="shortcutModal" class="modal" aria-hidden="true">
+      <div class="modal-content shortcut-modal-content">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+          "
+        >
+          <h2>⌨️ Shortcut Keys</h2>
+          <button class="drawer-close" onclick="closeShortcutModal()">✕</button>
+        </div>
+        <table class="shortcut-table">
+          <thead>
+            <tr>
+              <th style="width: 60px">S.No</th>
+              <th style="width: 130px">Shortcut key</th>
+              <th>Which webpage it works</th>
+              <th>Uses</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Alt + E</td>
+              <td>Timer sheet</td>
+              <td>Enable/disable Actions column</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Alt + M</td>
+              <td>Timer sheet</td>
+              <td>Open/close menu</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Alt + /</td>
+              <td>Timer sheet</td>
+              <td>Toggle night/day mode</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Alt + 1</td>
+              <td>Timer sheet</td>
+              <td>Create new task pop-up</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Alt + 2</td>
+              <td>Timer sheet</td>
+              <td>Get the sheets list</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Alt + 3</td>
+              <td>Timer sheet</td>
+              <td>Single/Multiple tasks mode</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Alt + .</td>
+              <td>Timer sheet</td>
+              <td>For open the shortcut keys Pop-up</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Alt + P</td>
+              <td>Timer sheet</td>
+              <td>Open ProDoc page</td>
+            </tr>
+            <tr>  
+              <td>9</td>
+              <td>Alt + S</td>
+              <td>Timer sheet</td>
+              <td>Open Smart Timer page</td>
+            </tr>
+            <tr>  
+              <td>10</td>
+              <td>Alt + O</td>
+              <td>Timer sheet</td>
+              <td>Open To-Do page</td>
+            </tr>
+            <tr>  
+              <td>11</td>
+              <td>Alt + L</td>
+              <td>Timer sheet</td>
+              <td>Open Know me page</td>
+            </tr>
+            <tr>  
+              <td>12</td>
+              <td>Alt + H</td>
+              <td>Timer sheet</td>
+              <td>Open Home tab</td>
+            </tr>
+            <tr>  
+              <td>13</td>
+              <td>Alt + A</td>
+              <td>Timer sheet</td>
+              <td>Go do the Activity Analytics with out need scroll down in current sheet</td>
+            </tr>
+        </table>
       </div>
     </div>
 
@@ -2617,12 +2764,12 @@
           modeBtn.textContent = "Multiple Tasks";
           modeBtn.className = "toggle-mode multi";
           modeBtn.title =
-            "Multiple Tasks Mode: ON (click to restrict to single task)";
+            "Multiple Tasks Mode: ON (click to restrict to single task) - Toggle (Alt+3)";
         } else {
           modeBtn.textContent = "Single Task";
           modeBtn.className = "toggle-mode single";
           modeBtn.title =
-            "Single Task Mode: ON (click to allow multiple tasks)";
+            "Single Task Mode: ON (click to allow multiple tasks) - Toggle (Alt+3)";
         }
       }
 
@@ -2746,12 +2893,13 @@
         if (singleTaskMode) {
           btn.textContent = "Single Task";
           btn.className = "toggle-mode single";
-          btn.title = "Single Task Mode: ON (click to allow multiple tasks)";
+          btn.title =
+            "Single Task Mode: ON (click to allow multiple tasks) - Toggle (Alt+3)";
         } else {
           btn.textContent = "Multiple Tasks";
           btn.className = "toggle-mode multi";
           btn.title =
-            "Multiple Tasks Mode: ON (click to restrict to single task)";
+            "Multiple Tasks Mode: ON (click to restrict to single task) - Toggle (Alt+3)";
         }
         save();
       }
@@ -4988,6 +5136,25 @@
         }
       };
 
+      /* -------------------- SHORTCUT MODAL -------------------- */
+      function openShortcutModal() {
+        const modal = document.getElementById("shortcutModal");
+        if (!modal) return;
+        modal.classList.add("active");
+      }
+
+      function closeShortcutModal() {
+        const modal = document.getElementById("shortcutModal");
+        if (!modal) return;
+        modal.classList.remove("active");
+      }
+
+      document.getElementById("shortcutModal").onclick = (e) => {
+        if (e.target.id === "shortcutModal") {
+          closeShortcutModal();
+        }
+      };
+
       /* -------------------- HOME SIDEBAR -------------------- */
       function toggleHomeSidebar() {
         const sidebar = document.getElementById("homeSidebar");
@@ -5128,14 +5295,85 @@
               e.preventDefault();
               toggleMode();
               break;
+            case "e":
+            case "E": {
+              // Alt+E: Toggle Actions column
+              e.preventDefault();
+              const isVisible =
+                !document.body.classList.contains("hide-actions");
+              toggleActionsColumn(!isVisible);
+              break;
+            }
+            case "m":
+            case "M":
+              // Alt+M: Open/close menu
+              e.preventDefault();
+              toggleMenuDrawer();
+              break;
+            case "/":
+            case "?":
+              // Alt+/: Toggle night/day mode
+              e.preventDefault();
+              toggleThemeMode();
+              break;
             case "h":
             case "H":
               // Alt+H: Open home tab
               e.preventDefault();
               toggleHomeSidebar();
               break;
+            case ".":
+              // Alt+.: Open shortcut keys popup
+              e.preventDefault();
+              openShortcutModal();
+              break;
+            case "p":
+            case "P":
+              // Alt+P: Open ProDoc page
+              e.preventDefault();
+              window.open("ProDoc/ProDoc.html", "_blank");
+              break;
+            case "o":
+            case "O":
+              // Alt+O: Open To-Do page
+              e.preventDefault();
+              window.open("todo.html", "_blank");
+              break;
+            case "l":
+            case "L":
+              // Alt+L: Open Know Me page
+              e.preventDefault();
+              window.open("welcome.html", "_blank");
+              break;
+            case "a":
+            case "A": {
+              // Alt+A: Go to Activity Analytics
+              e.preventDefault();
+              const analyticsSection = document.querySelector(".analytics");
+              if (analyticsSection) {
+                analyticsSection.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }
+              break;
+            }
+            case "s":
+            case "S":
+              // Alt+S: Open smart timer web
+              e.preventDefault();
+              window.open("NotificationTimer.html", "_blank");
+              break;
           }
         }
+      });
+
+      // Add event listeners to menu links
+      document.querySelectorAll(".menu-link").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          handleMenuLinkClick(event, link.getAttribute("href"));
+          }
+      ); 
       });
 
       // Toggle right-side menu drawer
@@ -5213,6 +5451,12 @@
           analyticsDetailModal.classList.contains("active")
         ) {
           closeAnalyticsDetail();
+          closed = true;
+        }
+
+        const shortcutModal = document.getElementById("shortcutModal");
+        if (shortcutModal && shortcutModal.classList.contains("active")) {
+          closeShortcutModal();
           closed = true;
         }
 
