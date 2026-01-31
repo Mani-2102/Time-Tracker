@@ -1673,6 +1673,15 @@
         color: #e5e7eb;
         border-color: #1f2937;
       }
+      /* Dark mode for filter indicator */
+      body.theme-dark #filterIndicator {
+        background: linear-gradient(135deg, #1e293b 0%, #1f2937 100%);
+        border-color: #3b82f6;
+        color: #93c5fd;
+      }
+      body.theme-dark #filterIndicator strong {
+        color: #60a5fa;
+      }
       /* Analytics Modal Styles */
       #analyticsModal {
         display: none;
@@ -1772,6 +1781,35 @@
       .analytics-title-btn:hover {
         text-decoration: underline;
       }
+
+      /* Power BI Style Filter Indicator */
+      #filterIndicator {
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      #filterIndicator button:hover {
+        background: #dc2626 !important;
+        transform: scale(1.05);
+      }
+
+      /* Chart hover effect for cross-filtering */
+      .analytics canvas {
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+      .analytics canvas:hover {
+        transform: scale(1.01);
+      }
+
       #analyticsDetailModal {
         display: none;
         position: fixed;
@@ -2010,6 +2048,13 @@
         </button>
         <a
           class="task-list-link"
+          href="YearActivity.html"
+          title="Year Activity Tracker"
+          onmousedown="handleMenuLinkClick(event, 'YearActivity.html')"
+          >📅 Year Activity</a
+        >
+        <a
+          class="task-list-link"
           href="todo.html"
           title="Track your To-Do list"
           onmousedown="handleMenuLinkClick(event, 'todo.html')"
@@ -2087,6 +2132,34 @@
           <div id="trackers"></div>
           <div class="card analytics">
             <h3>📊 Activity Analytics</h3>
+            <div
+              id="filterIndicator"
+              style="
+                display: none;
+                align-items: center;
+                padding: 10px 16px;
+                margin-bottom: 16px;
+                background: linear-gradient(135deg, #f0f4ff 0%, #e8f5e9 100%);
+                border: 2px solid var(--primary);
+                border-radius: 8px;
+                font-size: 13px;
+                color: var(--primary);
+              "
+            >
+              <!-- Filter indicator content will be injected here -->
+            </div>
+            <p
+              style="
+                font-size: 12px;
+                color: var(--muted);
+                margin-bottom: 20px;
+                text-align: center;
+              "
+            >
+              💡 <strong>Power BI Style:</strong> Click on any task color in the
+              charts below to filter all charts by that task. Click again to
+              clear.
+            </p>
             <div style="margin-bottom: 30px">
               <button
                 class="analytics-title-btn"
@@ -2290,36 +2363,40 @@
               <td>Timer sheet</td>
               <td>Open ProDoc page</td>
             </tr>
-            <tr>  
+            <tr>
               <td>9</td>
               <td>Alt + S</td>
               <td>Timer sheet</td>
               <td>Open Smart Timer page</td>
             </tr>
-            <tr>  
+            <tr>
               <td>10</td>
               <td>Alt + O</td>
               <td>Timer sheet</td>
               <td>Open To-Do page</td>
             </tr>
-            <tr>  
+            <tr>
               <td>11</td>
               <td>Alt + L</td>
               <td>Timer sheet</td>
               <td>Open Know me page</td>
             </tr>
-            <tr>  
+            <tr>
               <td>12</td>
               <td>Alt + H</td>
               <td>Timer sheet</td>
               <td>Open Home tab</td>
             </tr>
-            <tr>  
+            <tr>
               <td>13</td>
               <td>Alt + A</td>
               <td>Timer sheet</td>
-              <td>Go do the Activity Analytics with out need scroll down in current sheet</td>
+              <td>
+                Go do the Activity Analytics with out need scroll down in
+                current sheet
+              </td>
             </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -3085,6 +3162,19 @@
         }
 
         if (confirm("Delete tracker?")) {
+          // Clear filter if the deleted task was the filtered one
+          if (globalFilteredTaskIndex === i) {
+            globalFilteredTaskIndex = null;
+            updateFilterIndicator();
+          } else if (
+            globalFilteredTaskIndex !== null &&
+            globalFilteredTaskIndex > i
+          ) {
+            // Adjust filter index if a task before it was deleted
+            globalFilteredTaskIndex--;
+            updateFilterIndicator();
+          }
+
           trackers.splice(i, 1);
 
           // Update runningTimers keys for tasks that come after the deleted one
@@ -4340,6 +4430,58 @@
         }
       }
 
+      /* -------------------- CROSS-FILTER STATE (Power BI Style) -------------------- */
+      let globalFilteredTaskIndex = null; // Track globally selected task index for cross-filtering
+
+      function setGlobalFilter(taskIndex) {
+        if (globalFilteredTaskIndex === taskIndex) {
+          // Clicking same task again clears the filter
+          globalFilteredTaskIndex = null;
+        } else {
+          globalFilteredTaskIndex = taskIndex;
+        }
+        updateChartsWithFilter();
+        updateFilterIndicator();
+      }
+
+      function clearGlobalFilter() {
+        globalFilteredTaskIndex = null;
+        updateChartsWithFilter();
+        updateFilterIndicator();
+      }
+
+      function updateFilterIndicator() {
+        const indicator = document.getElementById("filterIndicator");
+        if (
+          globalFilteredTaskIndex !== null &&
+          trackers[globalFilteredTaskIndex]
+        ) {
+          const taskName = trackers[globalFilteredTaskIndex].name;
+          const colors = [
+            "#4f46e5",
+            "#10b981",
+            "#ef4444",
+            "#f59e0b",
+            "#3b82f6",
+            "#8b5cf6",
+            "#ec4899",
+          ];
+          const color = colors[globalFilteredTaskIndex % colors.length];
+          indicator.innerHTML = `
+            <span style="display: inline-block; width: 12px; height: 12px; background: ${color}; border-radius: 50%; margin-right: 8px;"></span>
+            Filtered by: <strong>${taskName}</strong>
+            <button onclick="clearGlobalFilter()" style="margin-left: 12px; padding: 4px 12px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">✕ Clear Filter</button>
+          `;
+          indicator.style.display = "flex";
+        } else {
+          indicator.style.display = "none";
+        }
+      }
+
+      function updateChartsWithFilter() {
+        drawCharts();
+      }
+
       /* -------------------- RENDER -------------------- */
       let bar, pie, lineChart, doughnutChart, stackedDayChart;
       let pieSelectedTasks = null; // Track selected tasks for pie chart
@@ -4462,6 +4604,9 @@
           "#ec4899",
         ];
 
+        // Dimmed colors for non-selected items (Power BI style)
+        const dimmedColors = colors.map((c) => c + "33"); // Add transparency
+
         if (bar) bar.destroy();
         if (pie) pie.destroy();
         if (lineChart) lineChart.destroy();
@@ -4470,7 +4615,42 @@
 
         if (labels.length === 0) return;
 
+        // Helper function to get filtered background colors
+        const getFilteredColors = (
+          baseColors,
+          highlightIndex = globalFilteredTaskIndex,
+        ) => {
+          if (highlightIndex === null) return baseColors;
+          return baseColors.map((color, idx) =>
+            idx === highlightIndex ? color : color + "40",
+          );
+        };
+
+        // Helper function to get filtered border colors
+        const getFilteredBorderColors = (
+          baseColors,
+          highlightIndex = globalFilteredTaskIndex,
+        ) => {
+          if (highlightIndex === null) return baseColors;
+          return baseColors.map((color, idx) =>
+            idx === highlightIndex ? color : color + "40",
+          );
+        };
+
+        // Helper function to get filtered data (show all data but highlight selected)
+        const getFilteredData = (
+          data,
+          highlightIndex = globalFilteredTaskIndex,
+        ) => {
+          return data; // Keep all data visible for context
+        };
+
         // Mixed chart: Bar for duration + Line for count
+        const barBgColors = getFilteredColors(colors.slice(0, labels.length));
+        const barBorderColors = getFilteredBorderColors(
+          colors.slice(0, labels.length),
+        );
+
         bar = new Chart(barChart, {
           type: "bar",
           data: {
@@ -4479,9 +4659,14 @@
               {
                 label: "Duration (Hours)",
                 data: durationData,
-                backgroundColor: colors.slice(0, labels.length),
-                borderColor: colors.slice(0, labels.length),
-                borderWidth: 1,
+                backgroundColor: barBgColors,
+                borderColor: barBorderColors,
+                borderWidth:
+                  globalFilteredTaskIndex !== null
+                    ? labels.map((_, idx) =>
+                        idx === globalFilteredTaskIndex ? 3 : 1,
+                      )
+                    : 1,
                 borderRadius: 12,
                 borderSkipped: false,
                 yAxisID: "y",
@@ -4491,16 +4676,27 @@
               {
                 label: "Count (Sessions)",
                 data: countData,
-                borderColor: "#ef4444",
+                borderColor:
+                  globalFilteredTaskIndex !== null ? "#ef444480" : "#ef4444",
                 backgroundColor: "rgba(239, 68, 68, 0.2)",
                 borderWidth: 3,
                 yAxisID: "y1",
                 type: "line",
                 tension: 0.3,
-                pointRadius: 6,
+                pointRadius: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? 6
+                    : 3,
+                ),
                 pointBorderColor: "#fff",
                 pointBorderWidth: 2,
-                pointBackgroundColor: "#ef4444",
+                pointBackgroundColor: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? "#ef4444"
+                    : "#ef444440",
+                ),
                 order: 1,
                 fill: false,
               },
@@ -4512,6 +4708,12 @@
             interaction: {
               mode: "index",
               intersect: false,
+            },
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].index;
+                setGlobalFilter(index);
+              }
             },
             scales: {
               y: {
@@ -4556,6 +4758,11 @@
                         `Min: ${durations.length ? dur(durations[0]) : "N/A"}`,
                         `Max: ${durations.length ? dur(durations[durations.length - 1]) : "N/A"}`,
                         `Percentage: ${pct}%`,
+                        globalFilteredTaskIndex === null
+                          ? "🖱️ Click to filter all charts"
+                          : idx === globalFilteredTaskIndex
+                            ? "🖱️ Click to clear filter"
+                            : "🖱️ Click to switch filter",
                       ];
                     } else {
                       return `Count: ${t.rows.length} sessions`;
@@ -4570,6 +4777,16 @@
         // Prepare pie data
         const basePieData = trackers.map((t) => t.total);
 
+        // Get filtered pie colors for Power BI style highlighting
+        const pieBgColors =
+          globalFilteredTaskIndex !== null
+            ? colors
+                .slice(0, labels.length)
+                .map((color, idx) =>
+                  idx === globalFilteredTaskIndex ? color : color + "40",
+                )
+            : colors.slice(0, labels.length);
+
         // Pie chart with legend on sides
         pie = new Chart(pieChart, {
           type: "pie",
@@ -4581,14 +4798,38 @@
             datasets: [
               {
                 data: basePieData,
-                backgroundColor: colors.slice(0, labels.length),
-                borderColor: "#fff",
-                borderWidth: 2,
+                backgroundColor: pieBgColors,
+                borderColor:
+                  globalFilteredTaskIndex !== null
+                    ? labels.map((_, idx) =>
+                        idx === globalFilteredTaskIndex
+                          ? "#fff"
+                          : "rgba(255,255,255,0.3)",
+                      )
+                    : "#fff",
+                borderWidth:
+                  globalFilteredTaskIndex !== null
+                    ? labels.map((_, idx) =>
+                        idx === globalFilteredTaskIndex ? 4 : 1,
+                      )
+                    : 2,
+                offset:
+                  globalFilteredTaskIndex !== null
+                    ? labels.map((_, idx) =>
+                        idx === globalFilteredTaskIndex ? 15 : 0,
+                      )
+                    : 0,
               },
             ],
           },
           options: {
             responsive: true,
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].index;
+                setGlobalFilter(index);
+              }
+            },
             plugins: {
               legend: {
                 position: "right",
@@ -4596,17 +4837,19 @@
                   padding: 15,
                   font: {
                     size: 12,
+                    weight: function (ctx) {
+                      return globalFilteredTaskIndex === ctx.index
+                        ? "bold"
+                        : "normal";
+                    },
                   },
                   usePointStyle: true,
-                  textDecoration: function (ctx) {
-                    const index = ctx.index;
-                    if (pieSelectedTasks && !pieSelectedTasks.includes(index)) {
-                      return "line-through";
-                    }
-                  },
                   color: function (ctx) {
                     const index = ctx.index;
-                    if (pieSelectedTasks && !pieSelectedTasks.includes(index)) {
+                    if (
+                      globalFilteredTaskIndex !== null &&
+                      globalFilteredTaskIndex !== index
+                    ) {
                       return "rgba(100, 100, 100, 0.5)";
                     }
                     return "#111111";
@@ -4614,69 +4857,7 @@
                 },
                 onClick: function (e, legendItem, legend) {
                   const index = legendItem.index;
-
-                  // Initialize selected tasks if not set
-                  if (pieSelectedTasks === null) {
-                    pieSelectedTasks = [];
-                  }
-
-                  // Toggle selection
-                  if (pieSelectedTasks.includes(index)) {
-                    pieSelectedTasks = pieSelectedTasks.filter(
-                      (i) => i !== index,
-                    );
-                  } else {
-                    pieSelectedTasks.push(index);
-                  }
-
-                  // If no tasks selected, reset to show all
-                  if (pieSelectedTasks.length === 0) {
-                    pieSelectedTasks = null;
-                  }
-
-                  // Recalculate totals
-                  let selectedTotal = 0;
-                  if (pieSelectedTasks) {
-                    selectedTotal = pieSelectedTasks.reduce(
-                      (sum, idx) => sum + trackers[idx].total,
-                      0,
-                    );
-                  } else {
-                    selectedTotal = total;
-                  }
-
-                  // Update dataset data to hide non-selected slices
-                  pie.data.datasets[0].data = basePieData.map((v, idx) => {
-                    if (!pieSelectedTasks) return v; // all visible
-                    return pieSelectedTasks.includes(idx) ? v : 0;
-                  });
-
-                  // Hide meta elements for non-selected slices
-                  const meta = legend.chart.getDatasetMeta(0);
-                  meta.data.forEach((el, idx) => {
-                    el.hidden = !!(
-                      pieSelectedTasks && !pieSelectedTasks.includes(idx)
-                    );
-                  });
-
-                  // Update labels with recalculated percentages
-                  pie.data.labels = labels.map((label, idx) => {
-                    let pct = 0;
-                    if (pieSelectedTasks) {
-                      pct =
-                        pieSelectedTasks.includes(idx) && selectedTotal > 0
-                          ? (
-                              (trackers[idx].total / selectedTotal) *
-                              100
-                            ).toFixed(1)
-                          : 0;
-                    } else {
-                      pct = ((trackers[idx].total / total) * 100).toFixed(1);
-                    }
-                    return `${label} (${pct}%)`;
-                  });
-
-                  pie.update();
+                  setGlobalFilter(index);
                 },
               },
               tooltip: {
@@ -4688,21 +4869,7 @@
                       .map((r) => r.dur)
                       .sort((a, b) => a - b);
 
-                    // Calculate percentage based on selected data
-                    let selectedTotal = total;
-                    if (pieSelectedTasks) {
-                      selectedTotal = pieSelectedTasks.reduce(
-                        (sum, i) => sum + trackers[i].total,
-                        0,
-                      );
-                    }
-
-                    const pct =
-                      pieSelectedTasks && !pieSelectedTasks.includes(idx)
-                        ? 0
-                        : selectedTotal > 0
-                          ? ((t.total / selectedTotal) * 100).toFixed(1)
-                          : 0;
+                    const pct = ((t.total / total) * 100).toFixed(1);
 
                     return [
                       `Count: ${t.rows.length} sessions`,
@@ -4710,6 +4877,11 @@
                       `Min: ${durations.length ? dur(durations[0]) : "N/A"}`,
                       `Max: ${durations.length ? dur(durations[durations.length - 1]) : "N/A"}`,
                       `Percentage: ${pct}%`,
+                      globalFilteredTaskIndex === null
+                        ? "🖱️ Click to filter all charts"
+                        : idx === globalFilteredTaskIndex
+                          ? "🖱️ Click to clear filter"
+                          : "🖱️ Click to switch filter",
                     ];
                   },
                 },
@@ -4736,28 +4908,70 @@
               {
                 label: "Cumulative Time (Hours)",
                 data: cumulativeData,
-                borderColor: "#8b5cf6",
+                borderColor:
+                  globalFilteredTaskIndex !== null ? "#8b5cf680" : "#8b5cf6",
                 backgroundColor: "rgba(139, 92, 246, 0.1)",
                 borderWidth: 3,
                 tension: 0.4,
                 fill: true,
-                pointRadius: 5,
-                pointBackgroundColor: "#8b5cf6",
-                pointBorderColor: "#fff",
-                pointBorderWidth: 2,
+                pointRadius: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? 8
+                    : 4,
+                ),
+                pointBackgroundColor: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? "#8b5cf6"
+                    : "#8b5cf640",
+                ),
+                pointBorderColor: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? "#fff"
+                    : "rgba(255,255,255,0.3)",
+                ),
+                pointBorderWidth: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? 3
+                    : 1,
+                ),
               },
               {
                 label: "Individual Task Time (Hours)",
                 data: durationData,
-                borderColor: "#10b981",
+                borderColor:
+                  globalFilteredTaskIndex !== null ? "#10b98180" : "#10b981",
                 backgroundColor: "rgba(16, 185, 129, 0.1)",
                 borderWidth: 2,
                 tension: 0.4,
                 fill: false,
-                pointRadius: 4,
-                pointBackgroundColor: "#10b981",
-                pointBorderColor: "#fff",
-                pointBorderWidth: 2,
+                pointRadius: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? 8
+                    : 3,
+                ),
+                pointBackgroundColor: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? "#10b981"
+                    : "#10b98140",
+                ),
+                pointBorderColor: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? "#fff"
+                    : "rgba(255,255,255,0.3)",
+                ),
+                pointBorderWidth: labels.map((_, idx) =>
+                  globalFilteredTaskIndex === null ||
+                  idx === globalFilteredTaskIndex
+                    ? 3
+                    : 1,
+                ),
               },
             ],
           },
@@ -4767,6 +4981,12 @@
             interaction: {
               mode: "index",
               intersect: false,
+            },
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].index;
+                setGlobalFilter(index);
+              }
             },
             scales: {
               y: {
@@ -4785,7 +5005,14 @@
               tooltip: {
                 callbacks: {
                   label: function (ctx) {
-                    return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} hours`;
+                    const base = `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} hours`;
+                    const hint =
+                      globalFilteredTaskIndex === null
+                        ? "🖱️ Click to filter all charts"
+                        : ctx.dataIndex === globalFilteredTaskIndex
+                          ? "🖱️ Click to clear filter"
+                          : "🖱️ Click to switch filter";
+                    return [base, hint];
                   },
                 },
               },
@@ -4800,6 +5027,16 @@
           return t.total / t.rows.length / 60000; // in minutes
         });
 
+        // Get filtered doughnut colors
+        const doughnutBgColors =
+          globalFilteredTaskIndex !== null
+            ? colors
+                .slice(0, labels.length)
+                .map((color, idx) =>
+                  idx === globalFilteredTaskIndex ? color : color + "40",
+                )
+            : colors.slice(0, labels.length);
+
         doughnutChart = new Chart(doughnutChartCanvas, {
           type: "doughnut",
           data: {
@@ -4810,15 +5047,39 @@
               {
                 label: "Average Session Duration (Minutes)",
                 data: avgSessionDuration,
-                backgroundColor: colors.slice(0, labels.length),
-                borderColor: "#fff",
-                borderWidth: 3,
+                backgroundColor: doughnutBgColors,
+                borderColor:
+                  globalFilteredTaskIndex !== null
+                    ? labels.map((_, idx) =>
+                        idx === globalFilteredTaskIndex
+                          ? "#fff"
+                          : "rgba(255,255,255,0.3)",
+                      )
+                    : "#fff",
+                borderWidth:
+                  globalFilteredTaskIndex !== null
+                    ? labels.map((_, idx) =>
+                        idx === globalFilteredTaskIndex ? 4 : 1,
+                      )
+                    : 3,
+                offset:
+                  globalFilteredTaskIndex !== null
+                    ? labels.map((_, idx) =>
+                        idx === globalFilteredTaskIndex ? 15 : 0,
+                      )
+                    : 0,
               },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: true,
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const index = elements[0].index;
+                setGlobalFilter(index);
+              }
+            },
             plugins: {
               legend: {
                 position: "bottom",
@@ -4826,7 +5087,26 @@
                   padding: 15,
                   font: {
                     size: 11,
+                    weight: function (ctx) {
+                      return globalFilteredTaskIndex === ctx.index
+                        ? "bold"
+                        : "normal";
+                    },
                   },
+                  color: function (ctx) {
+                    const index = ctx.index;
+                    if (
+                      globalFilteredTaskIndex !== null &&
+                      globalFilteredTaskIndex !== index
+                    ) {
+                      return "rgba(100, 100, 100, 0.5)";
+                    }
+                    return "#111111";
+                  },
+                },
+                onClick: function (e, legendItem, legend) {
+                  const index = legendItem.index;
+                  setGlobalFilter(index);
                 },
               },
               tooltip: {
@@ -4839,6 +5119,11 @@
                       `Avg Session: ${avgSessionDuration[idx].toFixed(1)} minutes`,
                       `Total Sessions: ${t.rows.length}`,
                       `Total Time: ${dur(t.total)}`,
+                      globalFilteredTaskIndex === null
+                        ? "🖱️ Click to filter all charts"
+                        : idx === globalFilteredTaskIndex
+                          ? "🖱️ Click to clear filter"
+                          : "🖱️ Click to switch filter",
                     ];
                   },
                 },
@@ -4870,12 +5155,18 @@
             dayTotals[dayIndex] += hours;
             dayTaskSessions[idx][dayIndex] += 1;
           });
+
+          // Apply Power BI style filtering - dim non-selected datasets
+          const isHighlighted =
+            globalFilteredTaskIndex === null || globalFilteredTaskIndex === idx;
+          const baseColor = colors[idx % colors.length];
+
           return {
             label: t.name,
             data,
-            backgroundColor: colors[idx % colors.length],
-            borderColor: colors[idx % colors.length],
-            borderWidth: 1,
+            backgroundColor: isHighlighted ? baseColor : baseColor + "40",
+            borderColor: isHighlighted ? baseColor : baseColor + "40",
+            borderWidth: isHighlighted ? 2 : 1,
             borderRadius: 6,
           };
         });
@@ -4890,9 +5181,38 @@
           options: {
             responsive: true,
             maintainAspectRatio: true,
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const datasetIndex = elements[0].datasetIndex;
+                setGlobalFilter(datasetIndex);
+              }
+            },
             plugins: {
               legend: {
                 position: "bottom",
+                labels: {
+                  font: {
+                    weight: function (ctx) {
+                      return globalFilteredTaskIndex === ctx.datasetIndex
+                        ? "bold"
+                        : "normal";
+                    },
+                  },
+                  color: function (ctx) {
+                    const index = ctx.datasetIndex;
+                    if (
+                      globalFilteredTaskIndex !== null &&
+                      globalFilteredTaskIndex !== index
+                    ) {
+                      return "rgba(100, 100, 100, 0.5)";
+                    }
+                    return "#111111";
+                  },
+                },
+                onClick: function (e, legendItem, legend) {
+                  const index = legendItem.datasetIndex;
+                  setGlobalFilter(index);
+                },
               },
               tooltip: {
                 callbacks: {
@@ -4914,6 +5234,11 @@
                       `Sessions: ${sessions}`,
                       `Day Total: ${dayTotal.toFixed(2)}h`,
                       `Share: ${pct.toFixed(1)}%`,
+                      globalFilteredTaskIndex === null
+                        ? "🖱️ Click to filter all charts"
+                        : taskIdx === globalFilteredTaskIndex
+                          ? "🖱️ Click to clear filter"
+                          : "🖱️ Click to switch filter",
                     ];
                   },
                 },
@@ -5069,6 +5394,9 @@
         currentSheet = sheetName;
         trackers = sheets[currentSheet] || [];
         document.getElementById("sheetNameHeader").textContent = currentSheet;
+        // Clear global filter when switching sheets
+        globalFilteredTaskIndex = null;
+        updateFilterIndicator();
         save();
         render();
         drawCharts();
@@ -5372,8 +5700,7 @@
       document.querySelectorAll(".menu-link").forEach((link) => {
         link.addEventListener("click", (event) => {
           handleMenuLinkClick(event, link.getAttribute("href"));
-          }
-      ); 
+        });
       });
 
       // Toggle right-side menu drawer
