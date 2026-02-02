@@ -487,6 +487,179 @@
       body.hide-actions .cell-actions {
         display: none;
       }
+      /* History Modal Styles */
+      .history-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .history-modal.active {
+        display: flex;
+      }
+      .history-modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 900px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+      body.theme-dark .history-modal-content {
+        background: #1f2937;
+        color: #e5e7eb;
+      }
+      .history-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 12px;
+      }
+      .history-modal-header h2 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--primary);
+      }
+      .history-modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--muted);
+        padding: 0;
+        width: 30px;
+        height: 30px;
+      }
+      .history-modal-close:hover {
+        color: var(--danger);
+      }
+      .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      .history-table thead {
+        background: linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 100%);
+      }
+      body.theme-dark .history-table thead {
+        background: #374151;
+      }
+      .history-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 700;
+        color: #4338ca;
+        border-bottom: 2px solid var(--border);
+      }
+      body.theme-dark .history-table th {
+        color: #93c5fd;
+      }
+      .history-table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .history-table tr:hover {
+        background: rgba(79, 70, 229, 0.05);
+      }
+      body.theme-dark .history-table tr:hover {
+        background: rgba(79, 70, 229, 0.2);
+      }
+      .history-change {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+      }
+      .history-old {
+        background: rgba(239, 68, 68, 0.1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        color: #991b1b;
+      }
+      body.theme-dark .history-old {
+        background: rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+      }
+      .history-new {
+        background: rgba(16, 185, 129, 0.1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        color: #065f46;
+      }
+      body.theme-dark .history-new {
+        background: rgba(16, 185, 129, 0.3);
+        color: #86efac;
+      }
+      .history-arrow {
+        color: #9ca3af;
+        font-weight: bold;
+      }
+      .comment-input-wrapper {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid var(--border);
+      }
+      .comment-input-wrapper label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--primary);
+      }
+      .comment-input-wrapper textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 80px;
+        background: white;
+        color: #000;
+      }
+      body.theme-dark .comment-input-wrapper textarea {
+        background: #111827;
+        color: #e5e7eb;
+        border-color: #374151;
+      }
+      .history-modal-footer {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+      .history-modal-footer button {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+      }
+      .history-modal-footer .btn-save {
+        background: var(--success);
+        color: white;
+      }
+      .history-modal-footer .btn-save:hover {
+        opacity: 0.9;
+      }
+      .history-modal-footer .btn-close {
+        background: var(--border);
+        color: var(--fg);
+      }
+      .history-modal-footer .btn-close:hover {
+        background: #999;
+      }
       .drawer-close {
         background: transparent;
         border: none;
@@ -2217,6 +2390,13 @@
       </div>
     </main>
 
+    <!-- History Modal -->
+    <div id="historyModal" class="history-modal">
+      <div class="history-modal-content">
+        <!-- Content will be inserted here by showRowHistory() -->
+      </div>
+    </div>
+
     <div id="homeSidebar" class="home-sidebar">
       <div class="sidebar-header">
         <h2>⚡ Running Tasks</h2>
@@ -2834,6 +3014,9 @@
         runningTimers = userData.runningTimers || {};
         singleTaskMode = userData.singleTaskMode !== false;
 
+        // Load row histories from localStorage
+        loadRowHistories();
+
         // Update UI
         document.getElementById("sheetNameHeader").textContent = currentSheet;
         const modeBtn = document.getElementById("modeBtn");
@@ -2862,6 +3045,33 @@
           isNew: db.getUserData(currentUser).isNew,
         };
         db.saveUserData(currentUser, userData);
+
+        // Save row histories to localStorage
+        saveRowHistories();
+      }
+
+      function saveRowHistories() {
+        if (currentUser) {
+          const historyKey = `rowHistories_${currentUser}_${currentSheet}`;
+          localStorage.setItem(historyKey, JSON.stringify(rowHistories));
+        }
+      }
+
+      function loadRowHistories() {
+        if (currentUser) {
+          const historyKey = `rowHistories_${currentUser}_${currentSheet}`;
+          const stored = localStorage.getItem(historyKey);
+          if (stored) {
+            try {
+              rowHistories = JSON.parse(stored);
+            } catch (e) {
+              console.error("Failed to load row histories:", e);
+              rowHistories = {};
+            }
+          } else {
+            rowHistories = {};
+          }
+        }
       }
 
       /* -------------------- THEME -------------------- */
@@ -2938,6 +3148,7 @@
       let trackers = [];
       let runningTimers = {};
       let singleTaskMode = true;
+      let rowHistories = {}; // Track edit history for rows in format: "taskIdx-rowIdx": [{changes}, ...]
 
       // If user is logged in, load their data and show app
       if (currentUser) {
@@ -3375,11 +3586,22 @@
             return;
           }
 
+          // Store old values for history
+          const oldRow = {
+            sd: row.sd,
+            st: row.st,
+            ed: row.ed,
+            et: row.et,
+          };
+
           row.sd = newSd;
           row.st = newSt;
           row.ed = newEd;
           row.et = newEt;
           row.dur = endTime - startTime;
+
+          // Record the edit in history
+          recordRowEdit(taskIdx, rowIdx, oldRow, row, "");
 
           tableRow.classList.remove("edit-mode");
           tableRow.cells[0].classList.remove("editing");
@@ -3424,6 +3646,176 @@
           render();
           drawCharts();
         }
+      }
+
+      function recordRowEdit(taskIdx, rowIdx, oldRow, newRow, comment = "") {
+        const key = `${taskIdx}-${rowIdx}`;
+        if (!rowHistories[key]) {
+          rowHistories[key] = [];
+        }
+
+        const edit = {
+          timestamp: new Date().toISOString(),
+          oldStartDate: oldRow.sd,
+          newStartDate: newRow.sd,
+          oldEndDate: oldRow.ed,
+          newEndDate: newRow.ed,
+          oldStartTime: oldRow.st,
+          newStartTime: newRow.st,
+          oldEndTime: oldRow.et,
+          newEndTime: newRow.et,
+          comment: comment,
+        };
+
+        rowHistories[key].push(edit);
+
+        // Save history to localStorage immediately
+        saveRowHistories();
+      }
+
+      function showRowHistory(taskIdx, rowIdx) {
+        const key = `${taskIdx}-${rowIdx}`;
+        const history = rowHistories[key] || [];
+        const modal = document.getElementById("historyModal");
+
+        let historyHTML = `
+          <div class="history-modal-header">
+            <h2>📋 Row Edit History</h2>
+            <button class="history-modal-close" onclick="closeHistoryModal()">✕</button>
+          </div>
+        `;
+
+        if (history.length === 0) {
+          historyHTML += `<p style="text-align: center; color: var(--muted); padding: 20px;">No edit history for this row yet.</p>`;
+        } else {
+          historyHTML += `
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th style="width: 5%;">S.No</th>
+                  <th style="width: 19%;">Start Date</th>
+                  <th style="width: 19%;">End Date</th>
+                  <th style="width: 19%;">Start Time</th>
+                  <th style="width: 19%;">End Time</th>
+                  <th style="width: 19%;">Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          history.forEach((edit, index) => {
+            const startDateChange =
+              edit.oldStartDate !== edit.newStartDate
+                ? `<div class="history-change"><span class="history-old">${edit.oldStartDate}</span><span class="history-arrow">→</span><span class="history-new">${edit.newStartDate}</span></div>`
+                : `<div>${edit.newStartDate}</div>`;
+
+            const endDateChange =
+              edit.oldEndDate !== edit.newEndDate
+                ? `<div class="history-change"><span class="history-old">${edit.oldEndDate}</span><span class="history-arrow">→</span><span class="history-new">${edit.newEndDate}</span></div>`
+                : `<div>${edit.newEndDate}</div>`;
+
+            const startTimeChange =
+              edit.oldStartTime !== edit.newStartTime
+                ? `<div class="history-change"><span class="history-old">${edit.oldStartTime}</span><span class="history-arrow">→</span><span class="history-new">${edit.newStartTime}</span></div>`
+                : `<div>${edit.newStartTime}</div>`;
+
+            const endTimeChange =
+              edit.oldEndTime !== edit.newEndTime
+                ? `<div class="history-change"><span class="history-old">${edit.oldEndTime}</span><span class="history-arrow">→</span><span class="history-new">${edit.newEndTime}</span></div>`
+                : `<div>${edit.newEndTime}</div>`;
+
+            historyHTML += `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${startDateChange}</td>
+                <td>${endDateChange}</td>
+                <td>${startTimeChange}</td>
+                <td>${endTimeChange}</td>
+                <td><small>${edit.comment || "—"}</small></td>
+              </tr>
+            `;
+          });
+
+          historyHTML += `</tbody></table>`;
+        }
+
+        historyHTML += `
+          <div class="comment-input-wrapper">
+            <label for="editComment">Add Comment (Optional):</label>
+            <textarea id="editComment" placeholder="Describe why this change was made..."></textarea>
+          </div>
+          <div class="history-modal-footer">
+            <button class="btn-close" onclick="closeHistoryModal()">Close</button>
+            <button class="btn-save" onclick="saveHistoryComment(${taskIdx}, ${rowIdx})">Save Comment</button>
+          </div>
+        `;
+
+        const modalContent = modal.querySelector(".history-modal-content");
+        modalContent.innerHTML = historyHTML;
+        modal.classList.add("active");
+      }
+
+      function closeHistoryModal() {
+        const modal = document.getElementById("historyModal");
+        modal.classList.remove("active");
+      }
+
+      // Close modal when clicking outside
+      document.addEventListener("click", function (event) {
+        const modal = document.getElementById("historyModal");
+        if (event.target === modal) {
+          closeHistoryModal();
+        }
+      });
+
+      function saveHistoryComment(taskIdx, rowIdx) {
+        const key = `${taskIdx}-${rowIdx}`;
+        const commentText = document.getElementById("editComment").value;
+
+        if (commentText.trim()) {
+          if (!rowHistories[key]) {
+            rowHistories[key] = [];
+          }
+
+          // Update the most recent entry with the comment instead of creating a new row
+          if (rowHistories[key].length > 0) {
+            // Add comment to the last entry
+            rowHistories[key][rowHistories[key].length - 1].comment =
+              commentText;
+          } else {
+            // If no history yet, create a new comment-only entry
+            rowHistories[key].push({
+              timestamp: new Date().toISOString(),
+              isCommentOnly: true,
+              comment: commentText,
+            });
+          }
+        }
+
+        // Save history to localStorage
+        saveRowHistories();
+
+        // Refresh the modal to show the updated comment
+        showRowHistory(taskIdx, rowIdx);
+        showNotification("Comment saved!", "success");
+      }
+
+      function showNotification(message, type = "info") {
+        const notif = document.createElement("div");
+        notif.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: ${type === "success" ? "var(--success)" : "var(--primary)"};
+          color: white;
+          padding: 12px 20px;
+          border-radius: 6px;
+          z-index: 2000;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        `;
+        notif.textContent = message;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 3000);
       }
 
       /* -------------------- DOWNLOAD -------------------- */
@@ -4517,7 +4909,7 @@
         <strong id="total-${i}" class="total-time">Total: ${dur(total)}</strong>
       </div>
       <table><tr><th>Start Date</th><th>Start Time</th><th>End Date</th><th>End Time</th><th>Duration</th><th class="actions-header">Actions</th></tr>
-      ${t.rows.map((r, rIdx) => `<tr id="row-${i}-${rIdx}"><td class="cell-sd cell-date">${r.sd}</td><td class="cell-st cell-time">${r.st}</td><td class="cell-ed cell-date">${r.ed || (r.running ? "Running..." : "")}</td><td class="cell-et cell-time">${r.et || (r.running ? "" : "")}</td><td class="cell-dur">${r.running ? dur(elapsed) : dur(r.dur)}</td><td class="cell-actions" style="text-align: center;"><span class="row-edit" style="cursor: pointer; color: var(--primary); font-size: 14px; margin: 0 4px;" onclick="editRowData(${i}, ${rIdx}, this)" title="Edit row">✏️</span><span class="row-delete" style="cursor: pointer; color: var(--danger); font-size: 14px; margin: 0 4px;" onclick="deleteRow(${i}, ${rIdx})" title="Delete row">🗑️</span></td></tr>`).join("")}
+      ${t.rows.map((r, rIdx) => `<tr id="row-${i}-${rIdx}"><td class="cell-sd cell-date">${r.sd}</td><td class="cell-st cell-time">${r.st}</td><td class="cell-ed cell-date">${r.ed || (r.running ? "Running..." : "")}</td><td class="cell-et cell-time">${r.et || (r.running ? "" : "")}</td><td class="cell-dur">${r.running ? dur(elapsed) : dur(r.dur)}</td><td class="cell-actions" style="text-align: center;"><span class="row-edit" style="cursor: pointer; color: var(--primary); font-size: 14px; margin: 0 4px;" onclick="editRowData(${i}, ${rIdx}, this)" title="Edit row">✏️</span><span class="row-history" style="cursor: pointer; color: #8b5cf6; font-size: 14px; margin: 0 4px;" onclick="showRowHistory(${i}, ${rIdx})" title="View edit history">📋</span><span class="row-delete" style="cursor: pointer; color: var(--danger); font-size: 14px; margin: 0 4px;" onclick="deleteRow(${i}, ${rIdx})" title="Delete row">🗑️</span></td></tr>`).join("")}
       </table>`;
           trackerBox.appendChild(c);
 
@@ -5397,6 +5789,10 @@
         // Clear global filter when switching sheets
         globalFilteredTaskIndex = null;
         updateFilterIndicator();
+
+        // Load row histories for the new sheet
+        loadRowHistories();
+
         save();
         render();
         drawCharts();
