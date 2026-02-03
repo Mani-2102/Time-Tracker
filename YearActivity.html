@@ -1,0 +1,5883 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎯 Activity Tracker - Habit Builder</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --primary: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --success: #10b981;
+        --success-light: #34d399;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --purple: #8b5cf6;
+        --pink: #ec4899;
+        --cyan: #06b6d4;
+        --orange: #f97316;
+        --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --bg-light: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border: #e2e8f0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #e0e5ec 0%,
+          #f8fafc 50%,
+          #e8f4f8 100%
+        );
+        min-height: 100vh;
+        color: var(--text-primary);
+      }
+
+      /* Header */
+      header {
+        background: var(--gradient-1);
+        padding: 20px 30px;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .header-content {
+        max-width: 1600px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: white;
+      }
+
+      .logo-icon {
+        font-size: 32px;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      .logo h1 {
+        font-size: 24px;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .control-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+      }
+
+      .control-group label {
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .control-group select,
+      .control-group input {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        background: white;
+        color: var(--primary-dark);
+        cursor: pointer;
+        outline: none;
+        transition: all 0.3s;
+      }
+
+      .control-group select:hover,
+      .control-group input:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        background: white;
+        color: var(--primary-dark);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      }
+
+      .btn-success {
+        background: var(--gradient-4);
+        color: white;
+      }
+
+      .btn-danger {
+        background: var(--gradient-2);
+        color: white;
+      }
+
+      /* Main Content */
+      main {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 30px;
+      }
+
+      /* Stats Cards */
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.3s;
+        border: 1px solid var(--border);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .stat-card:nth-child(1) {
+        border-left: 4px solid #6366f1;
+      }
+      .stat-card:nth-child(2) {
+        border-left: 4px solid #10b981;
+      }
+      .stat-card:nth-child(3) {
+        border-left: 4px solid #f59e0b;
+      }
+      .stat-card:nth-child(4) {
+        border-left: 4px solid #ec4899;
+      }
+      .stat-card:nth-child(5) {
+        border-left: 4px solid #06b6d4;
+      }
+
+      .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+
+      .stat-card:nth-child(1) .stat-icon {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      }
+      .stat-card:nth-child(2) .stat-icon {
+        background: linear-gradient(135deg, #10b981, #34d399);
+      }
+      .stat-card:nth-child(3) .stat-icon {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      }
+      .stat-card:nth-child(4) .stat-icon {
+        background: linear-gradient(135deg, #ec4899, #f472b6);
+      }
+      .stat-card:nth-child(5) .stat-icon {
+        background: linear-gradient(135deg, #06b6d4, #22d3ee);
+      }
+
+      .stat-info h3 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .stat-info p {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+      }
+
+      /* Activity Table */
+      .table-container {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .table-header h2 {
+        font-size: 20px;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .activity-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+      }
+
+      .activity-table th,
+      .activity-table td {
+        padding: 10px 8px;
+        text-align: center;
+        border: 1px solid var(--border);
+      }
+
+      .activity-table thead th {
+        background: var(--gradient-1);
+        color: white;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .activity-table thead th:first-child {
+        border-top-left-radius: 12px;
+        position: sticky;
+        left: 0;
+        z-index: 11;
+      }
+
+      .activity-table thead th:last-child {
+        border-top-right-radius: 12px;
+      }
+
+      .activity-table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 12px;
+      }
+
+      .activity-table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 12px;
+      }
+
+      /* Day columns coloring */
+      .day-mon,
+      .day-tue,
+      .day-wed,
+      .day-thu,
+      .day-fri {
+        background: linear-gradient(180deg, #dcfce7 0%, #bbf7d0 100%);
+      }
+
+      .day-sat {
+        background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+      }
+
+      .day-sun {
+        background: linear-gradient(180deg, #fee2e2 0%, #fecaca 100%);
+      }
+
+      .activity-name {
+        background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%);
+        font-weight: 600;
+        color: var(--primary-dark);
+        text-align: left !important;
+        padding-left: 12px !important;
+        min-width: 140px;
+        position: sticky;
+        left: 0;
+        z-index: 5;
+      }
+
+      .activity-name input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 13px;
+        padding: 4px;
+        outline: none;
+      }
+
+      .activity-name input:focus {
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 0 0 2px var(--primary-light);
+      }
+
+      .total-col {
+        background: linear-gradient(180deg, #ddd6fe 0%, #c4b5fd 100%);
+        font-weight: 700;
+        color: var(--purple);
+        min-width: 70px;
+      }
+
+      .daily-total-row td {
+        background: linear-gradient(180deg, #fce7f3 0%, #fbcfe8 100%);
+        font-weight: 700;
+        color: var(--pink);
+      }
+
+      .daily-total-row .activity-name {
+        background: linear-gradient(90deg, #fdf2f8 0%, #fce7f3 100%);
+        color: var(--pink);
+      }
+
+      /* Checkbox Styling */
+      .checkbox-cell {
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .checkbox-cell:hover {
+        background: rgba(99, 102, 241, 0.1) !important;
+      }
+
+      .checkbox-cell input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--primary);
+        transition: transform 0.2s;
+      }
+
+      .checkbox-cell input[type="checkbox"]:hover {
+        transform: scale(1.2);
+      }
+
+      .checkbox-cell input[type="checkbox"]:checked {
+        animation: checkPop 0.3s ease;
+      }
+
+      @keyframes checkPop {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.3);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* Charts Section */
+      .charts-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+        margin-bottom: 30px;
+      }
+
+      @media (max-width: 1200px) {
+        .charts-section {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .chart-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border);
+      }
+
+      .chart-card h3 {
+        font-size: 18px;
+        color: var(--primary-dark);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+      }
+
+      /* Progress Bars */
+      .progress-section {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border);
+      }
+
+      .progress-section h3 {
+        font-size: 18px;
+        color: var(--primary-dark);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .progress-item {
+        margin-bottom: 16px;
+      }
+
+      .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+
+      .progress-header span {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .progress-header .percent {
+        color: var(--primary);
+      }
+
+      .progress-bar {
+        height: 12px;
+        background: var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+      }
+
+      .progress-item:nth-child(1) .progress-fill {
+        background: var(--gradient-1);
+      }
+      .progress-item:nth-child(2) .progress-fill {
+        background: var(--gradient-4);
+      }
+      .progress-item:nth-child(3) .progress-fill {
+        background: var(--gradient-5);
+      }
+      .progress-item:nth-child(4) .progress-fill {
+        background: var(--gradient-3);
+      }
+      .progress-item:nth-child(5) .progress-fill {
+        background: var(--gradient-2);
+      }
+      .progress-item:nth-child(6) .progress-fill {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      }
+      .progress-item:nth-child(7) .progress-fill {
+        background: linear-gradient(135deg, #10b981, #06b6d4);
+      }
+      .progress-item:nth-child(8) .progress-fill {
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+      }
+      .progress-item:nth-child(9) .progress-fill {
+        background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      }
+      .progress-item:nth-child(10) .progress-fill {
+        background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      }
+
+      /* Exceeded progress styles */
+      .progress-fill.exceeded-bar {
+        background: linear-gradient(
+          135deg,
+          #ffd700,
+          #ff8c00,
+          #ff4500
+        ) !important;
+        animation: shimmer 2s infinite;
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.2);
+        }
+      }
+
+      .progress-header .exceeded {
+        color: var(--success);
+        font-weight: 700;
+      }
+
+      /* Activity Statistics Table */
+      .stats-table-section {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 24px;
+        margin-top: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border);
+      }
+
+      .stats-table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .stats-table-header h3 {
+        font-size: 18px;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .stats-table-controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .column-filter-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 2px solid var(--border);
+        background: white;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s;
+      }
+
+      .column-filter-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .sort-select {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 2px solid var(--border);
+        background: white;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        min-width: 180px;
+      }
+
+      .sort-select:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      /* Column Filter Dropdown */
+      .column-filter-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--border);
+        padding: 12px;
+        min-width: 200px;
+        z-index: 100;
+        display: none;
+      }
+
+      .column-filter-dropdown.visible {
+        display: block;
+        animation: fadeIn 0.2s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .column-filter-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .column-filter-item:hover {
+        background: var(--bg-light);
+      }
+
+      .column-filter-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+      }
+
+      .column-filter-item label {
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      /* Stats Data Table */
+      .stats-data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      .stats-data-table th {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 700;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--border);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background 0.3s;
+        position: relative;
+      }
+
+      .stats-data-table th:hover {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+      }
+
+      .stats-data-table th .sort-icon {
+        margin-left: 6px;
+        opacity: 0.5;
+        font-size: 12px;
+      }
+
+      .stats-data-table th.sorted .sort-icon {
+        opacity: 1;
+        color: var(--primary);
+      }
+
+      .stats-data-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+
+      .stats-data-table tbody tr {
+        transition: background 0.2s;
+      }
+
+      .stats-data-table tbody tr:hover {
+        background: rgba(99, 102, 241, 0.05);
+      }
+
+      .stats-data-table tbody tr:nth-child(even) {
+        background: rgba(248, 250, 252, 0.5);
+      }
+
+      .stats-data-table tbody tr:nth-child(even):hover {
+        background: rgba(99, 102, 241, 0.08);
+      }
+
+      .activity-name-cell {
+        font-weight: 600;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .activity-name-cell .activity-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: white;
+      }
+
+      .year-total-cell {
+        font-weight: 700;
+        color: var(--success);
+      }
+
+      .month-total-cell {
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      .date-cell {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      .streak-cell {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .streak-badge-mini {
+        background: var(--gradient-5);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .avg-cell {
+        color: var(--warning);
+        font-weight: 600;
+      }
+
+      /* Multi-select highlight */
+      .checkbox-cell.selected {
+        background: rgba(59, 130, 246, 0.3) !important;
+        box-shadow: inset 0 0 0 2px var(--primary);
+      }
+
+      /* Row hover zone for add button */
+      .row-hover-zone {
+        position: absolute;
+        width: 100%;
+        height: 20px;
+        top: -10px;
+        left: 0;
+        cursor: pointer;
+        z-index: 5;
+      }
+
+      .activity-row {
+        position: relative;
+      }
+
+      .target-cell {
+        background: #f0f9ff;
+        text-align: center;
+      }
+
+      /* Footer Navigation */
+      .footer-nav {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        border: 1px solid var(--border);
+      }
+
+      .nav-link {
+        padding: 12px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .nav-link:nth-child(1) {
+        background: var(--gradient-1);
+        color: white;
+      }
+      .nav-link:nth-child(2) {
+        background: var(--gradient-4);
+        color: white;
+      }
+      .nav-link:nth-child(3) {
+        background: var(--gradient-5);
+        color: white;
+      }
+      .nav-link:nth-child(4) {
+        background: var(--gradient-3);
+        color: white;
+      }
+
+      .nav-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      .modal.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlide 0.3s ease;
+      }
+
+      @keyframes modalSlide {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .modal-header h3 {
+        font-size: 20px;
+        color: var(--primary-dark);
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        transition: color 0.3s;
+      }
+
+      .modal-close:hover {
+        color: var(--danger);
+      }
+
+      .modal-body {
+        margin-bottom: 20px;
+      }
+
+      .modal-body label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      .modal-body input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+
+      .modal-body input:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      .modal-footer {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        header {
+          padding: 15px 20px;
+        }
+
+        .logo h1 {
+          font-size: 18px;
+        }
+
+        main {
+          padding: 15px;
+        }
+
+        .stats-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .activity-table {
+          font-size: 11px;
+        }
+
+        .activity-table th,
+        .activity-table td {
+          padding: 6px 4px;
+        }
+
+        .checkbox-cell input[type="checkbox"] {
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      /* Streak Badge */
+      .streak-badge {
+        background: var(--gradient-5);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        animation: glow 2s infinite;
+      }
+
+      @keyframes glow {
+        0%,
+        100% {
+          box-shadow: 0 0 5px rgba(250, 112, 154, 0.5);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(250, 112, 154, 0.8);
+        }
+      }
+
+      /* Tooltip */
+      .tooltip {
+        position: relative;
+      }
+
+      .tooltip::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--text-primary);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+      }
+
+      .tooltip:hover::after {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Row Management Styles */
+      .activity-row {
+        position: relative;
+      }
+
+      .activity-name-cell {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .delete-row-btn {
+        position: absolute;
+        left: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        transition: all 0.2s;
+      }
+
+      .delete-row-btn:hover {
+        transform: translateY(-50%) scale(1.2);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+      }
+
+      .activity-name:hover .delete-row-btn {
+        display: flex;
+      }
+
+      .add-row-divider {
+        position: relative;
+        height: 0;
+        overflow: visible;
+      }
+
+      .add-row-btn {
+        position: absolute;
+        left: 70px;
+        top: -10px;
+        transform: translateX(0);
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border: 2px solid white;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 25;
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.5);
+        transition: all 0.2s;
+      }
+
+      .add-row-btn:hover {
+        transform: translateX(0) scale(1.2);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.7);
+      }
+
+      .row-hover-zone {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 20px;
+        top: -10px;
+        z-index: 15;
+        cursor: pointer;
+      }
+
+      .row-hover-zone:hover + .add-row-btn,
+      .add-row-btn:hover,
+      .add-row-btn.visible {
+        display: flex;
+      }
+
+      /* Target Input Styling */
+      .target-cell {
+        background: linear-gradient(
+          180deg,
+          #fef3c7 0%,
+          #fde68a 100%
+        ) !important;
+        position: relative;
+      }
+
+      .target-input {
+        width: 50px;
+        padding: 4px 6px;
+        border: 2px solid transparent;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--warning);
+        outline: none;
+        transition: all 0.2s;
+      }
+
+      .target-input:focus {
+        border-color: var(--warning);
+        background: white;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+      }
+
+      .target-input:hover {
+        background: white;
+      }
+
+      /* Percentage Display */
+      .percentage-display {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-top: 2px;
+      }
+
+      .percentage-low {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #dc2626;
+      }
+
+      .percentage-medium {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #d97706;
+      }
+
+      .percentage-high {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #16a34a;
+      }
+
+      .percentage-exceeded {
+        background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+        color: #7c3aed;
+        animation: exceedPulse 1.5s infinite;
+      }
+
+      @keyframes exceedPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
+        }
+      }
+
+      /* Selection highlight for checkboxes */
+      .checkbox-cell.selected {
+        background: rgba(99, 102, 241, 0.3) !important;
+        box-shadow: inset 0 0 0 2px var(--primary);
+      }
+
+      .checkbox-cell.selecting {
+        background: rgba(99, 102, 241, 0.15) !important;
+      }
+
+      /* Delete Confirmation Modal */
+      .delete-modal .modal-content {
+        border-top: 4px solid var(--danger);
+      }
+
+      .delete-modal .modal-header h3 {
+        color: var(--danger);
+      }
+
+      .activity-preview {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin: 16px 0;
+        border-left: 4px solid var(--danger);
+      }
+
+      .activity-preview strong {
+        color: var(--danger);
+        font-size: 16px;
+      }
+
+      /* Sheet Management Styles */
+      .sheet-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+      }
+
+      .sheet-selector label {
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .sheet-selector select {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        background: white;
+        color: var(--primary-dark);
+        cursor: pointer;
+        outline: none;
+        min-width: 120px;
+      }
+
+      .sheet-btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+      }
+
+      .sheet-btn-add {
+        background: var(--gradient-4);
+        color: white;
+      }
+
+      .sheet-btn-manage {
+        background: white;
+        color: var(--primary-dark);
+      }
+
+      .sheet-modal .modal-content {
+        max-width: 450px;
+      }
+
+      .sheet-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+      }
+
+      .sheet-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+      }
+
+      .sheet-item:hover {
+        border-color: var(--primary-light);
+      }
+
+      .sheet-item.active {
+        background: var(--gradient-1);
+        color: white;
+      }
+
+      .sheet-item-name {
+        font-weight: 600;
+        cursor: pointer;
+        flex: 1;
+      }
+
+      .sheet-item-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .sheet-item-actions button {
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .sheet-item-actions .rename-btn {
+        background: var(--gradient-3);
+        color: white;
+      }
+
+      .sheet-item-actions .delete-btn {
+        background: var(--gradient-2);
+        color: white;
+      }
+
+      .sheet-item.active .sheet-item-actions button {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .new-sheet-input {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 2px solid var(--border);
+      }
+
+      .new-sheet-input input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      .new-sheet-input input:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      .new-sheet-input button {
+        padding: 10px 20px;
+        background: var(--gradient-4);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      /* Theme Toggle Button */
+      .theme-toggle-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--primary-dark);
+        font-size: 13px;
+        transition: all 0.3s;
+      }
+
+      .theme-toggle-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Header Menu Dropdown */
+      .menu-dropdown-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .btn-menu {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+      }
+
+      .btn-menu:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .header-menu-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--border);
+        padding: 8px 0;
+        min-width: 160px;
+        z-index: 1001;
+        animation: slideDown 0.2s ease;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .menu-item {
+        display: block;
+        width: 100%;
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        color: var(--text-primary);
+        text-align: left;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .menu-item:hover {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+      }
+
+      .menu-item:not(:last-child) {
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* Menu Divider */
+      .menu-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 6px 0;
+      }
+
+      /* Menu Toggle Item */
+      .menu-toggle-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        gap: 12px;
+      }
+
+      .menu-toggle-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+
+      /* Small Toggle Switch */
+      .toggle-switch-small {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        background: #ccc;
+        border-radius: 11px;
+        cursor: pointer;
+        transition: background 0.3s;
+        flex-shrink: 0;
+      }
+
+      .toggle-switch-small.active {
+        background: var(--primary);
+      }
+
+      .toggle-switch-small::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .toggle-switch-small.active::after {
+        transform: translateX(18px);
+      }
+
+      /* Current Day Column Highlight */
+      .current-day-header {
+        background: linear-gradient(
+          135deg,
+          #667eea 0%,
+          #764ba2 100%
+        ) !important;
+        color: white !important;
+        font-weight: 700;
+        position: relative;
+      }
+
+      .current-day-header::after {
+        content: "📍";
+        position: absolute;
+        top: -3px;
+        right: 2px;
+        font-size: 10px;
+      }
+
+      .current-day-cell {
+        background: rgba(102, 126, 234, 0.15) !important;
+        border-left: 2px solid var(--primary) !important;
+        border-right: 2px solid var(--primary) !important;
+      }
+
+      .daily-total-row .current-day-cell {
+        border-bottom: 2px solid var(--primary) !important;
+        font-weight: 700;
+        background: rgba(102, 126, 234, 0.25) !important;
+      }
+
+      /* Activity Completed Star */
+      .activity-name {
+        position: relative;
+      }
+
+      .activity-star {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: gold;
+        font-size: 14px;
+        text-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
+        animation: starPulse 2s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      @keyframes starPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+      }
+
+      /* Row Hover - Available Day Highlight */
+      .activity-row:hover .checkbox-cell.available-day {
+        background: rgba(46, 204, 113, 0.2) !important;
+        box-shadow: inset 0 0 0 2px rgba(46, 204, 113, 0.4);
+      }
+
+      .activity-row:hover .checkbox-cell.unavailable-day {
+        background: rgba(231, 76, 60, 0.1) !important;
+        opacity: 0.6;
+      }
+
+      /* Locked checkbox - click blocker */
+      .checkbox-cell .lock-blocker {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        cursor: pointer;
+      }
+
+      /* Lock popup notification */
+      .lock-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+        color: white;
+        padding: 25px 35px 20px;
+        border-radius: 16px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35);
+        z-index: 10000;
+        font-size: 15px;
+        font-weight: 500;
+        text-align: center;
+        animation: popupBounce 0.3s ease;
+        max-width: 380px;
+        min-width: 300px;
+      }
+
+      .lock-popup .popup-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .lock-popup .popup-close-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.1);
+      }
+
+      .lock-popup .popup-icon {
+        font-size: 42px;
+        display: block;
+        margin-bottom: 12px;
+      }
+
+      .lock-popup .popup-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .lock-popup .popup-message {
+        font-size: 14px;
+        line-height: 1.5;
+        opacity: 0.95;
+        margin-bottom: 15px;
+      }
+
+      .lock-popup .popup-hint {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .lock-popup .popup-hint strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+
+      .lock-popup .popup-footer {
+        margin-top: 15px;
+        font-size: 11px;
+        opacity: 0.7;
+      }
+
+      @keyframes popupBounce {
+        0% {
+          transform: translate(-50%, -50%) scale(0.5);
+          opacity: 0;
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.05);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .lock-popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 9999;
+      }
+
+      .checkbox-cell {
+        position: relative;
+      }
+
+      /* Dark theme for menu */
+      body.theme-dark .header-menu-dropdown {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      body.theme-dark .menu-item {
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .menu-item:hover {
+        background: rgba(99, 102, 241, 0.2);
+        color: #93c5fd;
+      }
+
+      body.theme-dark .menu-item:not(:last-child) {
+        border-bottom-color: #334155;
+      }
+
+      body.theme-dark .menu-divider {
+        background: #334155;
+      }
+
+      body.theme-dark .menu-toggle-label {
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .toggle-switch-small {
+        background: #475569;
+      }
+
+      body.theme-dark .current-day-cell {
+        background: rgba(102, 126, 234, 0.25) !important;
+      }
+
+      body.theme-dark .daily-total-row .current-day-cell {
+        background: rgba(102, 126, 234, 0.35) !important;
+      }
+
+      /* Target Automation Toggle Switch */
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 26px;
+        background: #ccc;
+        border-radius: 13px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .toggle-switch.active {
+        background: var(--primary);
+      }
+
+      .toggle-switch::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .toggle-switch.active::after {
+        transform: translateX(24px);
+      }
+
+      .toggle-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      /* Target Automation Options */
+      .target-automation-options {
+        margin-top: 12px;
+        padding: 16px;
+        background: var(--bg-light);
+        border-radius: 10px;
+        border: 2px solid var(--border);
+        display: none;
+      }
+
+      .target-automation-options.visible {
+        display: block;
+        animation: slideDown 0.3s ease;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .automation-type-select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        cursor: pointer;
+        margin-bottom: 12px;
+      }
+
+      .automation-type-select:focus {
+        border-color: var(--primary);
+        outline: none;
+      }
+
+      .custom-days-container {
+        display: none;
+        margin-top: 12px;
+      }
+
+      .custom-days-container.visible {
+        display: block;
+      }
+
+      .custom-days-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .day-checkbox {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .day-checkbox input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        accent-color: var(--primary);
+      }
+
+      .day-checkbox label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+
+      .automation-preview {
+        margin-top: 12px;
+        padding: 10px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--primary-dark);
+      }
+
+      .automation-preview strong {
+        color: var(--primary);
+      }
+
+      /* ==================== DARK THEME ==================== */
+      body.theme-dark {
+        background: linear-gradient(
+          135deg,
+          #0f172a 0%,
+          #1e293b 50%,
+          #0f172a 100%
+        );
+        color: #e2e8f0;
+      }
+
+      body.theme-dark header {
+        background: linear-gradient(135deg, #1e3a5f 0%, #312e81 100%);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      body.theme-dark .stat-card {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      body.theme-dark .stat-info h3 {
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .stat-info p {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .table-container {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      body.theme-dark .table-header h2 {
+        color: #93c5fd;
+      }
+
+      body.theme-dark .activity-table th,
+      body.theme-dark .activity-table td {
+        border-color: #334155;
+      }
+
+      body.theme-dark .activity-table thead th {
+        background: linear-gradient(135deg, #1e3a5f 0%, #312e81 100%);
+      }
+
+      body.theme-dark .activity-name {
+        background: linear-gradient(90deg, #1e3a5f 0%, #0f172a 100%);
+        color: #93c5fd;
+      }
+
+      body.theme-dark .activity-name input {
+        color: #93c5fd;
+        background: transparent;
+      }
+
+      body.theme-dark .activity-name input:focus {
+        background: #0f172a;
+      }
+
+      body.theme-dark .day-mon,
+      body.theme-dark .day-tue,
+      body.theme-dark .day-wed,
+      body.theme-dark .day-thu,
+      body.theme-dark .day-fri {
+        background: linear-gradient(180deg, #14532d 0%, #166534 100%);
+      }
+
+      body.theme-dark .day-sat {
+        background: linear-gradient(180deg, #78350f 0%, #92400e 100%);
+      }
+
+      body.theme-dark .day-sun {
+        background: linear-gradient(180deg, #7f1d1d 0%, #991b1b 100%);
+      }
+
+      body.theme-dark .total-col {
+        background: linear-gradient(180deg, #4c1d95 0%, #5b21b6 100%);
+        color: #c4b5fd;
+      }
+
+      body.theme-dark .daily-total-row td {
+        background: linear-gradient(180deg, #831843 0%, #9d174d 100%);
+        color: #fbcfe8;
+      }
+
+      body.theme-dark .daily-total-row .activity-name {
+        background: linear-gradient(90deg, #831843 0%, #9d174d 100%);
+        color: #fbcfe8;
+      }
+
+      body.theme-dark .target-cell {
+        background: linear-gradient(
+          180deg,
+          #78350f 0%,
+          #92400e 100%
+        ) !important;
+      }
+
+      body.theme-dark .target-input {
+        background: rgba(0, 0, 0, 0.3);
+        color: #fcd34d;
+      }
+
+      body.theme-dark .target-input:focus,
+      body.theme-dark .target-input:hover {
+        background: #0f172a;
+      }
+
+      body.theme-dark .chart-card {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      body.theme-dark .chart-card h3 {
+        color: #93c5fd;
+      }
+
+      body.theme-dark .progress-section {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      body.theme-dark .progress-section h3 {
+        color: #93c5fd;
+      }
+
+      body.theme-dark .progress-header span {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .progress-bar {
+        background: #334155;
+      }
+
+      /* Dark theme for Stats Table */
+      body.theme-dark .stats-table-section {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      body.theme-dark .stats-table-header h3 {
+        color: #93c5fd;
+      }
+
+      body.theme-dark .column-filter-btn {
+        background: #0f172a;
+        border-color: #334155;
+        color: #94a3b8;
+      }
+
+      body.theme-dark .column-filter-btn:hover {
+        border-color: #6366f1;
+        color: #93c5fd;
+      }
+
+      body.theme-dark .sort-select {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .column-filter-dropdown {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      body.theme-dark .column-filter-item:hover {
+        background: #334155;
+      }
+
+      body.theme-dark .column-filter-item label {
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .stats-data-table th {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: #e2e8f0;
+        border-bottom-color: #475569;
+      }
+
+      body.theme-dark .stats-data-table th:hover {
+        background: linear-gradient(135deg, #334155 0%, #475569 100%);
+      }
+
+      body.theme-dark .stats-data-table td {
+        border-bottom-color: #334155;
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .stats-data-table tbody tr:hover {
+        background: rgba(99, 102, 241, 0.1);
+      }
+
+      body.theme-dark .stats-data-table tbody tr:nth-child(even) {
+        background: rgba(30, 41, 59, 0.5);
+      }
+
+      body.theme-dark .activity-name-cell {
+        color: #93c5fd;
+      }
+
+      body.theme-dark .date-cell {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .footer-nav {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      body.theme-dark .modal-content {
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .modal-header {
+        border-bottom-color: #334155;
+      }
+
+      body.theme-dark .modal-header h3 {
+        color: #93c5fd;
+      }
+
+      body.theme-dark .modal-body label {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .modal-body input {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .modal-body input:focus {
+        border-color: #3b82f6;
+      }
+
+      /* Dark theme for Target Automation */
+      body.theme-dark .toggle-switch {
+        background: #475569;
+      }
+
+      body.theme-dark .toggle-switch.active {
+        background: #3b82f6;
+      }
+
+      body.theme-dark .toggle-label {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .target-automation-options {
+        background: #0f172a;
+        border-color: #334155;
+      }
+
+      body.theme-dark .automation-type-select {
+        background: #1e293b;
+        border-color: #334155;
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .automation-type-select:focus {
+        border-color: #3b82f6;
+      }
+
+      body.theme-dark .day-checkbox label {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .automation-preview {
+        background: linear-gradient(135deg, #1e3a5f 0%, #1e293b 100%);
+        color: #93c5fd;
+      }
+
+      body.theme-dark .automation-preview strong {
+        color: #60a5fa;
+      }
+
+      body.theme-dark .btn-primary {
+        background: #3b82f6;
+        color: white;
+      }
+
+      body.theme-dark .btn-danger {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+      }
+
+      body.theme-dark .btn-success {
+        background: linear-gradient(135deg, #059669, #047857);
+      }
+
+      body.theme-dark .sheet-item {
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .sheet-item:hover {
+        border-color: #3b82f6;
+      }
+
+      body.theme-dark .sheet-item.active {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      }
+
+      body.theme-dark .new-sheet-input input {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .activity-preview {
+        background: linear-gradient(135deg, #7f1d1d, #991b1b);
+        border-left-color: #ef4444;
+      }
+
+      body.theme-dark .activity-preview strong {
+        color: #fca5a5;
+      }
+
+      body.theme-dark .checkbox-cell input[type="checkbox"] {
+        accent-color: #3b82f6;
+      }
+
+      body.theme-dark .streak-badge {
+        background: linear-gradient(135deg, #c026d3 0%, #a21caf 100%);
+      }
+
+      body.theme-dark .percentage-low {
+        background: linear-gradient(135deg, #7f1d1d, #991b1b);
+        color: #fca5a5;
+      }
+
+      body.theme-dark .percentage-medium {
+        background: linear-gradient(135deg, #78350f, #92400e);
+        color: #fcd34d;
+      }
+
+      body.theme-dark .percentage-high {
+        background: linear-gradient(135deg, #14532d, #166534);
+        color: #86efac;
+      }
+
+      body.theme-dark .percentage-exceeded {
+        background: linear-gradient(135deg, #4c1d95, #5b21b6);
+        color: #c4b5fd;
+      }
+
+      body.theme-dark .control-group select,
+      body.theme-dark .control-group input {
+        background: #0f172a;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+      }
+
+      body.theme-dark .theme-toggle-btn {
+        background: #fbbf24;
+        color: #1e293b;
+      }
+
+      /* Export/Import Modal Styles */
+      .export-import-modal .modal-content {
+        max-width: 500px;
+      }
+
+      .export-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .export-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 12px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .export-option:hover {
+        border-color: var(--primary-light);
+        transform: translateX(4px);
+      }
+
+      .export-option.selected {
+        background: var(--gradient-1);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      .export-option input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary);
+      }
+
+      .export-option-content {
+        flex: 1;
+      }
+
+      .export-option-title {
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 4px;
+      }
+
+      .export-option-desc {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      .export-option.selected .export-option-desc {
+        opacity: 0.9;
+      }
+
+      .btn-import {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+      }
+
+      .import-file-input {
+        display: none;
+      }
+
+      .import-drop-zone {
+        border: 3px dashed var(--border);
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        margin-bottom: 16px;
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+
+      .import-drop-zone:hover,
+      .import-drop-zone.dragover {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+      }
+
+      .import-drop-zone .drop-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+
+      .import-drop-zone .drop-text {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+      }
+
+      .import-drop-zone .drop-hint {
+        font-size: 12px;
+        color: var(--text-secondary);
+        opacity: 0.7;
+      }
+
+      .import-file-name {
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        border-radius: 8px;
+        margin-bottom: 16px;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        color: #16a34a;
+      }
+
+      .import-file-name.visible {
+        display: flex;
+      }
+
+      .import-file-name .file-icon {
+        font-size: 20px;
+      }
+
+      .import-preview {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+      }
+
+      .import-preview.visible {
+        display: block;
+      }
+
+      .import-preview h4 {
+        font-size: 14px;
+        color: var(--primary-dark);
+        margin-bottom: 12px;
+      }
+
+      .import-preview-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: white;
+        border-radius: 6px;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .import-preview-item span:first-child {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .import-preview-item span:last-child {
+        color: var(--text-secondary);
+      }
+
+      .import-warning {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-left: 4px solid var(--warning);
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: #92400e;
+      }
+
+      body.theme-dark .export-option {
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .export-option:hover {
+        border-color: #3b82f6;
+      }
+
+      body.theme-dark .export-option.selected {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      }
+
+      body.theme-dark .import-drop-zone {
+        border-color: #334155;
+        background: #0f172a;
+      }
+
+      body.theme-dark .import-drop-zone:hover,
+      body.theme-dark .import-drop-zone.dragover {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+      }
+
+      body.theme-dark .import-drop-zone .drop-text,
+      body.theme-dark .import-drop-zone .drop-hint {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .import-file-name {
+        background: linear-gradient(135deg, #14532d, #166534);
+        color: #86efac;
+      }
+
+      body.theme-dark .import-preview {
+        background: #0f172a;
+      }
+
+      body.theme-dark .import-preview h4 {
+        color: #93c5fd;
+      }
+
+      body.theme-dark .import-preview-item {
+        background: #1e293b;
+      }
+
+      body.theme-dark .import-preview-item span:first-child {
+        color: #e2e8f0;
+      }
+
+      body.theme-dark .import-preview-item span:last-child {
+        color: #94a3b8;
+      }
+
+      body.theme-dark .import-warning {
+        background: linear-gradient(135deg, #78350f, #92400e);
+        border-left-color: #fbbf24;
+        color: #fcd34d;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">🎯</span>
+          <h1>Activity Tracker</h1>
+          <span class="streak-badge">🔥 Build Your Habits!</span>
+        </div>
+        <div class="controls">
+          <div class="sheet-selector">
+            <label>📑 Sheet:</label>
+            <select
+              id="sheetSelect"
+              onchange="switchSheet(this.value)"
+            ></select>
+            <button
+              class="sheet-btn sheet-btn-manage"
+              onclick="openSheetModal()"
+            >
+              ⚙️
+            </button>
+          </div>
+          <div class="control-group">
+            <label>📅 Year:</label>
+            <select id="yearSelect"></select>
+          </div>
+          <div class="control-group">
+            <label>📆 Month:</label>
+            <select id="monthSelect">
+              <option value="0">January</option>
+              <option value="1">February</option>
+              <option value="2">March</option>
+              <option value="3">April</option>
+              <option value="4">May</option>
+              <option value="5">June</option>
+              <option value="6">July</option>
+              <option value="7">August</option>
+              <option value="8">September</option>
+              <option value="9">October</option>
+              <option value="10">November</option>
+              <option value="11">December</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="openAddActivityModal()">
+            ➕ Add Activity
+          </button>
+          <button class="btn btn-danger" onclick="clearAllData()">
+            🗑️ Clear All
+          </button>
+          <div class="menu-dropdown-container" style="position: relative">
+            <button
+              class="btn btn-menu"
+              id="headerMenuBtn"
+              onclick="toggleHeaderMenu()"
+              title="More options (Alt+M)"
+            >
+              ⚙️ Menu
+            </button>
+            <div
+              class="header-menu-dropdown"
+              id="headerMenuDropdown"
+              style="display: none"
+            >
+              <button class="menu-item" onclick="openExportModal()">
+                📤 Export
+              </button>
+              <button class="menu-item" onclick="openImportModal()">
+                📥 Import
+              </button>
+              <button
+                class="menu-item"
+                id="themeToggleBtn"
+                onclick="toggleTheme()"
+              >
+                🌙 Night Mode
+              </button>
+              <div class="menu-divider"></div>
+              <div class="menu-toggle-item">
+                <span class="menu-toggle-label">🔒 Lock Future/Past Days</span>
+                <div
+                  class="toggle-switch-small"
+                  id="lockFuturePastToggle"
+                  onclick="toggleLockFuturePast()"
+                ></div>
+              </div>
+              <div class="menu-toggle-item">
+                <span class="menu-toggle-label">🚫 Lock Non-Target Days</span>
+                <div
+                  class="toggle-switch-small"
+                  id="lockNonTargetToggle"
+                  onclick="toggleLockNonTarget()"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Stats Cards -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <h3 id="totalActivities">0/0</h3>
+            <p>Activities (Completed/Total)</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3 id="totalCompleted">0</h3>
+            <p>Tasks Completed</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📈</div>
+          <div class="stat-info">
+            <h3 id="completionRate">0%</h3>
+            <p>Completion Rate</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-info">
+            <h3 id="bestDay">-</h3>
+            <p>Best Day</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-info">
+            <h3 id="daysRemaining">0/31</h3>
+            <p>Days Remaining</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Table -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2>📋 Monthly Activity Tracker</h2>
+          <div style="display: flex; gap: 10px; align-items: center">
+            <span style="font-size: 12px; color: var(--text-secondary)">
+              💡 Click checkboxes to mark activities • Double-click activity
+              names to edit
+            </span>
+          </div>
+        </div>
+        <table class="activity-table" id="activityTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-section">
+        <div class="chart-card">
+          <h3>📈 Daily Progress Trend</h3>
+          <div class="chart-container">
+            <canvas id="lineChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>🥧 Activity Distribution</h3>
+          <div class="chart-container">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bars -->
+      <div class="progress-section">
+        <h3>🏆 Activity Completion Progress</h3>
+        <div id="progressBars"></div>
+      </div>
+
+      <!-- Activity Statistics Table -->
+      <div class="stats-table-section">
+        <div class="stats-table-header">
+          <h3>📈 Activity Statistics Summary</h3>
+          <div class="stats-table-controls">
+            <select
+              class="sort-select"
+              id="statsSortSelect"
+              onchange="sortStatsTable()"
+            >
+              <option value="serial-asc">Sort by: S.No (Low → High)</option>
+              <option value="serial-desc">Sort by: S.No (High → Low)</option>
+              <option value="name-asc">Sort by: Name (A → Z)</option>
+              <option value="name-desc">Sort by: Name (Z → A)</option>
+              <option value="year-asc">Sort by: Year Total (Low → High)</option>
+              <option value="year-desc">
+                Sort by: Year Total (High → Low)
+              </option>
+              <option value="month-asc">
+                Sort by: Month Total (Low → High)
+              </option>
+              <option value="month-desc">
+                Sort by: Month Total (High → Low)
+              </option>
+              <option value="avg-asc">Sort by: Avg/Month (Low → High)</option>
+              <option value="avg-desc">Sort by: Avg/Month (High → Low)</option>
+              <option value="streak-asc">Sort by: Streak (Low → High)</option>
+              <option value="streak-desc">Sort by: Streak (High → Low)</option>
+            </select>
+            <div style="position: relative">
+              <button class="column-filter-btn" onclick="toggleColumnFilter()">
+                🔧 Columns <span id="columnCount">(7)</span>
+              </button>
+              <div class="column-filter-dropdown" id="columnFilterDropdown">
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colSerial"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colSerial">S.No</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colName"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colName">Activity Name</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colYearTotal"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colYearTotal">Year Total</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colMonthTotal"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colMonthTotal">Month Total</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colFirstTick"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colFirstTick">First Tick</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colLastTick"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colLastTick">Last Tick</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colStreak"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colStreak">Current Streak</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colAvg"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colAvg">Avg/Month</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colTarget"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colTarget">Target</label>
+                </div>
+                <div class="column-filter-item">
+                  <input
+                    type="checkbox"
+                    id="colProgress"
+                    checked
+                    onchange="updateVisibleColumns()"
+                  />
+                  <label for="colProgress">Progress %</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="overflow-x: auto">
+          <table class="stats-data-table" id="statsDataTable">
+            <thead id="statsTableHead"></thead>
+            <tbody id="statsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer Navigation -->
+      <div class="footer-nav" style="margin-top: 30px">
+        <a href="index.html" class="nav-link">🏠 Time Tracker</a>
+        <a href="Timer.html" class="nav-link">⏱️ Focus Timer</a>
+        <a href="todo.html" class="nav-link">📝 To-Do List</a>
+        <a href="welcome.html" class="nav-link">👋 Welcome</a>
+      </div>
+    </main>
+
+    <!-- Add Activity Modal -->
+    <div class="modal" id="addActivityModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>➕ Add New Activity</h3>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label>Activity Name:</label>
+          <input
+            type="text"
+            id="newActivityName"
+            placeholder="Enter activity name..."
+            maxlength="30"
+          />
+
+          <!-- Target Days with Automation Toggle -->
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-top: 16px;
+              margin-bottom: 8px;
+            "
+          >
+            <label style="margin: 0">Target Days (optional):</label>
+            <div class="toggle-container" style="margin-top: 0">
+              <span class="toggle-label">Auto</span>
+              <div
+                class="toggle-switch"
+                id="addTargetAutomationToggle"
+                onclick="toggleAddAutomation()"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Manual Target Input (shown when automation is OFF) -->
+          <div id="addManualTargetContainer">
+            <input
+              type="number"
+              id="newActivityTarget"
+              placeholder="Leave empty for full month"
+              min="1"
+              max="31"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid var(--border);
+                border-radius: 10px;
+                font-size: 16px;
+              "
+            />
+          </div>
+
+          <!-- Target Automation Options (shown when automation is ON) -->
+          <div class="target-automation-options" id="addAutomationOptions">
+            <select
+              class="automation-type-select"
+              id="addAutomationType"
+              onchange="updateAddAutomationType()"
+            >
+              <option value="workdays">📅 Workdays Only (Mon-Fri)</option>
+              <option value="weekends">🌴 Weekends Only (Sat-Sun)</option>
+              <option value="custom">🎯 Custom Days</option>
+            </select>
+
+            <!-- Custom Days Selection -->
+            <div class="custom-days-container" id="addCustomDaysContainer">
+              <label style="font-size: 13px; color: var(--text-secondary)"
+                >Select days of the week:</label
+              >
+              <div class="custom-days-grid">
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="addDay0"
+                    onchange="updateAddAutomationPreview()"
+                  />
+                  <label for="addDay0">Sun</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="addDay1"
+                    onchange="updateAddAutomationPreview()"
+                  />
+                  <label for="addDay1">Mon</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="addDay2"
+                    onchange="updateAddAutomationPreview()"
+                  />
+                  <label for="addDay2">Tue</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="addDay3"
+                    onchange="updateAddAutomationPreview()"
+                  />
+                  <label for="addDay3">Wed</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="addDay4"
+                    onchange="updateAddAutomationPreview()"
+                  />
+                  <label for="addDay4">Thu</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="addDay5"
+                    onchange="updateAddAutomationPreview()"
+                  />
+                  <label for="addDay5">Fri</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="addDay6"
+                    onchange="updateAddAutomationPreview()"
+                  />
+                  <label for="addDay6">Sat</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="automation-preview" id="addAutomationPreview">
+              📊 Target: <strong>22 days</strong> (workdays in this month)
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-success" onclick="addActivity()">
+            Add Activity
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal delete-modal" id="deleteActivityModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🗑️ Delete Activity</h3>
+          <button class="modal-close" onclick="closeDeleteModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this activity?</p>
+          <div class="activity-preview">
+            <strong id="deleteActivityName">Activity Name</strong>
+          </div>
+          <p style="color: var(--danger); font-size: 13px">
+            ⚠️ This will also delete all tracked data for this activity. This
+            action cannot be undone.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="closeDeleteModal()">
+            Cancel
+          </button>
+          <button class="btn btn-danger" onclick="confirmDeleteActivity()">
+            🗑️ Delete Activity
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sheet Management Modal -->
+    <div class="modal sheet-modal" id="sheetModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📑 Manage Sheets</h3>
+          <button class="modal-close" onclick="closeSheetModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="sheet-list" id="sheetList"></div>
+          <div class="new-sheet-input">
+            <input
+              type="text"
+              id="newSheetName"
+              placeholder="New sheet name..."
+              maxlength="30"
+            />
+            <button onclick="createNewSheet()">➕ Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rename Sheet Modal -->
+    <div class="modal" id="renameSheetModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>✏️ Rename Sheet</h3>
+          <button class="modal-close" onclick="closeRenameSheetModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <label>New Name:</label>
+          <input
+            type="text"
+            id="renameSheetInput"
+            placeholder="Enter new name..."
+            maxlength="30"
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" onclick="closeRenameSheetModal()">
+            Cancel
+          </button>
+          <button class="btn btn-success" onclick="confirmRenameSheet()">
+            Rename
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal export-import-modal" id="exportModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📤 Export Data</h3>
+          <button class="modal-close" onclick="closeExportModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <p
+            style="
+              margin-bottom: 16px;
+              color: var(--text-secondary);
+              font-size: 14px;
+            "
+          >
+            Choose what to export:
+          </p>
+          <div class="export-options">
+            <label
+              class="export-option selected"
+              onclick="selectExportOption('current')"
+            >
+              <input type="radio" name="exportOption" value="current" checked />
+              <div class="export-option-content">
+                <div class="export-option-title">📋 Current Table Only</div>
+                <div class="export-option-desc">
+                  Export current sheet's current month data (${currentSheet} -
+                  ${MONTHS[state.month]} ${state.year})
+                </div>
+              </div>
+            </label>
+            <label class="export-option" onclick="selectExportOption('all')">
+              <input type="radio" name="exportOption" value="all" />
+              <div class="export-option-content">
+                <div class="export-option-title">📦 All Sheets & All Data</div>
+                <div class="export-option-desc">
+                  Export complete backup with all sheets and all months
+                  (Recommended for backup)
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" onclick="closeExportModal()">
+            Cancel
+          </button>
+          <button class="btn btn-success" onclick="executeExport()">
+            📤 Export Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div class="modal export-import-modal" id="importModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📥 Import Data</h3>
+          <button class="modal-close" onclick="closeImportModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <input
+            type="file"
+            id="importFileInput"
+            class="import-file-input"
+            accept=".csv,.json"
+            onchange="handleFileSelect(event)"
+          />
+
+          <div
+            class="import-drop-zone"
+            id="importDropZone"
+            onclick="document.getElementById('importFileInput').click()"
+          >
+            <div class="drop-icon">📁</div>
+            <div class="drop-text">
+              Click to select file or drag & drop here
+            </div>
+            <div class="drop-hint">
+              Supports .CSV (current table) or .JSON (full backup)
+            </div>
+          </div>
+
+          <div class="import-file-name" id="importFileName">
+            <span class="file-icon">📄</span>
+            <span id="selectedFileName">No file selected</span>
+          </div>
+
+          <div class="import-warning" id="importWarning" style="display: none">
+            ⚠️ <strong>Warning:</strong> Importing will replace your existing
+            data. Make sure to export a backup first!
+          </div>
+
+          <div class="import-preview" id="importPreview">
+            <h4>📊 Import Preview</h4>
+            <div id="importPreviewContent"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" onclick="closeImportModal()">
+            Cancel
+          </button>
+          <button
+            class="btn btn-success"
+            id="confirmImportBtn"
+            onclick="executeImport()"
+            disabled
+          >
+            📥 Import Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insert Row Modal -->
+    <div class="modal" id="insertRowModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>➕ Insert New Activity</h3>
+          <button class="modal-close" onclick="closeInsertModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="color: var(--text-secondary); margin-bottom: 12px">
+            Insert a new activity at position
+            <strong id="insertPosition">1</strong>
+          </p>
+          <label>Activity Name:</label>
+          <input
+            type="text"
+            id="insertActivityName"
+            placeholder="Enter activity name..."
+            maxlength="30"
+            style="
+              width: 100%;
+              padding: 12px 16px;
+              border: 2px solid var(--border);
+              border-radius: 10px;
+              font-size: 16px;
+              margin-bottom: 12px;
+            "
+          />
+
+          <!-- Target Days with Automation Toggle -->
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 8px;
+            "
+          >
+            <label style="margin: 0">Target Days (optional):</label>
+            <div class="toggle-container" style="margin-top: 0">
+              <span class="toggle-label">Auto</span>
+              <div
+                class="toggle-switch"
+                id="insertTargetAutomationToggle"
+                onclick="toggleInsertAutomation()"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Manual Target Input (shown when automation is OFF) -->
+          <div id="insertManualTargetContainer">
+            <input
+              type="number"
+              id="insertActivityTarget"
+              placeholder="Leave empty for full month"
+              min="1"
+              max="31"
+              style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid var(--border);
+                border-radius: 10px;
+                font-size: 16px;
+              "
+            />
+          </div>
+
+          <!-- Target Automation Options (shown when automation is ON) -->
+          <div class="target-automation-options" id="insertAutomationOptions">
+            <select
+              class="automation-type-select"
+              id="insertAutomationType"
+              onchange="updateInsertAutomationType()"
+            >
+              <option value="workdays">📅 Workdays Only (Mon-Fri)</option>
+              <option value="weekends">🌴 Weekends Only (Sat-Sun)</option>
+              <option value="custom">🎯 Custom Days</option>
+            </select>
+
+            <!-- Custom Days Selection -->
+            <div class="custom-days-container" id="insertCustomDaysContainer">
+              <label style="font-size: 13px; color: var(--text-secondary)"
+                >Select days of the week:</label
+              >
+              <div class="custom-days-grid">
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="insertDay0"
+                    onchange="updateInsertAutomationPreview()"
+                  />
+                  <label for="insertDay0">Sun</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="insertDay1"
+                    onchange="updateInsertAutomationPreview()"
+                  />
+                  <label for="insertDay1">Mon</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="insertDay2"
+                    onchange="updateInsertAutomationPreview()"
+                  />
+                  <label for="insertDay2">Tue</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="insertDay3"
+                    onchange="updateInsertAutomationPreview()"
+                  />
+                  <label for="insertDay3">Wed</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="insertDay4"
+                    onchange="updateInsertAutomationPreview()"
+                  />
+                  <label for="insertDay4">Thu</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="insertDay5"
+                    onchange="updateInsertAutomationPreview()"
+                  />
+                  <label for="insertDay5">Fri</label>
+                </div>
+                <div class="day-checkbox">
+                  <input
+                    type="checkbox"
+                    id="insertDay6"
+                    onchange="updateInsertAutomationPreview()"
+                  />
+                  <label for="insertDay6">Sat</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="automation-preview" id="insertAutomationPreview">
+              📊 Target: <strong>22 days</strong> (workdays in this month)
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" onclick="closeInsertModal()">
+            Cancel
+          </button>
+          <button class="btn btn-success" onclick="confirmInsertActivity()">
+            ➕ Insert Activity
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ==================== CONSTANTS & STATE ====================
+      const STORAGE_KEY = "activity_tracker_data_v2";
+      const SHEETS_KEY = "activity_tracker_sheets";
+      const THEME_KEY = "tt_theme"; // Same key as index.html for sync
+      const MONTHS = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const COLORS = [
+        "#6366f1",
+        "#10b981",
+        "#f59e0b",
+        "#ef4444",
+        "#8b5cf6",
+        "#ec4899",
+        "#06b6d4",
+        "#f97316",
+        "#84cc16",
+        "#14b8a6",
+      ];
+
+      let state = {
+        year: new Date().getFullYear(),
+        month: new Date().getMonth(),
+        activities: [],
+        targets: {}, // { activityIndex: targetDays } - custom targets per activity
+        data: {}, // { "YYYY-MM": { activityIndex: { day: true/false } } }
+      };
+
+      // Sheet management state
+      let sheets = {}; // { sheetName: state }
+      let currentSheet = "Sheet 1";
+      let sheetToRename = null;
+
+      // Row management state
+      let deleteActivityIndex = null;
+      let insertAtPosition = null;
+
+      // Multi-select state
+      let isSelecting = false;
+      let selectionStart = null;
+      let selectedCells = new Set();
+      let selectionValue = null;
+
+      // Lock settings (persisted in localStorage)
+      let lockFuturePast = false;
+      let lockNonTargetDays = false;
+      const LOCK_SETTINGS_KEY = "activity_tracker_locks";
+
+      let lineChart = null;
+      let pieChart = null;
+
+      // ==================== INITIALIZATION ====================
+      document.addEventListener("DOMContentLoaded", () => {
+        applyTheme();
+        loadLockSettings();
+        loadSheets();
+        loadState();
+        initYearSelect();
+        initMonthSelect();
+        renderSheetSelect();
+        render();
+      });
+
+      // ==================== LOCK SETTINGS ====================
+      function loadLockSettings() {
+        try {
+          const saved = localStorage.getItem(LOCK_SETTINGS_KEY);
+          if (saved) {
+            const settings = JSON.parse(saved);
+            lockFuturePast = settings.lockFuturePast || false;
+            lockNonTargetDays = settings.lockNonTargetDays || false;
+          }
+        } catch (e) {
+          console.error("Error loading lock settings:", e);
+        }
+        updateLockToggleUI();
+      }
+
+      function saveLockSettings() {
+        try {
+          localStorage.setItem(
+            LOCK_SETTINGS_KEY,
+            JSON.stringify({
+              lockFuturePast,
+              lockNonTargetDays,
+            }),
+          );
+        } catch (e) {
+          console.error("Error saving lock settings:", e);
+        }
+      }
+
+      function updateLockToggleUI() {
+        const futurePastToggle = document.getElementById(
+          "lockFuturePastToggle",
+        );
+        const nonTargetToggle = document.getElementById("lockNonTargetToggle");
+
+        if (futurePastToggle) {
+          futurePastToggle.classList.toggle("active", lockFuturePast);
+        }
+        if (nonTargetToggle) {
+          nonTargetToggle.classList.toggle("active", lockNonTargetDays);
+        }
+      }
+
+      function toggleLockFuturePast() {
+        lockFuturePast = !lockFuturePast;
+        saveLockSettings();
+        updateLockToggleUI();
+        render();
+      }
+
+      function toggleLockNonTarget() {
+        lockNonTargetDays = !lockNonTargetDays;
+        saveLockSettings();
+        updateLockToggleUI();
+        render();
+      }
+
+      // Check if a day is a target day for an activity
+      function isDayTargetDay(actIdx, dayOfWeek) {
+        // dayOfWeek: 0=Sun, 1=Mon, ... 6=Sat
+        const automation = state.targetAutomation?.[actIdx];
+
+        if (!automation || !automation.type) {
+          // No automation - all days are target days
+          return true;
+        }
+
+        switch (automation.type) {
+          case "workdays":
+            return dayOfWeek >= 1 && dayOfWeek <= 5; // Mon-Fri
+          case "weekends":
+            return dayOfWeek === 0 || dayOfWeek === 6; // Sat-Sun
+          case "custom":
+            return automation.customDays?.includes(dayOfWeek) || false;
+          default:
+            return true;
+        }
+      }
+
+      // Check if a checkbox should be locked
+      function isCheckboxLocked(actIdx, day) {
+        const today = new Date();
+        const targetDate = new Date(state.year, state.month, day);
+        const dayOfWeek = targetDate.getDay();
+
+        // Check future/past lock
+        if (lockFuturePast) {
+          const isToday =
+            today.getFullYear() === state.year &&
+            today.getMonth() === state.month &&
+            today.getDate() === day;
+          if (!isToday) return true;
+        }
+
+        // Check non-target day lock
+        if (lockNonTargetDays && !isDayTargetDay(actIdx, dayOfWeek)) {
+          return true;
+        }
+
+        return false;
+      }
+
+      function initYearSelect() {
+        const select = document.getElementById("yearSelect");
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+          const option = document.createElement("option");
+          option.value = year;
+          option.textContent = year;
+          if (year === state.year) option.selected = true;
+          select.appendChild(option);
+        }
+        select.addEventListener("change", (e) => {
+          state.year = parseInt(e.target.value);
+          recalculateAutomatedTargets();
+          saveState();
+          render();
+        });
+      }
+
+      function initMonthSelect() {
+        const select = document.getElementById("monthSelect");
+        select.value = state.month;
+        select.addEventListener("change", (e) => {
+          state.month = parseInt(e.target.value);
+          recalculateAutomatedTargets();
+          saveState();
+          render();
+        });
+      }
+
+      // Recalculate targets for activities with automation enabled
+      function recalculateAutomatedTargets() {
+        if (!state.targetAutomation) return;
+
+        Object.keys(state.targetAutomation).forEach((key) => {
+          const actIdx = parseInt(key);
+          const automation = state.targetAutomation[actIdx];
+          if (automation && automation.type) {
+            const newTarget = calculateAutomationTarget(
+              automation.type,
+              automation.customDays || [],
+            );
+            state.targets[actIdx] = newTarget;
+          }
+        });
+      }
+
+      // ==================== DATA PERSISTENCE ====================
+      function saveState() {
+        sheets[currentSheet] = JSON.parse(JSON.stringify(state));
+        localStorage.setItem(
+          SHEETS_KEY,
+          JSON.stringify({ sheets, currentSheet }),
+        );
+      }
+
+      function loadSheets() {
+        const saved = localStorage.getItem(SHEETS_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            sheets = parsed.sheets || {};
+            currentSheet = parsed.currentSheet || "Sheet 1";
+          } catch (e) {
+            console.error("Failed to load sheets:", e);
+            sheets = {};
+            currentSheet = "Sheet 1";
+          }
+        }
+
+        // Migrate from old storage format if needed
+        if (Object.keys(sheets).length === 0) {
+          const oldData = localStorage.getItem("activity_tracker_data_v1");
+          if (oldData) {
+            try {
+              sheets["Sheet 1"] = JSON.parse(oldData);
+            } catch (e) {
+              console.error("Failed to migrate old data:", e);
+            }
+          }
+        }
+
+        // Ensure at least one sheet exists
+        if (Object.keys(sheets).length === 0) {
+          sheets["Sheet 1"] = createDefaultState();
+        }
+      }
+
+      function createDefaultState() {
+        return {
+          year: new Date().getFullYear(),
+          month: new Date().getMonth(),
+          activities: [
+            "Exercise",
+            "Reading",
+            "Meditation",
+            "Coding",
+            "Learning",
+            "Healthy Eating",
+            "Sleep 8hrs",
+            "No Social Media",
+            "Journal",
+            "Walk",
+          ],
+          targets: {},
+          targetAutomation: {}, // { activityIndex: { type: 'workdays'|'weekends'|'custom', customDays: [0-6] } }
+          data: {},
+        };
+      }
+
+      function loadState() {
+        if (sheets[currentSheet]) {
+          state = JSON.parse(JSON.stringify(sheets[currentSheet]));
+        } else {
+          state = createDefaultState();
+          sheets[currentSheet] = state;
+        }
+
+        // Ensure required properties exist
+        if (!state.activities || state.activities.length === 0) {
+          state = createDefaultState();
+          saveState();
+        }
+
+        if (!state.targets) {
+          state.targets = {};
+        }
+
+        if (!state.targetAutomation) {
+          state.targetAutomation = {};
+        }
+
+        if (!state.data) {
+          state.data = {};
+        }
+      }
+
+      // ==================== SHEET MANAGEMENT ====================
+      function renderSheetSelect() {
+        const select = document.getElementById("sheetSelect");
+        select.innerHTML = "";
+        Object.keys(sheets)
+          .sort()
+          .forEach((name) => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            if (name === currentSheet) option.selected = true;
+            select.appendChild(option);
+          });
+      }
+
+      function switchSheet(sheetName) {
+        if (sheetName === currentSheet) return;
+
+        // Save current sheet state
+        sheets[currentSheet] = JSON.parse(JSON.stringify(state));
+
+        // Switch to new sheet
+        currentSheet = sheetName;
+        loadState();
+        saveState();
+        render();
+      }
+
+      function openSheetModal() {
+        renderSheetList();
+        document.getElementById("sheetModal").classList.add("active");
+        document.getElementById("newSheetName").value = "";
+      }
+
+      function closeSheetModal() {
+        document.getElementById("sheetModal").classList.remove("active");
+      }
+
+      function renderSheetList() {
+        const container = document.getElementById("sheetList");
+        let html = "";
+        Object.keys(sheets)
+          .sort()
+          .forEach((name) => {
+            const isActive = name === currentSheet;
+            html += `
+            <div class="sheet-item ${isActive ? "active" : ""}">
+              <span class="sheet-item-name" onclick="selectSheetFromModal('${name}')">${name}</span>
+              <div class="sheet-item-actions">
+                <button class="rename-btn" onclick="openRenameSheetModal('${name}')">✏️</button>
+                ${Object.keys(sheets).length > 1 ? `<button class="delete-btn" onclick="deleteSheet('${name}')">🗑️</button>` : ""}
+              </div>
+            </div>
+          `;
+          });
+        container.innerHTML = html;
+      }
+
+      function selectSheetFromModal(name) {
+        closeSheetModal();
+        document.getElementById("sheetSelect").value = name;
+        switchSheet(name);
+      }
+
+      function createNewSheet() {
+        const input = document.getElementById("newSheetName");
+        const name = input.value.trim();
+
+        if (!name) {
+          alert("Please enter a sheet name!");
+          return;
+        }
+
+        if (sheets[name]) {
+          alert("A sheet with this name already exists!");
+          return;
+        }
+
+        sheets[name] = createDefaultState();
+        currentSheet = name;
+        loadState();
+        saveState();
+        renderSheetSelect();
+        renderSheetList();
+        render();
+        input.value = "";
+      }
+
+      function openRenameSheetModal(name) {
+        sheetToRename = name;
+        document.getElementById("renameSheetInput").value = name;
+        document.getElementById("renameSheetModal").classList.add("active");
+        document.getElementById("renameSheetInput").focus();
+      }
+
+      function closeRenameSheetModal() {
+        sheetToRename = null;
+        document.getElementById("renameSheetModal").classList.remove("active");
+      }
+
+      function confirmRenameSheet() {
+        if (!sheetToRename) return;
+
+        const newName = document
+          .getElementById("renameSheetInput")
+          .value.trim();
+
+        if (!newName) {
+          alert("Please enter a name!");
+          return;
+        }
+
+        if (newName !== sheetToRename && sheets[newName]) {
+          alert("A sheet with this name already exists!");
+          return;
+        }
+
+        if (newName !== sheetToRename) {
+          sheets[newName] = sheets[sheetToRename];
+          delete sheets[sheetToRename];
+
+          if (currentSheet === sheetToRename) {
+            currentSheet = newName;
+          }
+
+          saveState();
+          renderSheetSelect();
+          renderSheetList();
+        }
+
+        closeRenameSheetModal();
+      }
+
+      function deleteSheet(name) {
+        if (Object.keys(sheets).length <= 1) {
+          alert("You need at least one sheet!");
+          return;
+        }
+
+        if (
+          !confirm(
+            `Are you sure you want to delete "${name}"? This cannot be undone.`,
+          )
+        ) {
+          return;
+        }
+
+        delete sheets[name];
+
+        if (currentSheet === name) {
+          currentSheet = Object.keys(sheets)[0];
+          loadState();
+        }
+
+        saveState();
+        renderSheetSelect();
+        renderSheetList();
+        render();
+      }
+
+      // ==================== THEME MANAGEMENT ====================
+      function applyTheme() {
+        const theme = localStorage.getItem(THEME_KEY) || "light";
+        const isDark = theme === "dark";
+
+        if (isDark) {
+          document.body.classList.add("theme-dark");
+        } else {
+          document.body.classList.remove("theme-dark");
+        }
+
+        const btn = document.getElementById("themeToggleBtn");
+        if (btn) {
+          btn.textContent = isDark ? "☀️ Day Mode" : "🌙 Night Mode";
+        }
+      }
+
+      function toggleTheme() {
+        const current = localStorage.getItem(THEME_KEY) || "light";
+        const next = current === "dark" ? "light" : "dark";
+        localStorage.setItem(THEME_KEY, next);
+        applyTheme();
+      }
+
+      function toggleHeaderMenu() {
+        const dropdown = document.getElementById("headerMenuDropdown");
+        if (dropdown.style.display === "none") {
+          dropdown.style.display = "block";
+        } else {
+          dropdown.style.display = "none";
+        }
+      }
+
+      // Close menu when clicking outside
+      document.addEventListener("click", function (e) {
+        const dropdown = document.getElementById("headerMenuDropdown");
+        const btn = document.getElementById("headerMenuBtn");
+        if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = "none";
+        }
+      });
+
+      // Listen for theme changes from other pages
+      window.addEventListener("storage", (e) => {
+        if (e.key === THEME_KEY) {
+          applyTheme();
+        }
+      });
+
+      // Keyboard shortcut: Alt+M to open menu
+      document.addEventListener("keydown", (e) => {
+        if (e.altKey && e.key.toLowerCase() === "m") {
+          e.preventDefault();
+          toggleHeaderMenu();
+          document.getElementById("headerMenuBtn").focus();
+        }
+      });
+
+      // ==================== RENDER FUNCTIONS ====================
+      function render() {
+        renderTable();
+        renderStats();
+        renderCharts();
+        renderProgressBars();
+        renderStatsTable();
+      }
+
+      function renderTable() {
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+        const monthKey = `${state.year}-${state.month}`;
+
+        // Get today's date info
+        const today = new Date();
+        const isCurrentMonth =
+          today.getFullYear() === state.year &&
+          today.getMonth() === state.month;
+        const todayDate = today.getDate();
+
+        // Initialize data for current month if not exists
+        if (!state.data[monthKey]) {
+          state.data[monthKey] = {};
+        }
+
+        // Render header with current day highlight
+        let headerHtml = "<tr><th>Activities</th><th>Target</th>";
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(state.year, state.month, day);
+          const dayName = DAYS[date.getDay()];
+          const dayClass = `day-${dayName.toLowerCase()}`;
+          const isToday = isCurrentMonth && day === todayDate;
+          const currentDayClass = isToday ? "current-day-header" : "";
+          headerHtml += `<th class="${dayClass} ${currentDayClass}">${dayName}<br>${day}</th>`;
+        }
+        headerHtml += '<th class="total-col">Task<br>Total</th></tr>';
+        document.getElementById("tableHead").innerHTML = headerHtml;
+
+        // Render body
+        let bodyHtml = "";
+
+        // Add insert row zone at the top
+        bodyHtml += `<tr class="add-row-divider" style="height: 0;">
+          <td colspan="${daysInMonth + 3}" style="padding: 0; border: none; position: relative;">
+            <div class="row-hover-zone" onmouseenter="showAddButton(0)" onmouseleave="hideAddButton(0)"></div>
+            <button class="add-row-btn" id="addBtn-0" onclick="openInsertModal(0)" title="Insert activity here">+</button>
+          </td>
+        </tr>`;
+
+        state.activities.forEach((activity, actIdx) => {
+          if (!state.data[monthKey][actIdx]) {
+            state.data[monthKey][actIdx] = {};
+          }
+
+          let rowTotal = 0;
+          const target = state.targets[actIdx] || daysInMonth;
+
+          // Count completed days
+          for (let day = 1; day <= daysInMonth; day++) {
+            if (state.data[monthKey][actIdx][day]) rowTotal++;
+          }
+
+          // Calculate percentage
+          const percentage =
+            target > 0 ? ((rowTotal / target) * 100).toFixed(1) : 0;
+          let percentClass = "percentage-low";
+          if (percentage >= 100) percentClass = "percentage-exceeded";
+          else if (percentage >= 75) percentClass = "percentage-high";
+          else if (percentage >= 50) percentClass = "percentage-medium";
+
+          // Check if activity is completed (reached target)
+          const isCompleted = rowTotal >= target;
+          const starIcon = isCompleted
+            ? '<span class="activity-star">⭐</span>'
+            : "";
+
+          bodyHtml += `<tr class="activity-row" data-idx="${actIdx}">`;
+          bodyHtml += `<td class="activity-name">
+            <button class="delete-row-btn" onclick="openDeleteModal(${actIdx})" title="Delete this activity">×</button>
+            <input type="text" value="${activity}" 
+              onchange="updateActivityName(${actIdx}, this.value)"
+              ondblclick="this.select()">
+            ${starIcon}
+          </td>`;
+          bodyHtml += `<td class="target-cell">
+            <input type="number" class="target-input" value="${target}" min="1" max="${daysInMonth}"
+              onchange="updateTarget(${actIdx}, this.value)"
+              title="Set your target days">
+          </td>`;
+
+          for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(state.year, state.month, day);
+            const dayOfWeek = date.getDay();
+            const dayName = DAYS[dayOfWeek];
+            const dayClass = `day-${dayName.toLowerCase()}`;
+            const checked = state.data[monthKey][actIdx][day] ? "checked" : "";
+
+            // Current day highlight
+            const isToday = isCurrentMonth && day === todayDate;
+            const currentDayClass = isToday ? "current-day-cell" : "";
+
+            // Check if this is a target day for this activity (for hover highlight)
+            const isTargetDay = isDayTargetDay(actIdx, dayOfWeek);
+            const availableClass = isTargetDay
+              ? "available-day"
+              : "unavailable-day";
+
+            // Check if locked
+            const isLocked = isCheckboxLocked(actIdx, day);
+            const lockBlocker = isLocked
+              ? `<div class="lock-blocker" onclick="showLockMessage(${actIdx}, ${day})"></div>`
+              : "";
+
+            bodyHtml += `<td class="checkbox-cell ${dayClass} ${currentDayClass} ${availableClass}" 
+              data-act="${actIdx}" data-day="${day}">
+              ${lockBlocker}
+              <input type="checkbox" ${checked} 
+                onchange="toggleDay(${actIdx}, ${day}, this.checked)">
+            </td>`;
+          }
+
+          bodyHtml += `<td class="total-col">
+            ${rowTotal}
+            <div class="percentage-display ${percentClass}">${percentage}%</div>
+          </td>`;
+          bodyHtml += "</tr>";
+
+          // Add insert row zone after each activity
+          bodyHtml += `<tr class="add-row-divider" style="height: 0;">
+            <td colspan="${daysInMonth + 3}" style="padding: 0; border: none; position: relative;">
+              <div class="row-hover-zone" onmouseenter="showAddButton(${actIdx + 1})" onmouseleave="hideAddButton(${actIdx + 1})"></div>
+              <button class="add-row-btn" id="addBtn-${actIdx + 1}" onclick="openInsertModal(${actIdx + 1})" title="Insert activity here">+</button>
+            </td>
+          </tr>`;
+        });
+
+        // Daily total row
+        bodyHtml += '<tr class="daily-total-row">';
+        bodyHtml += '<td class="activity-name">Daily Total</td>';
+
+        // Calculate total target
+        let totalTarget = 0;
+        state.activities.forEach((_, actIdx) => {
+          totalTarget += state.targets[actIdx] || daysInMonth;
+        });
+        bodyHtml += `<td class="target-cell" style="font-weight: 700;">${totalTarget}</td>`;
+
+        let grandTotal = 0;
+        for (let day = 1; day <= daysInMonth; day++) {
+          let dayTotal = 0;
+          state.activities.forEach((_, actIdx) => {
+            if (state.data[monthKey][actIdx]?.[day]) dayTotal++;
+          });
+          grandTotal += dayTotal;
+
+          const date = new Date(state.year, state.month, day);
+          const dayName = DAYS[date.getDay()];
+          const dayClass = `day-${dayName.toLowerCase()}`;
+
+          // Current day highlight for daily total row
+          const isToday = isCurrentMonth && day === todayDate;
+          const currentDayClass = isToday ? "current-day-cell" : "";
+
+          bodyHtml += `<td class="${dayClass} ${currentDayClass}">${dayTotal}</td>`;
+        }
+
+        const overallPercentage =
+          totalTarget > 0 ? ((grandTotal / totalTarget) * 100).toFixed(1) : 0;
+        let overallClass = "percentage-low";
+        if (overallPercentage >= 100) overallClass = "percentage-exceeded";
+        else if (overallPercentage >= 75) overallClass = "percentage-high";
+        else if (overallPercentage >= 50) overallClass = "percentage-medium";
+
+        bodyHtml += `<td class="total-col">${grandTotal}<div class="percentage-display ${overallClass}">${overallPercentage}%</div></td>`;
+        bodyHtml += "</tr>";
+
+        document.getElementById("tableBody").innerHTML = bodyHtml;
+      }
+
+      function renderStats() {
+        const monthKey = `${state.year}-${state.month}`;
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+
+        // Count activities that have fully completed their target (100% or more)
+        let activitiesFullyCompleted = 0;
+        state.activities.forEach((_, actIdx) => {
+          let completedDays = 0;
+          for (let day = 1; day <= daysInMonth; day++) {
+            if (state.data[monthKey]?.[actIdx]?.[day]) {
+              completedDays++;
+            }
+          }
+          const target = state.targets[actIdx] || daysInMonth;
+          if (completedDays >= target) {
+            activitiesFullyCompleted++;
+          }
+        });
+
+        // Total activities with full completion count
+        document.getElementById("totalActivities").textContent =
+          `${activitiesFullyCompleted}/${state.activities.length}`;
+
+        // Total completed
+        let totalCompleted = 0;
+        let dailyTotals = [];
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          let dayTotal = 0;
+          state.activities.forEach((_, actIdx) => {
+            if (state.data[monthKey]?.[actIdx]?.[day]) {
+              totalCompleted++;
+              dayTotal++;
+            }
+          });
+          dailyTotals.push({ day, total: dayTotal });
+        }
+
+        document.getElementById("totalCompleted").textContent = totalCompleted;
+
+        // Completion rate
+        const totalPossible = state.activities.length * daysInMonth;
+        const rate =
+          totalPossible > 0
+            ? ((totalCompleted / totalPossible) * 100).toFixed(1)
+            : 0;
+        document.getElementById("completionRate").textContent = rate + "%";
+
+        // Best day
+        const bestDay = dailyTotals.reduce(
+          (best, curr) => (curr.total > best.total ? curr : best),
+          { day: 0, total: 0 },
+        );
+        document.getElementById("bestDay").textContent =
+          bestDay.total > 0 ? `Day ${bestDay.day} (${bestDay.total})` : "-";
+
+        // Days remaining in the month
+        const today = new Date();
+        let daysRemaining = daysInMonth;
+        if (
+          today.getFullYear() === state.year &&
+          today.getMonth() === state.month
+        ) {
+          daysRemaining = daysInMonth - today.getDate();
+        }
+        document.getElementById("daysRemaining").textContent =
+          `${daysRemaining}/${daysInMonth}`;
+      }
+
+      function renderCharts() {
+        const monthKey = `${state.year}-${state.month}`;
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+
+        // Prepare daily totals for line chart
+        const dailyLabels = [];
+        const dailyData = [];
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          dailyLabels.push(day);
+          let dayTotal = 0;
+          state.activities.forEach((_, actIdx) => {
+            if (state.data[monthKey]?.[actIdx]?.[day]) dayTotal++;
+          });
+          dailyData.push(dayTotal);
+        }
+
+        // Destroy existing charts
+        if (lineChart) lineChart.destroy();
+        if (pieChart) pieChart.destroy();
+
+        // Line Chart
+        const lineCtx = document.getElementById("lineChart").getContext("2d");
+        lineChart = new Chart(lineCtx, {
+          type: "line",
+          data: {
+            labels: dailyLabels,
+            datasets: [
+              {
+                label: "Daily Completed",
+                data: dailyData,
+                borderColor: "#6366f1",
+                backgroundColor: "rgba(99, 102, 241, 0.1)",
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: "#6366f1",
+                pointBorderColor: "#fff",
+                pointBorderWidth: 2,
+                pointHoverRadius: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: "rgba(0,0,0,0.8)",
+                titleFont: { size: 14 },
+                bodyFont: { size: 13 },
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                  title: (ctx) => `Day ${ctx[0].label}`,
+                  label: (ctx) => `Completed: ${ctx.parsed.y} activities`,
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: state.activities.length + 1,
+                grid: { color: "rgba(0,0,0,0.05)" },
+                ticks: { stepSize: 1 },
+              },
+              x: {
+                grid: { display: false },
+              },
+            },
+          },
+        });
+
+        // Pie Chart - Activity completion distribution
+        const activityTotals = state.activities.map((activity, actIdx) => {
+          let total = 0;
+          for (let day = 1; day <= daysInMonth; day++) {
+            if (state.data[monthKey]?.[actIdx]?.[day]) total++;
+          }
+          return total;
+        });
+
+        const pieCtx = document.getElementById("pieChart").getContext("2d");
+        pieChart = new Chart(pieCtx, {
+          type: "doughnut",
+          data: {
+            labels: state.activities,
+            datasets: [
+              {
+                data: activityTotals,
+                backgroundColor: COLORS,
+                borderColor: "#fff",
+                borderWidth: 3,
+                hoverOffset: 10,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "right",
+                labels: {
+                  padding: 12,
+                  usePointStyle: true,
+                  font: { size: 11 },
+                },
+              },
+              tooltip: {
+                backgroundColor: "rgba(0,0,0,0.8)",
+                titleFont: { size: 14 },
+                bodyFont: { size: 13 },
+                padding: 5,
+                cornerRadius: 8,
+                callbacks: {
+                  label: (ctx) => {
+                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                    const pct =
+                      total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+                    return `${ctx.label}: ${ctx.raw} days (${pct}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function renderProgressBars() {
+        const monthKey = `${state.year}-${state.month}`;
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+
+        let html = "";
+        state.activities.forEach((activity, actIdx) => {
+          let completed = 0;
+          for (let day = 1; day <= daysInMonth; day++) {
+            if (state.data[monthKey]?.[actIdx]?.[day]) completed++;
+          }
+
+          const target = state.targets[actIdx] || daysInMonth;
+          const percent =
+            target > 0 ? ((completed / target) * 100).toFixed(0) : 0;
+          const displayPercent = Math.min(100, percent); // For bar width
+          const exceeded = percent > 100;
+
+          html += `
+          <div class="progress-item">
+            <div class="progress-header">
+              <span>${activity}</span>
+              <span class="percent ${exceeded ? "exceeded" : ""}">${completed}/${target} (${percent}%${exceeded ? " 🎉" : ""})</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${exceeded ? "exceeded-bar" : ""}" style="width: ${displayPercent}%"></div>
+            </div>
+          </div>
+        `;
+        });
+
+        document.getElementById("progressBars").innerHTML = html;
+      }
+
+      // ==================== ACTIVITY STATISTICS TABLE ====================
+      let statsTableData = [];
+      let currentSortColumn = "serial";
+      let currentSortDirection = "asc";
+      let visibleColumns = {
+        serial: true,
+        name: true,
+        yearTotal: true,
+        monthTotal: true,
+        firstTick: true,
+        lastTick: true,
+        streak: true,
+        avg: true,
+        target: true,
+        progress: true,
+      };
+
+      function getActivityStats(actIdx) {
+        const activity = state.activities[actIdx];
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+        const monthKey = `${state.year}-${state.month}`;
+
+        // Calculate year total
+        let yearTotal = 0;
+        let monthsWithData = 0;
+        let firstTickDate = null;
+        let lastTickDate = null;
+
+        for (let m = 0; m < 12; m++) {
+          const mKey = `${state.year}-${m}`;
+          const mDays = new Date(state.year, m + 1, 0).getDate();
+          let monthHasData = false;
+
+          for (let d = 1; d <= mDays; d++) {
+            if (state.data[mKey]?.[actIdx]?.[d]) {
+              yearTotal++;
+              monthHasData = true;
+
+              const tickDate = new Date(state.year, m, d);
+              if (!firstTickDate || tickDate < firstTickDate) {
+                firstTickDate = tickDate;
+              }
+              if (!lastTickDate || tickDate > lastTickDate) {
+                lastTickDate = tickDate;
+              }
+            }
+          }
+          if (monthHasData) monthsWithData++;
+        }
+
+        // Calculate month total
+        let monthTotal = 0;
+        for (let d = 1; d <= daysInMonth; d++) {
+          if (state.data[monthKey]?.[actIdx]?.[d]) monthTotal++;
+        }
+
+        // Calculate current streak for this activity
+        let actStreak = 0;
+        const today = new Date();
+        if (
+          today.getFullYear() === state.year &&
+          today.getMonth() === state.month
+        ) {
+          for (let day = today.getDate(); day >= 1; day--) {
+            if (state.data[monthKey]?.[actIdx]?.[day]) actStreak++;
+            else break;
+          }
+        }
+
+        // Calculate average per month
+        const avgPerMonth =
+          monthsWithData > 0 ? (yearTotal / monthsWithData).toFixed(1) : 0;
+
+        // Target and progress
+        const target = state.targets[actIdx] || daysInMonth;
+        const progress =
+          target > 0 ? ((monthTotal / target) * 100).toFixed(1) : 0;
+
+        return {
+          serial: actIdx + 1,
+          name: activity,
+          yearTotal,
+          monthTotal,
+          firstTick: firstTickDate,
+          lastTick: lastTickDate,
+          streak: actStreak,
+          avg: parseFloat(avgPerMonth),
+          target,
+          progress: parseFloat(progress),
+          actIdx,
+        };
+      }
+
+      function renderStatsTable() {
+        // Build stats data
+        statsTableData = state.activities.map((_, actIdx) =>
+          getActivityStats(actIdx),
+        );
+
+        // Sort data
+        sortStatsData();
+
+        // Render header
+        renderStatsTableHeader();
+
+        // Render body
+        renderStatsTableBody();
+
+        // Update column count
+        updateColumnCount();
+      }
+
+      function renderStatsTableHeader() {
+        const gradientColors = [
+          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+          "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+          "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+          "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+        ];
+
+        let headerHtml = "<tr>";
+
+        if (visibleColumns.serial) {
+          headerHtml += `<th onclick="sortByColumn('serial')" class="${currentSortColumn === "serial" ? "sorted" : ""}">
+            S.No <span class="sort-icon">${getSortIcon("serial")}</span>
+          </th>`;
+        }
+        if (visibleColumns.name) {
+          headerHtml += `<th onclick="sortByColumn('name')" class="${currentSortColumn === "name" ? "sorted" : ""}">
+            Activity Name <span class="sort-icon">${getSortIcon("name")}</span>
+          </th>`;
+        }
+        if (visibleColumns.yearTotal) {
+          headerHtml += `<th onclick="sortByColumn('yearTotal')" class="${currentSortColumn === "yearTotal" ? "sorted" : ""}">
+            Year Total (${state.year}) <span class="sort-icon">${getSortIcon("yearTotal")}</span>
+          </th>`;
+        }
+        if (visibleColumns.monthTotal) {
+          headerHtml += `<th onclick="sortByColumn('monthTotal')" class="${currentSortColumn === "monthTotal" ? "sorted" : ""}">
+            ${MONTHS[state.month]} Total <span class="sort-icon">${getSortIcon("monthTotal")}</span>
+          </th>`;
+        }
+        if (visibleColumns.firstTick) {
+          headerHtml += `<th onclick="sortByColumn('firstTick')" class="${currentSortColumn === "firstTick" ? "sorted" : ""}">
+            First Tick <span class="sort-icon">${getSortIcon("firstTick")}</span>
+          </th>`;
+        }
+        if (visibleColumns.lastTick) {
+          headerHtml += `<th onclick="sortByColumn('lastTick')" class="${currentSortColumn === "lastTick" ? "sorted" : ""}">
+            Last Tick <span class="sort-icon">${getSortIcon("lastTick")}</span>
+          </th>`;
+        }
+        if (visibleColumns.streak) {
+          headerHtml += `<th onclick="sortByColumn('streak')" class="${currentSortColumn === "streak" ? "sorted" : ""}">
+            Streak 🔥 <span class="sort-icon">${getSortIcon("streak")}</span>
+          </th>`;
+        }
+        if (visibleColumns.avg) {
+          headerHtml += `<th onclick="sortByColumn('avg')" class="${currentSortColumn === "avg" ? "sorted" : ""}">
+            Avg/Month <span class="sort-icon">${getSortIcon("avg")}</span>
+          </th>`;
+        }
+        if (visibleColumns.target) {
+          headerHtml += `<th onclick="sortByColumn('target')" class="${currentSortColumn === "target" ? "sorted" : ""}">
+            Target <span class="sort-icon">${getSortIcon("target")}</span>
+          </th>`;
+        }
+        if (visibleColumns.progress) {
+          headerHtml += `<th onclick="sortByColumn('progress')" class="${currentSortColumn === "progress" ? "sorted" : ""}">
+            Progress % <span class="sort-icon">${getSortIcon("progress")}</span>
+          </th>`;
+        }
+
+        headerHtml += "</tr>";
+        document.getElementById("statsTableHead").innerHTML = headerHtml;
+      }
+
+      function renderStatsTableBody() {
+        const gradientColors = [
+          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+          "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+          "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+          "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+        ];
+
+        let bodyHtml = "";
+
+        statsTableData.forEach((row, idx) => {
+          const colorIdx = row.actIdx % gradientColors.length;
+
+          bodyHtml += "<tr>";
+
+          if (visibleColumns.serial) {
+            bodyHtml += `<td>${row.serial}</td>`;
+          }
+          if (visibleColumns.name) {
+            bodyHtml += `<td class="activity-name-cell">
+              <span class="activity-icon" style="background: ${gradientColors[colorIdx]}">${row.name.charAt(0).toUpperCase()}</span>
+              ${row.name}
+            </td>`;
+          }
+          if (visibleColumns.yearTotal) {
+            bodyHtml += `<td class="year-total-cell">${row.yearTotal} days</td>`;
+          }
+          if (visibleColumns.monthTotal) {
+            bodyHtml += `<td class="month-total-cell">${row.monthTotal} days</td>`;
+          }
+          if (visibleColumns.firstTick) {
+            bodyHtml += `<td class="date-cell">${row.firstTick ? formatDate(row.firstTick) : "-"}</td>`;
+          }
+          if (visibleColumns.lastTick) {
+            bodyHtml += `<td class="date-cell">${row.lastTick ? formatDate(row.lastTick) : "-"}</td>`;
+          }
+          if (visibleColumns.streak) {
+            bodyHtml += `<td class="streak-cell">
+              ${row.streak > 0 ? `<span class="streak-badge-mini">${row.streak} 🔥</span>` : "-"}
+            </td>`;
+          }
+          if (visibleColumns.avg) {
+            bodyHtml += `<td class="avg-cell">${row.avg}</td>`;
+          }
+          if (visibleColumns.target) {
+            bodyHtml += `<td>${row.target} days</td>`;
+          }
+          if (visibleColumns.progress) {
+            const progressColor =
+              row.progress >= 100
+                ? "var(--success)"
+                : row.progress >= 75
+                  ? "var(--primary)"
+                  : row.progress >= 50
+                    ? "var(--warning)"
+                    : "var(--danger)";
+            bodyHtml += `<td style="color: ${progressColor}; font-weight: 700;">${row.progress}%${row.progress >= 100 ? " 🎉" : ""}</td>`;
+          }
+
+          bodyHtml += "</tr>";
+        });
+
+        document.getElementById("statsTableBody").innerHTML = bodyHtml;
+      }
+
+      function formatDate(date) {
+        const months = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+      }
+
+      function getSortIcon(column) {
+        if (currentSortColumn !== column) return "↕️";
+        return currentSortDirection === "asc" ? "⬆️" : "⬇️";
+      }
+
+      function sortByColumn(column) {
+        if (currentSortColumn === column) {
+          currentSortDirection =
+            currentSortDirection === "asc" ? "desc" : "asc";
+        } else {
+          currentSortColumn = column;
+          currentSortDirection = "asc";
+        }
+
+        // Update select dropdown
+        document.getElementById("statsSortSelect").value =
+          `${column}-${currentSortDirection}`;
+
+        sortStatsData();
+        renderStatsTableHeader();
+        renderStatsTableBody();
+      }
+
+      function sortStatsTable() {
+        const value = document.getElementById("statsSortSelect").value;
+        const [column, direction] = value.split("-");
+        currentSortColumn = column;
+        currentSortDirection = direction;
+
+        sortStatsData();
+        renderStatsTableHeader();
+        renderStatsTableBody();
+      }
+
+      function sortStatsData() {
+        statsTableData.sort((a, b) => {
+          let valA, valB;
+
+          switch (currentSortColumn) {
+            case "serial":
+              valA = a.serial;
+              valB = b.serial;
+              break;
+            case "name":
+              valA = a.name.toLowerCase();
+              valB = b.name.toLowerCase();
+              break;
+            case "yearTotal":
+            case "year":
+              valA = a.yearTotal;
+              valB = b.yearTotal;
+              break;
+            case "monthTotal":
+            case "month":
+              valA = a.monthTotal;
+              valB = b.monthTotal;
+              break;
+            case "firstTick":
+              valA = a.firstTick ? a.firstTick.getTime() : 0;
+              valB = b.firstTick ? b.firstTick.getTime() : 0;
+              break;
+            case "lastTick":
+              valA = a.lastTick ? a.lastTick.getTime() : 0;
+              valB = b.lastTick ? b.lastTick.getTime() : 0;
+              break;
+            case "streak":
+              valA = a.streak;
+              valB = b.streak;
+              break;
+            case "avg":
+              valA = a.avg;
+              valB = b.avg;
+              break;
+            case "target":
+              valA = a.target;
+              valB = b.target;
+              break;
+            case "progress":
+              valA = a.progress;
+              valB = b.progress;
+              break;
+            default:
+              valA = a.serial;
+              valB = b.serial;
+          }
+
+          if (typeof valA === "string") {
+            return currentSortDirection === "asc"
+              ? valA.localeCompare(valB)
+              : valB.localeCompare(valA);
+          }
+
+          return currentSortDirection === "asc" ? valA - valB : valB - valA;
+        });
+      }
+
+      function toggleColumnFilter() {
+        const dropdown = document.getElementById("columnFilterDropdown");
+        dropdown.classList.toggle("visible");
+      }
+
+      function updateVisibleColumns() {
+        visibleColumns = {
+          serial: document.getElementById("colSerial").checked,
+          name: document.getElementById("colName").checked,
+          yearTotal: document.getElementById("colYearTotal").checked,
+          monthTotal: document.getElementById("colMonthTotal").checked,
+          firstTick: document.getElementById("colFirstTick").checked,
+          lastTick: document.getElementById("colLastTick").checked,
+          streak: document.getElementById("colStreak").checked,
+          avg: document.getElementById("colAvg").checked,
+          target: document.getElementById("colTarget").checked,
+          progress: document.getElementById("colProgress").checked,
+        };
+
+        renderStatsTableHeader();
+        renderStatsTableBody();
+        updateColumnCount();
+      }
+
+      function updateColumnCount() {
+        const count = Object.values(visibleColumns).filter((v) => v).length;
+        document.getElementById("columnCount").textContent = `(${count})`;
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", function (e) {
+        const dropdown = document.getElementById("columnFilterDropdown");
+        const btn = e.target.closest(".column-filter-btn");
+        if (!btn && !e.target.closest(".column-filter-dropdown")) {
+          dropdown?.classList.remove("visible");
+        }
+      });
+
+      // ==================== EVENT HANDLERS ====================
+      function showLockPopup(title, message, lockType) {
+        // Remove any existing popup first
+        closeLockPopup();
+
+        // Create overlay
+        const overlay = document.createElement("div");
+        overlay.className = "lock-popup-overlay";
+        overlay.id = "lockPopupOverlay";
+        document.body.appendChild(overlay);
+
+        // Determine the hint based on lock type
+        let hint = "";
+        if (lockType === "futurePast") {
+          hint = `<div class="popup-hint">
+            <strong>💡 How to disable this lock:</strong>
+            Go to ⚙️ Menu → Turn OFF "🔒 Lock Future/Past Days"
+          </div>`;
+        } else if (lockType === "nonTarget") {
+          hint = `<div class="popup-hint">
+            <strong>💡 How to disable this lock:</strong>
+            Go to ⚙️ Menu → Turn OFF "🚫 Lock Non-Target Days"<br>
+            Or change the activity's target automation settings.
+          </div>`;
+        }
+
+        // Create popup
+        const popup = document.createElement("div");
+        popup.className = "lock-popup";
+        popup.id = "lockPopup";
+        popup.innerHTML = `
+          <button class="popup-close-btn" onclick="closeLockPopup()" title="Close (ESC)">✕</button>
+          <span class="popup-icon">🔒</span>
+          <div class="popup-title">${title}</div>
+          <div class="popup-message">${message}</div>
+          ${hint}
+          <div class="popup-footer">Press ESC or click ✕ to close</div>
+        `;
+        document.body.appendChild(popup);
+
+        // Add ESC key listener
+        document.addEventListener("keydown", handleLockPopupEsc);
+      }
+
+      function handleLockPopupEsc(event) {
+        if (event.key === "Escape") {
+          closeLockPopup();
+        }
+      }
+
+      function closeLockPopup() {
+        const popup = document.getElementById("lockPopup");
+        const overlay = document.getElementById("lockPopupOverlay");
+        if (popup) popup.remove();
+        if (overlay) overlay.remove();
+        // Remove ESC listener
+        document.removeEventListener("keydown", handleLockPopupEsc);
+      }
+
+      function showLockMessage(actIdx, day) {
+        // Show popup message based on lock type
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetDate = new Date(state.year, state.month, day);
+        targetDate.setHours(0, 0, 0, 0);
+        const dayOfWeek = targetDate.getDay();
+        const isToday = today.getTime() === targetDate.getTime();
+
+        let title = "";
+        let message = "";
+        let lockType = "";
+
+        if (lockFuturePast && !isToday) {
+          lockType = "futurePast";
+          if (targetDate.getTime() > today.getTime()) {
+            title = "Cannot Tick Future Days!";
+            message =
+              "You have enabled the <strong>Lock Future/Past Days</strong> feature. This prevents you from marking tasks for days that haven't happened yet. Only today's checkboxes can be modified.";
+          } else {
+            title = "Cannot Tick Past Days!";
+            message =
+              "You have enabled the <strong>Lock Future/Past Days</strong> feature. This prevents you from modifying historical data. Only today's checkboxes can be modified.";
+          }
+        } else if (lockNonTargetDays && !isDayTargetDay(actIdx, dayOfWeek)) {
+          lockType = "nonTarget";
+          title = "This Day is Not in Your Target!";
+          const dayNames = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ];
+          message = `You have enabled the <strong>Lock Non-Target Days</strong> feature. This activity is not scheduled for <strong>${dayNames[dayOfWeek]}</strong> based on your automation settings (workdays/weekends/custom days).`;
+        }
+
+        if (title) {
+          showLockPopup(title, message, lockType);
+        }
+      }
+
+      function toggleDay(actIdx, day, checked) {
+        // Double check lock status (safety check)
+        if (isCheckboxLocked(actIdx, day)) {
+          render(); // Revert
+          return;
+        }
+
+        const monthKey = `${state.year}-${state.month}`;
+        if (!state.data[monthKey]) state.data[monthKey] = {};
+        if (!state.data[monthKey][actIdx]) state.data[monthKey][actIdx] = {};
+
+        state.data[monthKey][actIdx][day] = checked;
+        saveState();
+        render();
+      }
+
+      function updateActivityName(actIdx, newName) {
+        if (newName.trim()) {
+          state.activities[actIdx] = newName.trim();
+          saveState();
+          render();
+        }
+      }
+
+      function openAddActivityModal() {
+        addAutomationEnabled = false;
+        document.getElementById("addActivityModal").classList.add("active");
+        document.getElementById("newActivityName").value = "";
+        document.getElementById("newActivityTarget").value = "";
+        document.getElementById("newActivityName").focus();
+
+        // Reset automation toggle and options
+        document
+          .getElementById("addTargetAutomationToggle")
+          .classList.remove("active");
+        document.getElementById("addManualTargetContainer").style.display =
+          "block";
+        document
+          .getElementById("addAutomationOptions")
+          .classList.remove("visible");
+        document.getElementById("addAutomationType").value = "workdays";
+        document
+          .getElementById("addCustomDaysContainer")
+          .classList.remove("visible");
+        // Reset custom day checkboxes
+        for (let i = 0; i <= 6; i++) {
+          document.getElementById(`addDay${i}`).checked = false;
+        }
+      }
+
+      function closeModal() {
+        addAutomationEnabled = false;
+        document.getElementById("addActivityModal").classList.remove("active");
+      }
+
+      function addActivity() {
+        const name = document.getElementById("newActivityName").value.trim();
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+
+        let target;
+        if (addAutomationEnabled) {
+          const type = document.getElementById("addAutomationType").value;
+          const customDays = getSelectedAddCustomDays();
+          target = calculateAutomationTarget(type, customDays);
+
+          if (target === 0) {
+            alert("Please select at least one day for custom automation!");
+            return;
+          }
+        } else {
+          target =
+            parseInt(document.getElementById("newActivityTarget").value) ||
+            daysInMonth;
+        }
+
+        if (name) {
+          if (state.activities.length >= 20) {
+            alert("Maximum 20 activities allowed!");
+            return;
+          }
+          const newIndex = state.activities.length;
+          state.activities.push(name);
+          state.targets[newIndex] = target;
+          saveState();
+          render();
+          closeModal();
+        }
+      }
+
+      // ==================== EXPORT/IMPORT FUNCTIONS ====================
+      let selectedExportOption = "current";
+      let importedData = null;
+      let importType = null; // 'json' or 'csv'
+
+      function openExportModal() {
+        // Update the description with current context
+        const currentDesc = document.querySelector(
+          '.export-option[onclick*="current"] .export-option-desc',
+        );
+        if (currentDesc) {
+          currentDesc.textContent = `Export current sheet's current month data (${currentSheet} - ${MONTHS[state.month]} ${state.year})`;
+        }
+        selectExportOption("current");
+        document.getElementById("exportModal").classList.add("active");
+      }
+
+      function closeExportModal() {
+        document.getElementById("exportModal").classList.remove("active");
+      }
+
+      function selectExportOption(option) {
+        selectedExportOption = option;
+        document.querySelectorAll(".export-option").forEach((el) => {
+          el.classList.remove("selected");
+          el.querySelector('input[type="radio"]').checked = false;
+        });
+        const selectedEl = document.querySelector(
+          `.export-option[onclick*="${option}"]`,
+        );
+        if (selectedEl) {
+          selectedEl.classList.add("selected");
+          selectedEl.querySelector('input[type="radio"]').checked = true;
+        }
+      }
+
+      function executeExport() {
+        if (selectedExportOption === "current") {
+          exportCurrentTable();
+        } else {
+          exportAllData();
+        }
+        closeExportModal();
+      }
+
+      function exportCurrentTable() {
+        const monthKey = `${state.year}-${state.month}`;
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+
+        // CSV header with metadata for re-import
+        let csv = `#ACTIVITY_TRACKER_EXPORT,type=current,sheet=${currentSheet},year=${state.year},month=${state.month}\n`;
+        csv += "Activity,Target,";
+        for (let day = 1; day <= daysInMonth; day++) {
+          csv += `Day_${day},`;
+        }
+        csv += "Total,Percentage\n";
+
+        state.activities.forEach((activity, actIdx) => {
+          const target = state.targets[actIdx] || daysInMonth;
+          let row = `"${activity.replace(/"/g, '""')}",${target},`;
+          let total = 0;
+          for (let day = 1; day <= daysInMonth; day++) {
+            const checked = state.data[monthKey]?.[actIdx]?.[day] ? 1 : 0;
+            total += checked;
+            row += `${checked},`;
+          }
+          const percentage =
+            target > 0 ? ((total / target) * 100).toFixed(1) : 0;
+          row += `${total},${percentage}%\n`;
+          csv += row;
+        });
+
+        downloadFile(
+          csv,
+          `Activity_${currentSheet}_${state.year}_${MONTHS[state.month]}.csv`,
+          "text/csv",
+        );
+      }
+
+      function exportAllData() {
+        // Save current state to sheets before export
+        sheets[currentSheet] = JSON.parse(JSON.stringify(state));
+
+        const exportData = {
+          version: "2.0",
+          exportDate: new Date().toISOString(),
+          currentSheet: currentSheet,
+          sheets: sheets,
+        };
+
+        const json = JSON.stringify(exportData, null, 2);
+        downloadFile(
+          json,
+          `Activity_Tracker_Full_Backup_${new Date().toISOString().split("T")[0]}.json`,
+          "application/json",
+        );
+      }
+
+      function downloadFile(content, filename, type) {
+        const blob = new Blob([content], { type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // Import Functions
+      function openImportModal() {
+        importedData = null;
+        importType = null;
+        document.getElementById("importFileInput").value = "";
+        document.getElementById("importFileName").classList.remove("visible");
+        document.getElementById("importPreview").classList.remove("visible");
+        document.getElementById("importWarning").style.display = "none";
+        document.getElementById("confirmImportBtn").disabled = true;
+        document.getElementById("importModal").classList.add("active");
+
+        // Setup drag and drop
+        setupDragAndDrop();
+      }
+
+      function closeImportModal() {
+        document.getElementById("importModal").classList.remove("active");
+        importedData = null;
+        importType = null;
+      }
+
+      function setupDragAndDrop() {
+        const dropZone = document.getElementById("importDropZone");
+
+        dropZone.ondragover = (e) => {
+          e.preventDefault();
+          dropZone.classList.add("dragover");
+        };
+
+        dropZone.ondragleave = () => {
+          dropZone.classList.remove("dragover");
+        };
+
+        dropZone.ondrop = (e) => {
+          e.preventDefault();
+          dropZone.classList.remove("dragover");
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            processFile(files[0]);
+          }
+        };
+      }
+
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+          processFile(file);
+        }
+      }
+
+      function processFile(file) {
+        const fileName = file.name;
+        const fileExt = fileName.split(".").pop().toLowerCase();
+
+        document.getElementById("selectedFileName").textContent = fileName;
+        document.getElementById("importFileName").classList.add("visible");
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          const content = e.target.result;
+
+          if (fileExt === "json") {
+            parseJSONImport(content);
+          } else if (fileExt === "csv") {
+            parseCSVImport(content);
+          } else {
+            alert("Unsupported file format. Please use .json or .csv files.");
+            return;
+          }
+        };
+
+        reader.readAsText(file);
+      }
+
+      function parseJSONImport(content) {
+        try {
+          const data = JSON.parse(content);
+
+          if (!data.sheets || !data.version) {
+            alert(
+              "Invalid JSON format. Please use a file exported from Activity Tracker.",
+            );
+            return;
+          }
+
+          importedData = data;
+          importType = "json";
+
+          // Show preview
+          const sheetNames = Object.keys(data.sheets);
+          let totalMonths = 0;
+          let totalActivities = 0;
+
+          sheetNames.forEach((name) => {
+            const sheetData = data.sheets[name];
+            totalMonths += Object.keys(sheetData.data || {}).length;
+            totalActivities += (sheetData.activities || []).length;
+          });
+
+          let previewHtml = `
+            <div class="import-preview-item">
+              <span>📑 Sheets</span>
+              <span>${sheetNames.length} (${sheetNames.join(", ")})</span>
+            </div>
+            <div class="import-preview-item">
+              <span>📊 Total Activities</span>
+              <span>${totalActivities} across all sheets</span>
+            </div>
+            <div class="import-preview-item">
+              <span>📅 Month Records</span>
+              <span>${totalMonths} months of data</span>
+            </div>
+            <div class="import-preview-item">
+              <span>📆 Export Date</span>
+              <span>${new Date(data.exportDate).toLocaleDateString()}</span>
+            </div>
+          `;
+
+          document.getElementById("importPreviewContent").innerHTML =
+            previewHtml;
+          document.getElementById("importPreview").classList.add("visible");
+          document.getElementById("importWarning").style.display = "block";
+          document.getElementById("confirmImportBtn").disabled = false;
+        } catch (e) {
+          console.error("JSON parse error:", e);
+          alert("Error parsing JSON file. Please check the file format.");
+        }
+      }
+
+      function parseCSVImport(content) {
+        try {
+          const lines = content.trim().split("\n");
+
+          if (lines.length < 3) {
+            alert("CSV file is too short or empty.");
+            return;
+          }
+
+          let sheetName = currentSheet;
+          let year = state.year;
+          let month = state.month;
+          let startLine = 0;
+
+          // Check for metadata line
+          if (lines[0].startsWith("#ACTIVITY_TRACKER_EXPORT")) {
+            const metadata = lines[0].split(",");
+            metadata.forEach((item) => {
+              const [key, value] = item.split("=");
+              if (key === "sheet") sheetName = value;
+              if (key === "year") year = parseInt(value);
+              if (key === "month") month = parseInt(value);
+            });
+            startLine = 1;
+          }
+
+          // Parse header to get days count
+          const header = parseCSVLine(lines[startLine]);
+          const dayColumns = header.filter(
+            (h) => h.startsWith("Day_") || h.match(/^Day \d+$/),
+          );
+          const daysInMonth =
+            dayColumns.length || new Date(year, month + 1, 0).getDate();
+
+          // Parse activities
+          const activities = [];
+          const targets = {};
+          const data = {};
+          const monthKey = `${year}-${month}`;
+          data[monthKey] = {};
+
+          for (let i = startLine + 1; i < lines.length; i++) {
+            const row = parseCSVLine(lines[i]);
+            if (row.length < 3) continue;
+
+            const activityName = row[0]
+              .replace(/^"|"$/g, "")
+              .replace(/""/g, '"');
+            const target = parseInt(row[1]) || daysInMonth;
+            const actIdx = activities.length;
+
+            activities.push(activityName);
+            targets[actIdx] = target;
+            data[monthKey][actIdx] = {};
+
+            for (let day = 1; day <= daysInMonth; day++) {
+              const value = row[day + 1];
+              if (value === "1" || value === "true" || value === "TRUE") {
+                data[monthKey][actIdx][day] = true;
+              }
+            }
+          }
+
+          importedData = {
+            type: "csv",
+            sheetName,
+            year,
+            month,
+            activities,
+            targets,
+            data,
+          };
+          importType = "csv";
+
+          // Calculate stats for preview
+          let totalChecked = 0;
+          Object.values(data[monthKey]).forEach((actData) => {
+            totalChecked += Object.values(actData).filter((v) => v).length;
+          });
+
+          let previewHtml = `
+            <div class="import-preview-item">
+              <span>📑 Target Sheet</span>
+              <span>${sheetName}</span>
+            </div>
+            <div class="import-preview-item">
+              <span>📅 Month</span>
+              <span>${MONTHS[month]} ${year}</span>
+            </div>
+            <div class="import-preview-item">
+              <span>📊 Activities</span>
+              <span>${activities.length}</span>
+            </div>
+            <div class="import-preview-item">
+              <span>✅ Completed Tasks</span>
+              <span>${totalChecked}</span>
+            </div>
+          `;
+
+          document.getElementById("importPreviewContent").innerHTML =
+            previewHtml;
+          document.getElementById("importPreview").classList.add("visible");
+          document.getElementById("importWarning").style.display = "block";
+          document.getElementById("confirmImportBtn").disabled = false;
+        } catch (e) {
+          console.error("CSV parse error:", e);
+          alert("Error parsing CSV file. Please check the file format.");
+        }
+      }
+
+      function parseCSVLine(line) {
+        const result = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+
+          if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === "," && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      }
+
+      function executeImport() {
+        if (!importedData) {
+          alert("No data to import!");
+          return;
+        }
+
+        if (
+          !confirm(
+            "Are you sure you want to import this data? This will replace existing data.",
+          )
+        ) {
+          return;
+        }
+
+        if (importType === "json") {
+          // Full backup import
+          sheets = importedData.sheets;
+          currentSheet = importedData.currentSheet || Object.keys(sheets)[0];
+
+          // Load the current sheet state
+          if (sheets[currentSheet]) {
+            state = JSON.parse(JSON.stringify(sheets[currentSheet]));
+          } else {
+            currentSheet = Object.keys(sheets)[0];
+            state = JSON.parse(JSON.stringify(sheets[currentSheet]));
+          }
+
+          saveState();
+          renderSheetSelect();
+
+          // Update year/month selects
+          document.getElementById("yearSelect").value = state.year;
+          document.getElementById("monthSelect").value = state.month;
+        } else if (importType === "csv") {
+          // CSV import - update specific sheet and month
+          const { sheetName, year, month, activities, targets, data } =
+            importedData;
+
+          // Create sheet if doesn't exist
+          if (!sheets[sheetName]) {
+            sheets[sheetName] = createDefaultState();
+          }
+
+          // Update the sheet data
+          sheets[sheetName].activities = activities;
+          sheets[sheetName].targets = targets;
+          sheets[sheetName].year = year;
+          sheets[sheetName].month = month;
+
+          // Merge data (keep existing months, update imported month)
+          if (!sheets[sheetName].data) {
+            sheets[sheetName].data = {};
+          }
+          Object.assign(sheets[sheetName].data, data);
+
+          // Switch to imported sheet
+          currentSheet = sheetName;
+          state = JSON.parse(JSON.stringify(sheets[currentSheet]));
+
+          saveState();
+          renderSheetSelect();
+
+          // Update year/month selects
+          document.getElementById("yearSelect").value = year;
+          document.getElementById("monthSelect").value = month;
+        }
+
+        render();
+        closeImportModal();
+
+        alert("✅ Data imported successfully!");
+      }
+
+      function clearAllData() {
+        if (
+          confirm(
+            "Are you sure you want to clear ALL data? This cannot be undone!",
+          )
+        ) {
+          if (confirm("Really clear everything? Type OK to confirm.")) {
+            // Reset current sheet only
+            state = createDefaultState();
+            saveState();
+            render();
+          }
+        }
+      }
+
+      // ==================== MULTI-SELECT FUNCTIONS ====================
+      function startSelection(actIdx, day, event) {
+        if (event.button !== 0) return; // Only left click
+
+        isSelecting = true;
+        selectionStart = { actIdx, day };
+        selectedCells = new Set([`${actIdx}-${day}`]);
+
+        // Determine value to apply based on current state
+        const monthKey = `${state.year}-${state.month}`;
+        const currentChecked = state.data[monthKey]?.[actIdx]?.[day] || false;
+        selectionValue = !currentChecked;
+
+        highlightCells();
+        event.preventDefault();
+      }
+
+      function extendSelection(actIdx, day, event) {
+        if (!isSelecting) return;
+
+        selectedCells = new Set();
+        const startAct = Math.min(selectionStart.actIdx, actIdx);
+        const endAct = Math.max(selectionStart.actIdx, actIdx);
+        const startDay = Math.min(selectionStart.day, day);
+        const endDay = Math.max(selectionStart.day, day);
+
+        for (let a = startAct; a <= endAct; a++) {
+          for (let d = startDay; d <= endDay; d++) {
+            selectedCells.add(`${a}-${d}`);
+          }
+        }
+
+        highlightCells();
+      }
+
+      function endSelection() {
+        if (!isSelecting) return;
+
+        // Apply the selection value to all selected cells
+        const monthKey = `${state.year}-${state.month}`;
+        selectedCells.forEach((key) => {
+          const [actIdx, day] = key.split("-").map(Number);
+          if (!state.data[monthKey]) state.data[monthKey] = {};
+          if (!state.data[monthKey][actIdx]) state.data[monthKey][actIdx] = {};
+          state.data[monthKey][actIdx][day] = selectionValue;
+        });
+
+        isSelecting = false;
+        selectedCells = new Set();
+        selectionStart = null;
+        selectionValue = null;
+
+        saveState();
+        render();
+      }
+
+      function highlightCells() {
+        // Remove all highlights first
+        document.querySelectorAll(".checkbox-cell.selected").forEach((cell) => {
+          cell.classList.remove("selected");
+        });
+
+        // Add highlight to selected cells
+        selectedCells.forEach((key) => {
+          const [actIdx, day] = key.split("-").map(Number);
+          const cellEl = document.querySelector(
+            `[data-act="${actIdx}"][data-day="${day}"]`,
+          );
+          if (cellEl) cellEl.classList.add("selected");
+        });
+      }
+
+      // Global mouseup listener to end selection even if mouse leaves table
+      document.addEventListener("mouseup", () => {
+        if (isSelecting) {
+          endSelection();
+        }
+      });
+
+      // ==================== ROW MANAGEMENT FUNCTIONS ====================
+      function showAddButton(position) {
+        const btn = document.getElementById(`addBtn-${position}`);
+        if (btn) btn.classList.add("visible");
+      }
+
+      function hideAddButton(position) {
+        const btn = document.getElementById(`addBtn-${position}`);
+        if (btn) btn.classList.remove("visible");
+      }
+
+      function openDeleteModal(actIdx) {
+        deleteActivityIndex = actIdx;
+        document.getElementById("deleteActivityName").textContent =
+          state.activities[actIdx];
+        document.getElementById("deleteActivityModal").classList.add("active");
+      }
+
+      function closeDeleteModal() {
+        deleteActivityIndex = null;
+        document
+          .getElementById("deleteActivityModal")
+          .classList.remove("active");
+      }
+
+      function confirmDeleteActivity() {
+        if (deleteActivityIndex === null) return;
+
+        // Don't allow deleting if only one activity left
+        if (state.activities.length <= 1) {
+          alert("You need at least one activity!");
+          closeDeleteModal();
+          return;
+        }
+
+        // Remove activity from activities array
+        state.activities.splice(deleteActivityIndex, 1);
+
+        // Remove from targets
+        delete state.targets[deleteActivityIndex];
+
+        // Re-index targets for remaining activities
+        const newTargets = {};
+        Object.keys(state.targets).forEach((key) => {
+          const idx = parseInt(key);
+          if (idx > deleteActivityIndex) {
+            newTargets[idx - 1] = state.targets[idx];
+          } else {
+            newTargets[idx] = state.targets[idx];
+          }
+        });
+        state.targets = newTargets;
+
+        // Remove from targetAutomation and re-index
+        if (state.targetAutomation) {
+          delete state.targetAutomation[deleteActivityIndex];
+          const newTargetAutomation = {};
+          Object.keys(state.targetAutomation).forEach((key) => {
+            const idx = parseInt(key);
+            if (idx > deleteActivityIndex) {
+              newTargetAutomation[idx - 1] = state.targetAutomation[idx];
+            } else {
+              newTargetAutomation[idx] = state.targetAutomation[idx];
+            }
+          });
+          state.targetAutomation = newTargetAutomation;
+        }
+
+        // Also need to update data for current and all months
+        Object.keys(state.data).forEach((monthKey) => {
+          const monthData = state.data[monthKey];
+          delete monthData[deleteActivityIndex];
+
+          // Re-index data for remaining activities
+          const newMonthData = {};
+          Object.keys(monthData).forEach((key) => {
+            const idx = parseInt(key);
+            if (idx > deleteActivityIndex) {
+              newMonthData[idx - 1] = monthData[idx];
+            } else {
+              newMonthData[idx] = monthData[idx];
+            }
+          });
+          state.data[monthKey] = newMonthData;
+        });
+
+        saveState();
+        closeDeleteModal();
+        render();
+      }
+
+      // Modal automation states
+      let insertAutomationEnabled = false;
+      let addAutomationEnabled = false;
+
+      function openInsertModal(position) {
+        insertAtPosition = position;
+        insertAutomationEnabled = false;
+        document.getElementById("insertActivityName").value = "";
+        document.getElementById("insertActivityTarget").value = "";
+        document.getElementById("insertPosition").textContent = position + 1;
+
+        // Reset automation toggle and options
+        document
+          .getElementById("insertTargetAutomationToggle")
+          .classList.remove("active");
+        document.getElementById("insertManualTargetContainer").style.display =
+          "block";
+        document
+          .getElementById("insertAutomationOptions")
+          .classList.remove("visible");
+        document.getElementById("insertAutomationType").value = "workdays";
+        document
+          .getElementById("insertCustomDaysContainer")
+          .classList.remove("visible");
+
+        // Reset custom day checkboxes
+        for (let i = 0; i <= 6; i++) {
+          document.getElementById(`insertDay${i}`).checked = false;
+        }
+
+        updateInsertAutomationPreview();
+        document.getElementById("insertRowModal").classList.add("active");
+        document.getElementById("insertActivityName").focus();
+      }
+
+      function closeInsertModal() {
+        insertAtPosition = null;
+        insertAutomationEnabled = false;
+        document.getElementById("insertRowModal").classList.remove("active");
+      }
+
+      function toggleInsertAutomation() {
+        insertAutomationEnabled = !insertAutomationEnabled;
+        const toggle = document.getElementById("insertTargetAutomationToggle");
+        const manualContainer = document.getElementById(
+          "insertManualTargetContainer",
+        );
+        const automationOptions = document.getElementById(
+          "insertAutomationOptions",
+        );
+
+        if (insertAutomationEnabled) {
+          toggle.classList.add("active");
+          manualContainer.style.display = "none";
+          automationOptions.classList.add("visible");
+          updateInsertAutomationPreview();
+        } else {
+          toggle.classList.remove("active");
+          manualContainer.style.display = "block";
+          automationOptions.classList.remove("visible");
+        }
+      }
+
+      function updateInsertAutomationType() {
+        const type = document.getElementById("insertAutomationType").value;
+        const customContainer = document.getElementById(
+          "insertCustomDaysContainer",
+        );
+
+        if (type === "custom") {
+          customContainer.classList.add("visible");
+        } else {
+          customContainer.classList.remove("visible");
+        }
+
+        updateInsertAutomationPreview();
+      }
+
+      function getSelectedCustomDays() {
+        const days = [];
+        for (let i = 0; i <= 6; i++) {
+          if (document.getElementById(`insertDay${i}`).checked) {
+            days.push(i);
+          }
+        }
+        return days;
+      }
+
+      function calculateAutomationTarget(type, customDays = []) {
+        const year = state.year;
+        const month = state.month;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let targetCount = 0;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month, day);
+          const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+
+          if (type === "workdays") {
+            // Monday to Friday (1-5)
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+              targetCount++;
+            }
+          } else if (type === "weekends") {
+            // Saturday and Sunday (0 and 6)
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+              targetCount++;
+            }
+          } else if (type === "custom") {
+            if (customDays.includes(dayOfWeek)) {
+              targetCount++;
+            }
+          }
+        }
+
+        return targetCount;
+      }
+
+      function updateInsertAutomationPreview() {
+        const type = document.getElementById("insertAutomationType").value;
+        const customDays = getSelectedCustomDays();
+        const targetCount = calculateAutomationTarget(type, customDays);
+        const preview = document.getElementById("insertAutomationPreview");
+
+        let description = "";
+        if (type === "workdays") {
+          description = "workdays (Mon-Fri)";
+        } else if (type === "weekends") {
+          description = "weekend days (Sat-Sun)";
+        } else if (type === "custom") {
+          const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          const selectedNames = customDays.map((d) => dayNames[d]).join(", ");
+          description = selectedNames ? `${selectedNames}` : "no days selected";
+        }
+
+        preview.innerHTML = `📊 Target: <strong>${targetCount} days</strong> (${description} in ${MONTHS[state.month]})`;
+      }
+
+      // ==================== ADD ACTIVITY AUTOMATION FUNCTIONS ====================
+      function toggleAddAutomation() {
+        addAutomationEnabled = !addAutomationEnabled;
+        const toggle = document.getElementById("addTargetAutomationToggle");
+        const manualContainer = document.getElementById(
+          "addManualTargetContainer",
+        );
+        const automationOptions = document.getElementById(
+          "addAutomationOptions",
+        );
+
+        if (addAutomationEnabled) {
+          toggle.classList.add("active");
+          manualContainer.style.display = "none";
+          automationOptions.classList.add("visible");
+          updateAddAutomationPreview();
+        } else {
+          toggle.classList.remove("active");
+          manualContainer.style.display = "block";
+          automationOptions.classList.remove("visible");
+        }
+      }
+
+      function updateAddAutomationType() {
+        const type = document.getElementById("addAutomationType").value;
+        const customContainer = document.getElementById(
+          "addCustomDaysContainer",
+        );
+
+        if (type === "custom") {
+          customContainer.classList.add("visible");
+        } else {
+          customContainer.classList.remove("visible");
+        }
+
+        updateAddAutomationPreview();
+      }
+
+      function getSelectedAddCustomDays() {
+        const days = [];
+        for (let i = 0; i <= 6; i++) {
+          if (document.getElementById(`addDay${i}`).checked) {
+            days.push(i);
+          }
+        }
+        return days;
+      }
+
+      function updateAddAutomationPreview() {
+        const type = document.getElementById("addAutomationType").value;
+        const customDays = getSelectedAddCustomDays();
+        const targetCount = calculateAutomationTarget(type, customDays);
+        const preview = document.getElementById("addAutomationPreview");
+
+        let description = "";
+        if (type === "workdays") {
+          description = "workdays (Mon-Fri)";
+        } else if (type === "weekends") {
+          description = "weekend days (Sat-Sun)";
+        } else if (type === "custom") {
+          const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          const selectedNames = customDays.map((d) => dayNames[d]).join(", ");
+          description = selectedNames ? `${selectedNames}` : "no days selected";
+        }
+
+        preview.innerHTML = `📊 Target: <strong>${targetCount} days</strong> (${description} in ${MONTHS[state.month]})`;
+      }
+
+      function confirmInsertActivity() {
+        if (insertAtPosition === null) return;
+
+        const name = document.getElementById("insertActivityName").value.trim();
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+
+        let target;
+        if (insertAutomationEnabled) {
+          const type = document.getElementById("insertAutomationType").value;
+          const customDays = getSelectedCustomDays();
+          target = calculateAutomationTarget(type, customDays);
+
+          if (target === 0) {
+            alert("Please select at least one day for custom automation!");
+            return;
+          }
+        } else {
+          target =
+            parseInt(document.getElementById("insertActivityTarget").value) ||
+            daysInMonth;
+        }
+
+        if (!name) {
+          alert("Please enter an activity name!");
+          return;
+        }
+
+        if (state.activities.length >= 20) {
+          alert("Maximum 20 activities allowed!");
+          closeInsertModal();
+          return;
+        }
+
+        // Shift existing activities and their data
+        // Re-index targets for activities at and after insert position
+        const newTargets = {};
+        Object.keys(state.targets).forEach((key) => {
+          const idx = parseInt(key);
+          if (idx >= insertAtPosition) {
+            newTargets[idx + 1] = state.targets[idx];
+          } else {
+            newTargets[idx] = state.targets[idx];
+          }
+        });
+        state.targets = newTargets;
+        state.targets[insertAtPosition] = target;
+
+        // Re-index targetAutomation and store new automation settings
+        if (!state.targetAutomation) state.targetAutomation = {};
+        const newTargetAutomation = {};
+        Object.keys(state.targetAutomation).forEach((key) => {
+          const idx = parseInt(key);
+          if (idx >= insertAtPosition) {
+            newTargetAutomation[idx + 1] = state.targetAutomation[idx];
+          } else {
+            newTargetAutomation[idx] = state.targetAutomation[idx];
+          }
+        });
+        state.targetAutomation = newTargetAutomation;
+
+        // Store automation settings if enabled
+        if (insertAutomationEnabled) {
+          const type = document.getElementById("insertAutomationType").value;
+          const customDays = getSelectedCustomDays();
+          state.targetAutomation[insertAtPosition] = {
+            type: type,
+            customDays: type === "custom" ? customDays : [],
+          };
+        }
+
+        // Re-index data for all months
+        Object.keys(state.data).forEach((monthKey) => {
+          const monthData = state.data[monthKey];
+          const newMonthData = {};
+          Object.keys(monthData).forEach((key) => {
+            const idx = parseInt(key);
+            if (idx >= insertAtPosition) {
+              newMonthData[idx + 1] = monthData[idx];
+            } else {
+              newMonthData[idx] = monthData[idx];
+            }
+          });
+          state.data[monthKey] = newMonthData;
+        });
+
+        // Insert activity at position
+        state.activities.splice(insertAtPosition, 0, name);
+
+        saveState();
+        closeInsertModal();
+        render();
+      }
+
+      function updateTarget(actIdx, value) {
+        const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+        const newTarget = Math.max(
+          1,
+          Math.min(parseInt(value) || daysInMonth, daysInMonth),
+        );
+        state.targets[actIdx] = newTarget;
+        saveState();
+        render();
+      }
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeModal();
+          closeDeleteModal();
+          closeInsertModal();
+          closeSheetModal();
+          closeRenameSheetModal();
+          closeExportModal();
+          closeImportModal();
+        }
+        if (
+          e.key === "Enter" &&
+          document
+            .getElementById("addActivityModal")
+            .classList.contains("active")
+        ) {
+          addActivity();
+        }
+        if (
+          e.key === "Enter" &&
+          document.getElementById("insertRowModal").classList.contains("active")
+        ) {
+          confirmInsertActivity();
+        }
+        if (
+          e.key === "Enter" &&
+          document.getElementById("sheetModal").classList.contains("active")
+        ) {
+          createNewSheet();
+        }
+        if (
+          e.key === "Enter" &&
+          document
+            .getElementById("renameSheetModal")
+            .classList.contains("active")
+        ) {
+          confirmRenameSheet();
+        }
+        if (
+          e.key === "Enter" &&
+          document.getElementById("exportModal").classList.contains("active")
+        ) {
+          executeExport();
+        }
+      });
+    </script>
+  </body>
+</html>
