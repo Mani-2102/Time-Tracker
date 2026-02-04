@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Time Tracker - Login / Register</title>
+    <style>
+      :root {
+        --primary: #667eea;
+        --secondary: #764ba2;
+        --success: #10b981;
+        --danger: #ef4444;
+        --light: #f8f9fa;
+        --dark: #0f172a;
+        --text: #1f2937;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 450px;
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        margin-bottom: 5px;
+      }
+
+      .header p {
+        opacity: 0.9;
+        font-size: 14px;
+      }
+
+      .tabs {
+        display: flex;
+        background: #f1f5f9;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--text);
+        transition: all 0.3s;
+        border: none;
+        background: transparent;
+      }
+
+      .tab.active {
+        background: white;
+        color: var(--primary);
+        border-bottom: 3px solid var(--primary);
+      }
+
+      .tab:hover:not(.active) {
+        background: #e2e8f0;
+      }
+
+      .form-container {
+        padding: 30px;
+      }
+
+      .form {
+        display: none;
+      }
+
+      .form.active {
+        display: block;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .message {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        display: none;
+      }
+
+      .message.success {
+        background: #d1fae5;
+        color: #065f46;
+        display: block;
+      }
+
+      .message.error {
+        background: #fee2e2;
+        color: #991b1b;
+        display: block;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        margin: 20px 0;
+        color: #94a3b8;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+      }
+
+      .divider span {
+        padding: 0 15px;
+        font-size: 14px;
+      }
+
+      .info-box {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+
+      .info-box h4 {
+        color: #0284c7;
+        margin-bottom: 8px;
+      }
+
+      .info-box p {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.5;
+      }
+
+      /* Sync Status Indicator */
+      .sync-status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px;
+        font-size: 13px;
+        color: #64748b;
+      }
+
+      .sync-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* User Profile Section (shown after login) */
+      .profile-section {
+        display: none;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .profile-section.active {
+        display: block;
+      }
+
+      .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: white;
+        margin: 0 auto 15px;
+      }
+
+      .profile-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 5px;
+      }
+
+      .profile-email {
+        color: #64748b;
+        margin-bottom: 20px;
+      }
+
+      .profile-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .profile-btn {
+        padding: 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+      }
+
+      .profile-btn.primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+      }
+
+      .profile-btn.secondary {
+        background: #f1f5f9;
+        color: var(--text);
+        border: 2px solid #e2e8f0;
+      }
+
+      .profile-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      /* Responsive */
+      @media (max-width: 480px) {
+        .container {
+          border-radius: 15px;
+        }
+
+        .header {
+          padding: 20px;
+        }
+
+        .header h1 {
+          font-size: 22px;
+        }
+
+        .form-container {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>⏱️ Time Tracker</h1>
+        <p>Track your time across all devices</p>
+      </div>
+
+      <!-- Login/Register Tabs (shown when not logged in) -->
+      <div id="authSection">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('login')">Login</button>
+          <button class="tab" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <div class="form-container">
+          <!-- Message Display -->
+          <div id="message" class="message"></div>
+
+          <!-- Login Form -->
+          <form
+            id="loginForm"
+            class="form active"
+            onsubmit="handleLogin(event)"
+          >
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input
+                type="email"
+                id="loginEmail"
+                placeholder="your@email.com"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <button type="submit" class="submit-btn" id="loginBtn">
+              Login
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="registerForm" class="form" onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label for="regUsername">Username</label>
+              <input
+                type="text"
+                id="regUsername"
+                placeholder="johndoe"
+                required
+                minlength="3"
+              />
+            </div>
+            <div class="form-group">
+              <label for="regEmail">Email</label>
+              <input
+                type="email"
+                id="regEmail"
+                placeholder="your@email.com"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="regPassword">Password</label>
+              <input
+                type="password"
+                id="regPassword"
+                placeholder="••••••••"
+                required
+                minlength="6"
+              />
+            </div>
+            <div class="form-group">
+              <label for="regConfirmPassword">Confirm Password</label>
+              <input
+                type="password"
+                id="regConfirmPassword"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <button type="submit" class="submit-btn" id="registerBtn">
+              Create Account
+            </button>
+          </form>
+
+          <div class="info-box">
+            <h4>🔒 Secure Multi-Device Sync</h4>
+            <p>
+              Your data is securely stored on our server and synced across all
+              your devices. Login from any device to access your timers, todos,
+              and statistics.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Section (shown when logged in) -->
+      <div id="profileSection" class="profile-section">
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+        <div class="profile-name" id="profileName">Username</div>
+        <div class="profile-email" id="profileEmail">email@example.com</div>
+
+        <div class="sync-status">
+          <div class="sync-dot"></div>
+          <span>Connected to server</span>
+        </div>
+
+        <div class="profile-actions">
+          <button class="profile-btn primary" onclick="goToDashboard()">
+            📊 Open Dashboard
+          </button>
+          <button class="profile-btn secondary" onclick="goToTimer()">
+            ⏱️ Quick Timer
+          </button>
+          <button class="profile-btn secondary" onclick="viewDevices()">
+            📱 Manage Devices
+          </button>
+          <button class="profile-btn secondary" onclick="handleLogout()">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============ CONFIGURATION ============
+      const API_BASE_URL = "http://139.59.30.160:5000";
+
+      // Storage Keys
+      const STORAGE_KEYS = {
+        AUTH_TOKEN: "pwtm_auth_token",
+        REFRESH_TOKEN: "pwtm_refresh_token",
+        DEVICE_ID: "pwtm_device_id",
+        USER_DATA: "pwtm_user_data",
+      };
+
+      // ============ DEVICE ID MANAGEMENT ============
+      function getDeviceId() {
+        let deviceId = localStorage.getItem(STORAGE_KEYS.DEVICE_ID);
+        if (!deviceId) {
+          deviceId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+            /[xy]/g,
+            function (c) {
+              const r = (Math.random() * 16) | 0;
+              const v = c === "x" ? r : (r & 0x3) | 0x8;
+              return v.toString(16);
+            },
+          );
+          localStorage.setItem(STORAGE_KEYS.DEVICE_ID, deviceId);
+        }
+        return deviceId;
+      }
+
+      function getDeviceName() {
+        const ua = navigator.userAgent;
+        if (/android/i.test(ua)) return "Android Device";
+        if (/iphone|ipad/i.test(ua)) return "iOS Device";
+        if (/windows/i.test(ua)) return "Windows PC";
+        if (/mac/i.test(ua)) return "Mac";
+        if (/linux/i.test(ua)) return "Linux";
+        return "Web Browser";
+      }
+
+      // ============ API CALL HELPER ============
+      async function apiCall(endpoint, method = "GET", data = null) {
+        try {
+          const options = {
+            method: method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          };
+
+          // Add auth token if exists
+          const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+          if (token) {
+            options.headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          if (data) {
+            options.body = JSON.stringify(data);
+          }
+
+          const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+          const result = await response.json();
+
+          if (!response.ok) {
+            return { success: false, error: result.error || "Request failed" };
+          }
+
+          return result;
+        } catch (error) {
+          console.error("API Error:", error);
+          return {
+            success: false,
+            error: "Connection failed. Is the server running?",
+          };
+        }
+      }
+
+      // ============ AUTH FUNCTIONS ============
+      async function handleLogin(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const btn = document.getElementById("loginBtn");
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>';
+        hideMessage();
+
+        const result = await apiCall("/api/auth/login", "POST", {
+          email,
+          password,
+          device_id: getDeviceId(),
+          device_name: getDeviceName(),
+        });
+
+        btn.disabled = false;
+        btn.innerHTML = "Login";
+
+        if (result.success) {
+          // Save auth data
+          localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, result.token);
+          localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, result.refreshToken);
+          localStorage.setItem(
+            STORAGE_KEYS.USER_DATA,
+            JSON.stringify(result.user),
+          );
+
+          showMessage("Login successful! Redirecting...", "success");
+
+          setTimeout(() => {
+            showProfileSection(result.user);
+          }, 1000);
+        } else {
+          showMessage(result.error || "Login failed", "error");
+        }
+      }
+
+      async function handleRegister(event) {
+        event.preventDefault();
+
+        const username = document.getElementById("regUsername").value;
+        const email = document.getElementById("regEmail").value;
+        const password = document.getElementById("regPassword").value;
+        const confirmPassword =
+          document.getElementById("regConfirmPassword").value;
+        const btn = document.getElementById("registerBtn");
+
+        if (password !== confirmPassword) {
+          showMessage("Passwords do not match", "error");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>';
+        hideMessage();
+
+        const result = await apiCall("/api/auth/register", "POST", {
+          username,
+          email,
+          password,
+          device_name: getDeviceName(),
+        });
+
+        btn.disabled = false;
+        btn.innerHTML = "Create Account";
+
+        if (result.success) {
+          // Save auth data
+          localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, result.token);
+          localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, result.refreshToken);
+          localStorage.setItem(
+            STORAGE_KEYS.USER_DATA,
+            JSON.stringify(result.user),
+          );
+
+          showMessage("Account created successfully!", "success");
+
+          setTimeout(() => {
+            showProfileSection(result.user);
+          }, 1000);
+        } else {
+          showMessage(result.error || "Registration failed", "error");
+        }
+      }
+
+      function handleLogout() {
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+
+        document.getElementById("authSection").style.display = "block";
+        document.getElementById("profileSection").classList.remove("active");
+        showMessage("Logged out successfully", "success");
+      }
+
+      // ============ UI FUNCTIONS ============
+      function switchTab(tab) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".form")
+          .forEach((f) => f.classList.remove("active"));
+
+        if (tab === "login") {
+          document.querySelector(".tab:first-child").classList.add("active");
+          document.getElementById("loginForm").classList.add("active");
+        } else {
+          document.querySelector(".tab:last-child").classList.add("active");
+          document.getElementById("registerForm").classList.add("active");
+        }
+        hideMessage();
+      }
+
+      function showMessage(text, type) {
+        const msg = document.getElementById("message");
+        msg.textContent = text;
+        msg.className = `message ${type}`;
+      }
+
+      function hideMessage() {
+        document.getElementById("message").className = "message";
+      }
+
+      function showProfileSection(user) {
+        // Check if there's a redirect URL stored (from navigateWithAuth in welcome.html)
+        const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
+        if (redirectUrl) {
+          sessionStorage.removeItem("redirectAfterLogin");
+          window.location.href = redirectUrl;
+          return;
+        }
+
+        document.getElementById("authSection").style.display = "none";
+        const profileSection = document.getElementById("profileSection");
+        profileSection.classList.add("active");
+
+        document.getElementById("profileName").textContent = user.username;
+        document.getElementById("profileEmail").textContent = user.email;
+        document.getElementById("profileAvatar").textContent = user.username
+          .charAt(0)
+          .toUpperCase();
+      }
+
+      // ============ NAVIGATION ============
+      function goToDashboard() {
+        window.location.href = "index.html";
+      }
+
+      function goToTimer() {
+        window.location.href = "Timer.html";
+      }
+
+      function viewDevices() {
+        alert("Device management coming soon!");
+      }
+
+      // ============ CHECK AUTH ON LOAD ============
+      function checkAuth() {
+        const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+        const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+
+        if (token && userData) {
+          try {
+            const user = JSON.parse(userData);
+            showProfileSection(user);
+          } catch (e) {
+            // Invalid stored data, clear it
+            handleLogout();
+          }
+        }
+      }
+
+      // Initialize on load
+      document.addEventListener("DOMContentLoaded", function () {
+        getDeviceId(); // Generate device ID if not exists
+        checkAuth();
+      });
+    </script>
+  </body>
+</html>

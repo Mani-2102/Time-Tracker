@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TO DO List</title>
+    <script src="config.js"></script>
     <style>
       * {
         margin: 0;
@@ -349,10 +350,57 @@
       function addTask() {
         const text = taskInput.value.trim();
         if (text) {
-          tasks.push({ text, completed: false });
+          const newTask = { text, completed: false };
+          tasks.push(newTask);
           saveTasks();
           renderTasks();
+
+          // Save to backend
+          syncTaskToBackend(tasks.length - 1, newTask);
+
           taskInput.value = "";
+        }
+      }
+
+      async function syncTaskToBackend(index, task) {
+        const result = await todoAPI.addTodo({
+          title: task.text,
+          description: "",
+          priority: "medium",
+          completed: task.completed ? 1 : 0,
+        });
+
+        if (result.success) {
+          console.log("Todo saved to backend:", result.data);
+          tasks[index].id = result.data.id;
+          saveTasks();
+        } else {
+          console.warn("Failed to save to backend:", result.error);
+        }
+      }
+
+      async function syncUpdateToBackend(index, task) {
+        if (!task.id) return;
+
+        const result = await todoAPI.updateTodo(task.id, {
+          title: task.text,
+          description: "",
+          priority: "medium",
+          completed: task.completed ? 1 : 0,
+        });
+
+        if (!result.success) {
+          console.warn("Failed to update on backend:", result.error);
+        }
+      }
+
+      async function syncDeleteToBackend(index, task) {
+        if (!task.id) return;
+
+        const result = await todoAPI.deleteTodo(task.id);
+
+        if (!result.success) {
+          console.warn("Failed to delete from backend:", result.error);
         }
       }
 
@@ -360,9 +408,12 @@
         tasks[index].completed = !tasks[index].completed;
         saveTasks();
         renderTasks();
+        syncUpdateToBackend(index, tasks[index]);
       }
 
       function deleteTask(index) {
+        const task = tasks[index];
+        syncDeleteToBackend(index, task);
         tasks.splice(index, 1);
         saveTasks();
         renderTasks();
@@ -385,7 +436,27 @@
       });
       clearBtn.addEventListener("click", clearCompleted);
 
+      // Load todos from backend on page load
+      async function loadTodosFromBackend() {
+        const result = await todoAPI.getTodos();
+        if (result.success || Array.isArray(result)) {
+          const backendTodos = Array.isArray(result)
+            ? result
+            : result.data || [];
+          if (backendTodos.length > 0) {
+            tasks = backendTodos.map((t) => ({
+              text: t.title,
+              completed: t.completed ? true : false,
+              id: t.id,
+            }));
+            saveTasks();
+            renderTasks();
+          }
+        }
+      }
+
       renderTasks();
+      loadTodosFromBackend();
     </script>
   </body>
 </html>

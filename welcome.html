@@ -1177,7 +1177,7 @@
         >
           <span class="theme-icon" id="themeIcon">🌙</span>
         </button>
-        <button class="login-btn" onclick="openInNewTab('index.html')">
+        <button class="login-btn" onclick="navigateWithAuth('index.html')">
           Get Started
         </button>
       </div>
@@ -1269,7 +1269,10 @@
           Track, analyze, and optimize how you spend every minute of your day
         </p>
         <div class="cta-buttons">
-          <button class="btn btn-primary" onclick="openInNewTab('index.html')">
+          <button
+            class="btn btn-primary"
+            onclick="navigateWithAuth('index.html')"
+          >
             🚀 Start Tracking Now
           </button>
           <button
@@ -1334,8 +1337,8 @@
             <div class="feature-icon">📤</div>
             <h3>Export & Backup</h3>
             <p>
-              Export your data as CSV / JSON for offline analysis or backup purposes
-              anytime.
+              Export your data as CSV / JSON for offline analysis or backup
+              purposes anytime.
             </p>
           </div>
 
@@ -1382,7 +1385,7 @@
       <section id="features" class="links-section">
         <h2 class="section-title">🎯 Explore All Features</h2>
         <div class="links-grid">
-          <div class="link-card" onclick="openInNewTab('index.html')">
+          <div class="link-card" onclick="navigateWithAuth('index.html')">
             <div class="link-icon">⏱️</div>
             <div class="link-title">Time Tracker</div>
             <div class="link-description">
@@ -1686,6 +1689,33 @@
         updateThemeIcon();
       }
 
+      // JWT Storage keys (must match login.html)
+      const JWT_STORAGE_KEYS = {
+        AUTH_TOKEN: "pwtm_auth_token",
+        REFRESH_TOKEN: "pwtm_refresh_token",
+        USER_DATA: "pwtm_user_data",
+        DEVICE_ID: "pwtm_device_id",
+      };
+
+      // Check if user is authenticated via JWT
+      function isJWTAuthenticated() {
+        const token = localStorage.getItem(JWT_STORAGE_KEYS.AUTH_TOKEN);
+        const userData = localStorage.getItem(JWT_STORAGE_KEYS.USER_DATA);
+        return !!(token && userData);
+      }
+
+      // Navigate with authentication check - redirects to login if not authenticated
+      function navigateWithAuth(url) {
+        if (isJWTAuthenticated()) {
+          openInNewTab(url);
+        } else {
+          // Not authenticated, redirect to login page
+          // Store the intended destination for after login
+          sessionStorage.setItem("redirectAfterLogin", url);
+          window.location.href = "login.html";
+        }
+      }
+
       // Open link in new tab and auto-switch
       function openInNewTab(url) {
         // Open the link in a new tab and focus on it
@@ -1720,7 +1750,7 @@
       document.addEventListener("keydown", (e) => {
         if (e.altKey && e.key.toLowerCase() === "s") {
           e.preventDefault();
-          openInNewTab("index.html");
+          navigateWithAuth("index.html");
         }
       });
     </script>

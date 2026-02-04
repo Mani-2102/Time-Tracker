@@ -1,11 +1,24 @@
-<!-- FULL UPDATED VERSION: CLEAN B/W UI, FIXED DATES, LOCALSTORAGE, REFRESH LOCK, PIE CHART, STABLE HEADER -->
+<!-- FULL UPDATED VERSION: CLEAN B/W UI, FIXED DATES, LOCALSTORAGE, REFRESH LOCK, PIE CHART, STABLE HEADER, BACKEND INTEGRATION -->
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pro Work Time Tracker</title>
+
+    <!-- AUTHENTICATION CHECK - MUST RUN FIRST -->
+    <script>
+      (function () {
+        var token = localStorage.getItem("pwtm_auth_token");
+        var userData = localStorage.getItem("pwtm_user_data");
+        if (!token || !userData) {
+          window.location.replace("login.html");
+        }
+      })();
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
     <script src="database.js"></script>
     <style>
       :root {
@@ -2405,7 +2418,7 @@
       <div id="runningTasksList" class="running-tasks-list"></div>
     </div>
 
-    <div id="loginOverlay" class="login-overlay active"></div>
+    <div id="loginOverlay" class="login-overlay" style="display: none"></div>
 
     <div id="welcomeModal" class="welcome-modal">
       <div class="welcome-container">
@@ -2438,29 +2451,7 @@
       </div>
     </div>
 
-    <div id="loginModal" class="login-modal active">
-      <div class="login-container">
-        <h2>Pro Work Time Tracker</h2>
-        <div class="login-form">
-          <input
-            type="text"
-            id="loginUsername"
-            placeholder="Username"
-            autofocus
-          />
-          <input type="password" id="loginPassword" placeholder="Password" />
-          <button class="login-btn" onclick="handleLogin()">Login</button>
-          <div style="text-align: center; margin-top: 10px; font-size: 12px">
-            <span
-              id="toggleMode"
-              style="color: var(--primary); cursor: pointer; font-weight: 600"
-              >Create Account</span
-            >
-          </div>
-          <div id="loginError" class="login-error"></div>
-        </div>
-      </div>
-    </div>
+    <!-- OLD LOGIN MODAL REMOVED - Using login.html instead -->
 
     <div id="sheetsModal" class="modal">
       <div class="modal-content">
@@ -2833,102 +2824,135 @@
     <!-- Removed old ad-hoc menu; replaced by header button and drawer -->
 
     <script>
-      /* -------------------- LOGIN SYSTEM -------------------- */
-      // Always read the logged-in user from DatabaseManager so reloads keep the session
-      let currentUser = db.getCurrentUser();
-
-      let isLoginMode = true; // true = login, false = register
-
-      document.getElementById("toggleMode").addEventListener("click", () => {
-        isLoginMode = !isLoginMode;
-        document.getElementById("toggleMode").textContent = isLoginMode
-          ? "Create Account"
-          : "Back to Login";
-        document.querySelector(".login-btn").textContent = isLoginMode
-          ? "Login"
-          : "Register";
-        document.querySelector(".login-container h2").textContent = isLoginMode
-          ? "Login"
-          : "Create Account";
-      });
-
-      function handleLogin() {
-        const username = document.getElementById("loginUsername").value.trim();
-        const password = document.getElementById("loginPassword").value.trim();
-        const errorEl = document.getElementById("loginError");
-
-        errorEl.textContent = "";
-
-        if (!username || !password) {
-          errorEl.textContent = "Please enter both username and password";
+      /* -------------------- IMMEDIATE AUTH CHECK -------------------- */
+      // Check authentication IMMEDIATELY before anything else loads
+      (function () {
+        const token = localStorage.getItem("pwtm_auth_token");
+        const userData = localStorage.getItem("pwtm_user_data");
+        if (!token || !userData) {
+          // Not logged in - redirect to login page immediately
+          window.location.href = "login.html";
           return;
         }
+      })();
 
-        if (username.length < 3) {
-          errorEl.textContent = "Username must be at least 3 characters";
-          return;
-        }
+      /* -------------------- JWT AUTHENTICATION INTEGRATION -------------------- */
+      // Storage keys for JWT auth (from login.html)
+      const JWT_STORAGE_KEYS = {
+        AUTH_TOKEN: "pwtm_auth_token",
+        REFRESH_TOKEN: "pwtm_refresh_token",
+        USER_DATA: "pwtm_user_data",
+        DEVICE_ID: "pwtm_device_id",
+      };
 
-        if (password.length < 3) {
-          errorEl.textContent = "Password must be at least 3 characters";
-          return;
-        }
+      // API Base URL for backend sync - use from config.js if available
+      // (API_BASE_URL is already defined in config.js)
 
-        let result;
+      // Check if user is logged in via JWT (from login.html)
+      function isJWTAuthenticated() {
+        const token = localStorage.getItem(JWT_STORAGE_KEYS.AUTH_TOKEN);
+        const userData = localStorage.getItem(JWT_STORAGE_KEYS.USER_DATA);
+        return token && userData;
+      }
 
-        if (isLoginMode) {
-          // Login existing user
-          result = db.authenticateUser(username, password);
-          if (!result.success) {
-            errorEl.textContent = result.message;
-            return;
-          }
-        } else {
-          // Register new user
-          if (db.userExists(username)) {
-            errorEl.textContent = "User already exists!";
-            return;
-          }
-          result = db.registerUser(username, password);
-          if (!result.success) {
-            errorEl.textContent = result.message;
-            return;
-          }
-        }
-
-        // Login successful
-        currentUser = username;
-        db.setCurrentUser(currentUser);
-
-        // Load user's sheets and data
-        loadUserData();
-
-        // Hide login modal and overlay
-        document.getElementById("loginOverlay").classList.remove("active");
-        document.getElementById("loginModal").classList.remove("active");
-
-        // Show username badge and logout button
-        displayUserBadge();
-
-        // Show welcome modal if new user
-        if (result.isNew) {
-          showWelcomeModal();
-        } else {
-          // Initialize app for existing user
-          render();
-          drawCharts();
+      // Get JWT user data
+      function getJWTUser() {
+        try {
+          const userData = localStorage.getItem(JWT_STORAGE_KEYS.USER_DATA);
+          return userData ? JSON.parse(userData) : null;
+        } catch (e) {
+          return null;
         }
       }
+
+      // Get JWT token for API calls
+      function getJWTToken() {
+        return localStorage.getItem(JWT_STORAGE_KEYS.AUTH_TOKEN);
+      }
+
+      // Redirect to login page if not authenticated
+      function redirectToLogin() {
+        window.location.href = "login.html";
+      }
+
+      /* -------------------- BACKEND SYNC FUNCTIONS -------------------- */
+      // Save data to backend server
+      async function syncToServer(dataType, data) {
+        const token = getJWTToken();
+        if (!token) return { success: false, error: "Not authenticated" };
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/sync/${dataType}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          });
+          return await response.json();
+        } catch (error) {
+          console.error("Sync to server failed:", error);
+          return { success: false, error: error.message };
+        }
+      }
+
+      // Load data from backend server
+      async function loadFromServer(dataType) {
+        const token = getJWTToken();
+        if (!token) return { success: false, error: "Not authenticated" };
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/sync/${dataType}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          return await response.json();
+        } catch (error) {
+          console.error("Load from server failed:", error);
+          return { success: false, error: error.message };
+        }
+      }
+
+      /* -------------------- LOGIN SYSTEM -------------------- */
+      // Check JWT auth first - if authenticated, skip local login completely
+      let currentUser = null;
+
+      // FIRST: Check if JWT authenticated (logged in via login.html)
+      if (isJWTAuthenticated()) {
+        const jwtUser = getJWTUser();
+        if (jwtUser) {
+          currentUser = jwtUser.username;
+          // Sync JWT user with local database if not exists
+          if (typeof db !== "undefined" && !db.userExists(currentUser)) {
+            db.registerUser(currentUser, "jwt_auth_" + Date.now());
+          }
+          if (typeof db !== "undefined") {
+            db.setCurrentUser(currentUser);
+          }
+        }
+      } else {
+        // Not JWT authenticated - redirect to login page
+        window.location.href = "login.html";
+      }
+
+      /* OLD LOCAL LOGIN CODE REMOVED - Using login.html now */
 
       function displayUserBadge() {
         if (currentUser) {
           const badge = document.getElementById("userDisplay");
           const logoutBtn = document.getElementById("logoutBtn");
-          badge.innerHTML = `👤 ${currentUser.toUpperCase()}`;
-          badge.classList.add("fixed-left");
-          logoutBtn.classList.add("fixed-left");
-          badge.style.display = "inline-block";
-          logoutBtn.style.display = "block";
+          if (badge) {
+            badge.innerHTML = `👤 ${currentUser.toUpperCase()}`;
+            badge.classList.add("fixed-left");
+            badge.style.display = "inline-block";
+          }
+          if (logoutBtn) {
+            logoutBtn.classList.add("fixed-left");
+            logoutBtn.style.display = "block";
+          }
         }
       }
 
@@ -2965,6 +2989,11 @@
           currentUser = null;
           db.logout();
 
+          // Clear JWT tokens as well (from login.html auth)
+          localStorage.removeItem(JWT_STORAGE_KEYS.AUTH_TOKEN);
+          localStorage.removeItem(JWT_STORAGE_KEYS.REFRESH_TOKEN);
+          localStorage.removeItem(JWT_STORAGE_KEYS.USER_DATA);
+
           // Clear app data from memory
           currentSheet = null;
           sheets = {};
@@ -2980,27 +3009,8 @@
           logoutBtn.style.display = "none";
           logoutBtn.classList.remove("fixed-left");
 
-          // Show login modal and overlay (centered)
-          document.getElementById("loginOverlay").classList.add("active");
-          document.getElementById("loginModal").classList.add("active");
-          setTimeout(
-            () => document.getElementById("loginUsername").focus(),
-            100,
-          );
-
-          // Clear form
-          document.getElementById("loginUsername").value = "";
-          document.getElementById("loginPassword").value = "";
-          document.getElementById("loginError").textContent = "";
-          isLoginMode = true;
-          document.getElementById("toggleMode").textContent = "Create Account";
-          document.querySelector(".login-btn").textContent = "Login";
-          document.querySelector(".login-container h2").textContent = "Login";
-
-          // Clear main content
-          document.getElementById("trackers").innerHTML = "";
-          document.getElementById("runningTrackers").innerHTML = "";
-          document.getElementById("taskList").innerHTML = "";
+          // Redirect to login page instead of showing modal
+          window.location.href = "login.html";
         }
       }
 
@@ -3035,19 +3045,42 @@
 
       function saveUserData() {
         if (!currentUser) return;
-        const userData = {
-          password: db.getUserData(currentUser).password,
-          createdAt: db.getUserData(currentUser).createdAt,
+
+        // Save to user-specific localStorage key (for JWT users)
+        const localKey = `pwtm_tracker_data_${currentUser}`;
+        const dataToSave = {
           currentSheet: currentSheet,
           sheets: sheets,
           runningTimers: runningTimers,
           singleTaskMode: singleTaskMode,
-          isNew: db.getUserData(currentUser).isNew,
+          lastSaved: new Date().toISOString(),
         };
-        db.saveUserData(currentUser, userData);
+        localStorage.setItem(localKey, JSON.stringify(dataToSave));
+
+        // Also save to local database for legacy support
+        if (typeof db !== "undefined") {
+          const existingData = db.getUserData(currentUser) || {};
+          const userData = {
+            password: existingData.password || "jwt_auth",
+            createdAt: existingData.createdAt || new Date().toISOString(),
+            currentSheet: currentSheet,
+            sheets: sheets,
+            runningTimers: runningTimers,
+            singleTaskMode: singleTaskMode,
+            isNew: false,
+          };
+          db.saveUserData(currentUser, userData);
+        }
 
         // Save row histories to localStorage
         saveRowHistories();
+
+        // Sync to server in background (if JWT authenticated)
+        if (isJWTAuthenticated()) {
+          syncToServer("tracker", dataToSave).catch((err) =>
+            console.log("Server sync pending"),
+          );
+        }
       }
 
       function saveRowHistories() {
@@ -3149,19 +3182,108 @@
       let runningTimers = {};
       let singleTaskMode = true;
       let rowHistories = {}; // Track edit history for rows in format: "taskIdx-rowIdx": [{changes}, ...]
+      let serverDataLoaded = false;
 
-      // If user is logged in, load their data and show app
-      if (currentUser) {
-        const existing = db.getUserData(currentUser);
+      // Function to load data from server
+      async function loadDataFromServer() {
+        if (!isJWTAuthenticated()) return false;
+
+        try {
+          const result = await loadFromServer("tracker");
+          if (result.success && result.data) {
+            currentSheet = result.data.currentSheet || "Sheet 1";
+            sheets = result.data.sheets || { "Sheet 1": [] };
+            trackers = sheets[currentSheet] || [];
+            runningTimers = result.data.runningTimers || {};
+            singleTaskMode = result.data.singleTaskMode !== false;
+
+            // Save to local storage as cache
+            const localKey = `pwtm_tracker_data_${currentUser}`;
+            localStorage.setItem(localKey, JSON.stringify(result.data));
+
+            serverDataLoaded = true;
+            console.log("✅ Data loaded from server");
+            return true;
+          }
+        } catch (error) {
+          console.log("Server load failed, using local data:", error);
+        }
+        return false;
+      }
+
+      // If user is logged in via JWT, load their data and show app
+      if (currentUser && isJWTAuthenticated()) {
+        // Try to load data from local storage first (for this user) - as cache
+        const localKey = `pwtm_tracker_data_${currentUser}`;
+        const localData = localStorage.getItem(localKey);
+        if (localData) {
+          try {
+            const parsed = JSON.parse(localData);
+            currentSheet = parsed.currentSheet || "Sheet 1";
+            sheets = parsed.sheets || { "Sheet 1": [] };
+            trackers = sheets[currentSheet] || [];
+            runningTimers = parsed.runningTimers || {};
+            singleTaskMode = parsed.singleTaskMode !== false;
+          } catch (e) {
+            console.log("No local data found, starting fresh");
+          }
+        }
+
+        // Also try to load from local database
+        if (typeof db !== "undefined") {
+          const existing = db.getUserData(currentUser);
+          if (existing && existing.sheets) {
+            currentSheet = existing.currentSheet || currentSheet;
+            sheets = existing.sheets || sheets;
+            trackers = sheets[currentSheet] || [];
+            runningTimers = existing.runningTimers || {};
+            singleTaskMode = existing.singleTaskMode !== false;
+          }
+        }
+
+        // Load from server (async - will update UI when ready)
+        loadDataFromServer().then((loaded) => {
+          if (loaded) {
+            render();
+            drawCharts();
+          }
+        });
+
+        // Initialize UI immediately with cached/local data
+        setTimeout(() => {
+          // Update sheet header
+          const sheetHeader = document.getElementById("sheetNameHeader");
+          if (sheetHeader) sheetHeader.textContent = currentSheet;
+
+          // Update mode button
+          const modeBtn = document.getElementById("modeBtn");
+          if (modeBtn) {
+            if (!singleTaskMode) {
+              modeBtn.textContent = "Multiple Tasks";
+              modeBtn.className = "toggle-mode multi";
+            } else {
+              modeBtn.textContent = "Single Task";
+              modeBtn.className = "toggle-mode single";
+            }
+          }
+
+          render();
+          drawCharts();
+        }, 100);
+
+        displayUserBadge();
+      } else if (currentUser) {
+        // Local auth fallback (legacy)
+        const existing =
+          typeof db !== "undefined" ? db.getUserData(currentUser) : null;
         if (existing) {
           loadUserData();
           displayUserBadge();
-          document.getElementById("loginOverlay").classList.remove("active");
-          document.getElementById("loginModal").classList.remove("active");
         } else {
-          // Stored session key is stale; clear and prompt for login
-          db.logout();
+          // Stored session key is stale; redirect to login
+          if (typeof db !== "undefined") db.logout();
           currentUser = null;
+          window.location.href = "login.html";
         }
       }
 

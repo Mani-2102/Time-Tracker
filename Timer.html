@@ -3,7 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <title>Tap Timer Analytics</title>
+
+    <!-- AUTHENTICATION CHECK - MUST RUN FIRST -->
+    <script>
+      (function () {
+        var token = localStorage.getItem("pwtm_auth_token");
+        var userData = localStorage.getItem("pwtm_user_data");
+        if (!token || !userData) {
+          window.location.replace("login.html");
+        }
+      })();
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron&family=Poppins&family=Roboto+Mono&family=Montserrat&family=Oswald&family=Pacifico&display=swap"
       rel="stylesheet"
@@ -673,20 +686,46 @@
         localStorage.setItem("timerData", JSON.stringify(data));
       }
 
-      saveBtn.onclick = () => {
+      saveBtn.onclick = async () => {
         let t = title.value.trim(),
           s = subtitle.value.trim();
         if (!t || !s) return alert("Title & Sub required");
         let now = new Date();
-        data.push({
+        const newSession = {
           t,
           s,
           d: now.toLocaleDateString(),
           time: now.toLocaleTimeString(),
           du: format(elapsed),
           ms: elapsed,
-        });
+        };
+
+        // Save to local storage FIRST (instant)
+        data.push(newSession);
         render();
+        title.value = "";
+        subtitle.value = "";
+
+        // Silent sync to backend (no popup, no blocking)
+        timerAPI
+          .addSession({
+            task_name: t,
+            duration: elapsed,
+            date: now.toISOString(),
+            category: s,
+          })
+          .then((result) => {
+            if (result.success) {
+              console.log("✅ Session synced to server");
+            } else if (result.queued) {
+              console.log("📤 Session queued for later sync");
+            } else {
+              console.log("⚠️ Sync pending - will retry automatically");
+            }
+          })
+          .catch((err) => {
+            console.log("⚠️ Sync failed - queued for later:", err);
+          });
       };
 
       clearBtn.onclick = () => {
