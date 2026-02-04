@@ -512,40 +512,57 @@
         return "Web Browser";
       }
 
-      // ============ API CALL HELPER ============
-      async function apiCall(endpoint, method = "GET", data = null) {
-        try {
-          const options = {
-            method: method,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          };
+      // ============ API CALL HELPER WITH RETRY ============
+      async function apiCall(endpoint, method = "GET", data = null, retries = 3) {
+        for (let attempt = 1; attempt <= retries; attempt++) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-          // Add auth token if exists
-          const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-          if (token) {
-            options.headers["Authorization"] = `Bearer ${token}`;
+            const options = {
+              method: method,
+              headers: {
+                "Content-Type": "application/json",
+              },
+              signal: controller.signal
+            };
+
+            // Add auth token if exists
+            const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+            if (token) {
+              options.headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            if (data) {
+              options.body = JSON.stringify(data);
+            }
+
+            console.log(`[API] Attempt ${attempt}: ${method} ${API_BASE_URL}${endpoint}`);
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+            clearTimeout(timeoutId);
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              return { success: false, error: result.error || "Request failed" };
+            }
+
+            console.log(`[API] Success on attempt ${attempt}`);
+            return result;
+          } catch (error) {
+            console.error(`[API] Attempt ${attempt} failed:`, error.message);
+            
+            if (attempt === retries) {
+              // Last attempt failed
+              if (error.name === 'AbortError') {
+                return { success: false, error: "Connection timed out. Please check your internet and try again." };
+              }
+              return { success: false, error: "Connection failed. Please try again in a moment." };
+            }
+            
+            // Wait before retry (1 second, then 2 seconds)
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
           }
-
-          if (data) {
-            options.body = JSON.stringify(data);
-          }
-
-          const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-          const result = await response.json();
-
-          if (!response.ok) {
-            return { success: false, error: result.error || "Request failed" };
-          }
-
-          return result;
-        } catch (error) {
-          console.error("API Error:", error);
-          return {
-            success: false,
-            error: "Connection failed. Is the server running?",
-          };
         }
       }
 
