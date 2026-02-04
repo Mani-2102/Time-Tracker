@@ -470,9 +470,12 @@
     <script>
       // ============ CONFIGURATION ============
       // Use api.iamtimer.com for production, IP for local development
-      const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '139.59.30.160'
-        ? "http://139.59.30.160:5000"
-        : "https://api.iamtimer.com";
+      const API_BASE_URL =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1" ||
+        window.location.hostname === "139.59.30.160"
+          ? "http://139.59.30.160:5000"
+          : "https://api.iamtimer.com";
 
       // Storage Keys
       const STORAGE_KEYS = {
