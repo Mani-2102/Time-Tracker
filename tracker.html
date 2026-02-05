@@ -3393,13 +3393,19 @@
 
       // If user is logged in via JWT, load their data and show app
       if (currentUser && isJWTAuthenticated()) {
+        console.log("🔐 User authenticated:", currentUser);
+        console.log("🔑 Token exists:", !!getJWTToken());
+        console.log("🌐 API URL:", API_BASE_URL);
+        
         // Check if this is a NEW device (no local cache)
         const localKey = `pwtm_tracker_data_${currentUser}`;
         const localData = localStorage.getItem(localKey);
         const isNewDevice = !localData;
 
         if (isNewDevice) {
-          console.log("📱 New device detected - loading from server FIRST");
+          console.log("📱 NEW DEVICE detected - MUST load from server");
+          // Show loading indicator
+          document.body.insertAdjacentHTML('afterbegin', '<div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;flex-direction:column;"><div style="font-size:24px;">🔄</div><div style="margin-top:10px;font-size:16px;">Loading your data from server...</div></div>');
         } else {
           // Load local cache as initial data (while waiting for server)
           try {
@@ -3420,8 +3426,14 @@
 
         // ALWAYS load from server (this is the source of truth)
         loadDataFromServer().then((loaded) => {
+          // Remove loading overlay if exists
+          const overlay = document.getElementById('loadingOverlay');
+          if (overlay) overlay.remove();
+          
           if (loaded) {
-            console.log("✅ Server data loaded successfully");
+            console.log("✅ Server data loaded successfully - sheets:", Object.keys(sheets));
+            console.log("✅ Current sheet:", currentSheet);
+            console.log("✅ Trackers count:", trackers.length);
             render();
             drawCharts();
 
@@ -3430,9 +3442,16 @@
           } else if (isNewDevice) {
             // Server failed but this is new device - show empty state
             console.log("⚠️ Server unavailable, showing empty state for new device");
+            alert("Could not load data from server. Please check your internet connection and try again.");
             render();
             drawCharts();
           }
+        }).catch(err => {
+          // Remove loading overlay on error
+          const overlay = document.getElementById('loadingOverlay');
+          if (overlay) overlay.remove();
+          console.error("❌ Critical error loading data:", err);
+          alert("Error loading data: " + err.message);
         });
 
         // Initialize UI immediately with cached/local data
