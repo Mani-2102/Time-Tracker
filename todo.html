@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TO DO List</title>
+    
+    <!-- AUTH CHECK - Redirect to login if not authenticated -->
+    <script>
+      (function () {
+        var token = localStorage.getItem("pwtm_auth_token");
+        var userData = localStorage.getItem("pwtm_user_data");
+        if (!token || !userData) {
+          sessionStorage.setItem("redirectAfterLogin", "todo.html");
+          window.location.replace("login.html");
+          return;
+        }
+        sessionStorage.setItem("pwtm_from_app", "true");
+      })();
+    </script>
+    
     <script src="config.js"></script>
     <style>
       * {

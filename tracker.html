@@ -3052,7 +3052,10 @@
       }
 
       function saveUserData() {
-        if (!currentUser) return;
+        if (!currentUser) {
+          console.log("⚠️ No user - data not saved");
+          return;
+        }
 
         // Save to user-specific localStorage key (for JWT users)
         const localKey = `pwtm_tracker_data_${currentUser}`;
@@ -3065,6 +3068,7 @@
           lastSaved: new Date().toISOString(),
         };
         localStorage.setItem(localKey, JSON.stringify(dataToSave));
+        console.log("💾 Saved to localStorage:", localKey);
 
         // Also save to local database for legacy support
         if (typeof db !== "undefined") {
@@ -3086,9 +3090,16 @@
 
         // Sync to server in background (if JWT authenticated)
         if (isJWTAuthenticated()) {
-          syncToServer("tracker", dataToSave).catch((err) =>
-            console.log("Server sync pending"),
-          );
+          console.log("🔄 Syncing to server...");
+          syncToServer("tracker", dataToSave)
+            .then((result) => {
+              if (result.success) {
+                console.log("✅ Data synced to server successfully");
+              } else {
+                console.log("⚠️ Server sync failed:", result.error);
+              }
+            })
+            .catch((err) => console.log("⚠️ Server sync pending:", err.message));
         }
       }
 
@@ -3195,34 +3206,50 @@
 
       // Function to load data from server
       async function loadDataFromServer() {
-        if (!isJWTAuthenticated()) return false;
+        if (!isJWTAuthenticated()) {
+          console.log("❌ Not authenticated, cannot load from server");
+          return false;
+        }
 
         try {
+          console.log("🔄 Loading data from server...");
           const result = await loadFromServer("tracker");
-          if (result.success && result.data) {
-            currentSheet = result.data.currentSheet || "Sheet 1";
-            sheets = result.data.sheets || { "Sheet 1": [] };
-            trackers = sheets[currentSheet] || [];
-            runningTimers = result.data.runningTimers || {};
-            singleTaskMode = result.data.singleTaskMode !== false;
+          console.log("📥 Server response:", result);
+          
+          if (result.success) {
+            if (result.data && Object.keys(result.data).length > 0) {
+              // Server has data - load it
+              currentSheet = result.data.currentSheet || "Sheet 1";
+              sheets = result.data.sheets || { "Sheet 1": [] };
+              trackers = sheets[currentSheet] || [];
+              runningTimers = result.data.runningTimers || {};
+              singleTaskMode = result.data.singleTaskMode !== false;
 
-            // Load rowHistories from server if available
-            if (result.data.rowHistories) {
-              rowHistories = result.data.rowHistories;
-              // Also save to localStorage for the current sheet
-              saveRowHistories();
+              // Load rowHistories from server if available
+              if (result.data.rowHistories) {
+                rowHistories = result.data.rowHistories;
+                // Also save to localStorage for the current sheet
+                saveRowHistories();
+              }
+
+              // Save to local storage as cache
+              const localKey = `pwtm_tracker_data_${currentUser}`;
+              localStorage.setItem(localKey, JSON.stringify(result.data));
+
+              serverDataLoaded = true;
+              console.log("✅ Data loaded from server (including row histories)");
+              return true;
+            } else {
+              // Server responded OK but no data exists yet
+              console.log("ℹ️ Server has no data for this user yet (new user or cleared data)");
+              serverDataLoaded = true; // Mark as loaded so we don't keep retrying
+              return true; // Return true so UI renders with empty state
             }
-
-            // Save to local storage as cache
-            const localKey = `pwtm_tracker_data_${currentUser}`;
-            localStorage.setItem(localKey, JSON.stringify(result.data));
-
-            serverDataLoaded = true;
-            console.log("✅ Data loaded from server (including row histories)");
-            return true;
+          } else {
+            console.log("❌ Server returned error:", result.error);
           }
         } catch (error) {
-          console.log("Server load failed, using local data:", error);
+          console.log("❌ Server load failed, using local data:", error);
         }
         return false;
       }
