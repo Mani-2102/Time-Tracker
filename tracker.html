@@ -3099,7 +3099,9 @@
                 console.log("⚠️ Server sync failed:", result.error);
               }
             })
-            .catch((err) => console.log("⚠️ Server sync pending:", err.message));
+            .catch((err) =>
+              console.log("⚠️ Server sync pending:", err.message),
+            );
         }
       }
 
@@ -3215,7 +3217,7 @@
           console.log("🔄 Loading data from server...");
           const result = await loadFromServer("tracker");
           console.log("📥 Server response:", result);
-          
+
           if (result.success) {
             if (result.data && Object.keys(result.data).length > 0) {
               // Server has data - load it
@@ -3237,11 +3239,15 @@
               localStorage.setItem(localKey, JSON.stringify(result.data));
 
               serverDataLoaded = true;
-              console.log("✅ Data loaded from server (including row histories)");
+              console.log(
+                "✅ Data loaded from server (including row histories)",
+              );
               return true;
             } else {
               // Server responded OK but no data exists yet
-              console.log("ℹ️ Server has no data for this user yet (new user or cleared data)");
+              console.log(
+                "ℹ️ Server has no data for this user yet (new user or cleared data)",
+              );
               serverDataLoaded = true; // Mark as loaded so we don't keep retrying
               return true; // Return true so UI renders with empty state
             }
