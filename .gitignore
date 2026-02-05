@@ -1,0 +1,59 @@
+# ============================================
+# TIME TRACKER - GITIGNORE
+# This prevents sensitive files from uploading to GitHub
+# ============================================
+
+# ============ BACKEND FILES (NEVER PUSH!) ============
+# These contain server code, passwords, secrets
+DEPLOY_THIS_BACKEND.js
+BACKEND_TEMPLATE.js
+BACKEND_GITHUB.js
+FRONTEND_BACKEND_INTEGRATION.js
+PACKAGE_JSON_TEMPLATE.json
+DATABASE_SCHEMA.sql
+server.js
+
+# ============ ENVIRONMENT FILES (PASSWORDS!) ============
+.env
+.env.*
+.env.example
+.env.local
+.env.production
+*.env
+
+# ============ DOCUMENTATION (NOT NEEDED ON GITHUB) ============
+txt/
+
+# ============ NODE.JS ============
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-error.log*
+
+# ============ LOGS ============
+logs/
+*.log
+
+# ============ IDE/EDITOR ============
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# ============ OS FILES ============
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============ TEMP FILES ============
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# ============ PRIVATE FOLDERS ============
+not for git hub/
+private/
+backup/
+code/
