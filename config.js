@@ -53,7 +53,12 @@ const API_ENDPOINTS = {
 };
 
 // Helper function for API calls
-async function apiCall(endpoint, method = "GET", data = null, requireAuth = true) {
+async function apiCall(
+  endpoint,
+  method = "GET",
+  data = null,
+  requireAuth = true,
+) {
   try {
     const options = {
       method: method,
