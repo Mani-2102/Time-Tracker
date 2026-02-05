@@ -13,13 +13,13 @@
         var fromApp = sessionStorage.getItem("pwtm_from_app");
         var token = localStorage.getItem("pwtm_auth_token");
         var userData = localStorage.getItem("pwtm_user_data");
-        
+
         // If not logged in, go to login
         if (!token || !userData) {
           window.location.replace("login.html");
           return;
         }
-        
+
         // Mark that user is now in the app
         sessionStorage.setItem("pwtm_from_app", "true");
       })();
@@ -3205,7 +3205,7 @@
             trackers = sheets[currentSheet] || [];
             runningTimers = result.data.runningTimers || {};
             singleTaskMode = result.data.singleTaskMode !== false;
-            
+
             // Load rowHistories from server if available
             if (result.data.rowHistories) {
               rowHistories = result.data.rowHistories;
