@@ -2895,7 +2895,7 @@
         try {
           console.log(`📤 Saving to: ${API_BASE_URL}/api/sync/${dataType}`);
           console.log(`📤 Data size: ${JSON.stringify(data).length} bytes`);
-          
+
           const response = await fetch(`${API_BASE_URL}/api/sync/${dataType}`, {
             method: "POST",
             headers: {
@@ -2904,16 +2904,21 @@
             },
             body: JSON.stringify(data),
           });
-          
+
           console.log(`📤 Response status: ${response.status}`);
           const result = await response.json();
           console.log(`📤 Response:`, result);
-          
+
           if (!response.ok) {
-            console.log(`❌ Server error: ${response.status} - ${result.error || 'Unknown error'}`);
-            return { success: false, error: result.error || `HTTP ${response.status}` };
+            console.log(
+              `❌ Server error: ${response.status} - ${result.error || "Unknown error"}`,
+            );
+            return {
+              success: false,
+              error: result.error || `HTTP ${response.status}`,
+            };
           }
-          
+
           return result;
         } catch (error) {
           console.error("❌ Sync to server failed:", error);
@@ -2937,16 +2942,21 @@
               Authorization: `Bearer ${token}`,
             },
           });
-          
+
           console.log(`📡 Response status: ${response.status}`);
           const result = await response.json();
           console.log(`📡 Response data:`, result);
-          
+
           if (!response.ok) {
-            console.log(`❌ Server error: ${response.status} - ${result.error || 'Unknown error'}`);
-            return { success: false, error: result.error || `HTTP ${response.status}` };
+            console.log(
+              `❌ Server error: ${response.status} - ${result.error || "Unknown error"}`,
+            );
+            return {
+              success: false,
+              error: result.error || `HTTP ${response.status}`,
+            };
           }
-          
+
           return result;
         } catch (error) {
           console.error("❌ Load from server failed:", error);
