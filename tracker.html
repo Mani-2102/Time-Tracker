@@ -3148,7 +3148,7 @@
             });
         }
       }
-      
+
       // Show sync status indicator
       function showSyncStatus(status) {
         let indicator = document.getElementById("syncIndicator");
@@ -3158,7 +3158,7 @@
           indicator.style.cssText = "position:fixed;bottom:20px;right:20px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;z-index:9999;transition:all 0.3s;";
           document.body.appendChild(indicator);
         }
-        
+
         if (status === "syncing") {
           indicator.innerHTML = "🔄 Syncing...";
           indicator.style.background = "#fef3c7";
@@ -3202,7 +3202,7 @@
             rowHistories = {};
           }
         }
-      }
+      
 
       /* -------------------- THEME -------------------- */
       const THEME_KEY = "tt_theme";
@@ -3339,19 +3339,19 @@
       // Live sync function - check server for updates periodically
       async function checkForServerUpdates() {
         if (!isJWTAuthenticated() || !serverDataLoaded) return;
-        
+
         try {
           const result = await loadFromServer("tracker");
           if (result.success && result.data && result.data.lastSaved) {
             const localKey = `pwtm_tracker_data_${currentUser}`;
             const localData = localStorage.getItem(localKey);
             const localParsed = localData ? JSON.parse(localData) : null;
-            
+
             // Compare timestamps - if server is newer, update
-            if (!localParsed || !localParsed.lastSaved || 
+            if (!localParsed || !localParsed.lastSaved ||
                 new Date(result.data.lastSaved) > new Date(localParsed.lastSaved)) {
               console.log("🔄 Live sync: Server has newer data, updating...");
-              
+
               currentSheet = result.data.currentSheet || "Sheet 1";
               sheets = result.data.sheets || { "Sheet 1": [] };
               trackers = sheets[currentSheet] || [];
@@ -3360,10 +3360,10 @@
               if (result.data.rowHistories) {
                 rowHistories = result.data.rowHistories;
               }
-              
+
               // Update local cache
               localStorage.setItem(localKey, JSON.stringify(result.data));
-              
+
               // Update UI
               render();
               drawCharts();
@@ -3397,7 +3397,7 @@
         const localKey = `pwtm_tracker_data_${currentUser}`;
         const localData = localStorage.getItem(localKey);
         const isNewDevice = !localData;
-        
+
         if (isNewDevice) {
           console.log("📱 New device detected - loading from server FIRST");
         } else {
@@ -3424,7 +3424,7 @@
             console.log("✅ Server data loaded successfully");
             render();
             drawCharts();
-            
+
             // Start live sync after initial load
             startLiveSync();
           } else if (isNewDevice) {
