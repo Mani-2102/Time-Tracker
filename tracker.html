@@ -3128,20 +3128,54 @@
         // Save row histories to localStorage
         saveRowHistories();
 
-        // Sync to server in background (if JWT authenticated)
+        // Sync to server IMMEDIATELY (if JWT authenticated)
         if (isJWTAuthenticated()) {
           console.log("🔄 Syncing to server...");
+          showSyncStatus("syncing");
           syncToServer("tracker", dataToSave)
             .then((result) => {
               if (result.success) {
                 console.log("✅ Data synced to server successfully");
+                showSyncStatus("synced");
               } else {
                 console.log("⚠️ Server sync failed:", result.error);
+                showSyncStatus("error");
               }
             })
-            .catch((err) =>
-              console.log("⚠️ Server sync pending:", err.message),
-            );
+            .catch((err) => {
+              console.log("⚠️ Server sync pending:", err.message);
+              showSyncStatus("error");
+            });
+        }
+      }
+      
+      // Show sync status indicator
+      function showSyncStatus(status) {
+        let indicator = document.getElementById("syncIndicator");
+        if (!indicator) {
+          indicator = document.createElement("div");
+          indicator.id = "syncIndicator";
+          indicator.style.cssText = "position:fixed;bottom:20px;right:20px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;z-index:9999;transition:all 0.3s;";
+          document.body.appendChild(indicator);
+        }
+        
+        if (status === "syncing") {
+          indicator.innerHTML = "🔄 Syncing...";
+          indicator.style.background = "#fef3c7";
+          indicator.style.color = "#92400e";
+          indicator.style.opacity = "1";
+        } else if (status === "synced") {
+          indicator.innerHTML = "✅ Synced";
+          indicator.style.background = "#d1fae5";
+          indicator.style.color = "#065f46";
+          indicator.style.opacity = "1";
+          setTimeout(() => { indicator.style.opacity = "0"; }, 2000);
+        } else if (status === "error") {
+          indicator.innerHTML = "⚠️ Sync failed";
+          indicator.style.background = "#fee2e2";
+          indicator.style.color = "#991b1b";
+          indicator.style.opacity = "1";
+          setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
         }
       }
 
@@ -3162,6 +3196,7 @@
             } catch (e) {
               console.error("Failed to load row histories:", e);
               rowHistories = {};
+            }
             }
           } else {
             rowHistories = {};
@@ -3245,9 +3280,10 @@
       let singleTaskMode = true;
       let rowHistories = {}; // Track edit history for rows in format: "taskIdx-rowIdx": [{changes}, ...]
       let serverDataLoaded = false;
+      let liveSyncInterval = null; // For live sync across devices
 
       // Function to load data from server
-      async function loadDataFromServer() {
+      async function loadDataFromServer(forceUpdate = false) {
         if (!isJWTAuthenticated()) {
           console.log("❌ Not authenticated, cannot load from server");
           return false;
@@ -3300,16 +3336,75 @@
         return false;
       }
 
+      // Live sync function - check server for updates periodically
+      async function checkForServerUpdates() {
+        if (!isJWTAuthenticated() || !serverDataLoaded) return;
+        
+        try {
+          const result = await loadFromServer("tracker");
+          if (result.success && result.data && result.data.lastSaved) {
+            const localKey = `pwtm_tracker_data_${currentUser}`;
+            const localData = localStorage.getItem(localKey);
+            const localParsed = localData ? JSON.parse(localData) : null;
+            
+            // Compare timestamps - if server is newer, update
+            if (!localParsed || !localParsed.lastSaved || 
+                new Date(result.data.lastSaved) > new Date(localParsed.lastSaved)) {
+              console.log("🔄 Live sync: Server has newer data, updating...");
+              
+              currentSheet = result.data.currentSheet || "Sheet 1";
+              sheets = result.data.sheets || { "Sheet 1": [] };
+              trackers = sheets[currentSheet] || [];
+              runningTimers = result.data.runningTimers || {};
+              singleTaskMode = result.data.singleTaskMode !== false;
+              if (result.data.rowHistories) {
+                rowHistories = result.data.rowHistories;
+              }
+              
+              // Update local cache
+              localStorage.setItem(localKey, JSON.stringify(result.data));
+              
+              // Update UI
+              render();
+              drawCharts();
+              console.log("✅ Live sync: UI updated with server data");
+            }
+          }
+        } catch (e) {
+          // Silent fail for background sync
+        }
+      }
+
+      // Start live sync (check every 5 seconds)
+      function startLiveSync() {
+        if (liveSyncInterval) clearInterval(liveSyncInterval);
+        liveSyncInterval = setInterval(checkForServerUpdates, 5000);
+        console.log("🔴 Live sync started (checking every 5s)");
+      }
+
+      // Stop live sync
+      function stopLiveSync() {
+        if (liveSyncInterval) {
+          clearInterval(liveSyncInterval);
+          liveSyncInterval = null;
+          console.log("⏹️ Live sync stopped");
+        }
+      }
+
       // If user is logged in via JWT, load their data and show app
       if (currentUser && isJWTAuthenticated()) {
-        // Try to load data from local storage first (for this user) - as cache
+        // Check if this is a NEW device (no local cache)
         const localKey = `pwtm_tracker_data_${currentUser}`;
         const localData = localStorage.getItem(localKey);
-        if (localData) {
+        const isNewDevice = !localData;
+        
+        if (isNewDevice) {
+          console.log("📱 New device detected - loading from server FIRST");
+        } else {
+          // Load local cache as initial data (while waiting for server)
           try {
             const parsed = JSON.parse(localData);
             currentSheet = parsed.currentSheet || "Sheet 1";
-            // Load rowHistories from local cache if available
             if (parsed.rowHistories) {
               rowHistories = parsed.rowHistories;
             }
@@ -3317,26 +3412,24 @@
             trackers = sheets[currentSheet] || [];
             runningTimers = parsed.runningTimers || {};
             singleTaskMode = parsed.singleTaskMode !== false;
+            console.log("📦 Loaded local cache while waiting for server");
           } catch (e) {
             console.log("No local data found, starting fresh");
           }
         }
 
-        // Also try to load from local database
-        if (typeof db !== "undefined") {
-          const existing = db.getUserData(currentUser);
-          if (existing && existing.sheets) {
-            currentSheet = existing.currentSheet || currentSheet;
-            sheets = existing.sheets || sheets;
-            trackers = sheets[currentSheet] || [];
-            runningTimers = existing.runningTimers || {};
-            singleTaskMode = existing.singleTaskMode !== false;
-          }
-        }
-
-        // Load from server (async - will update UI when ready)
+        // ALWAYS load from server (this is the source of truth)
         loadDataFromServer().then((loaded) => {
           if (loaded) {
+            console.log("✅ Server data loaded successfully");
+            render();
+            drawCharts();
+            
+            // Start live sync after initial load
+            startLiveSync();
+          } else if (isNewDevice) {
+            // Server failed but this is new device - show empty state
+            console.log("⚠️ Server unavailable, showing empty state for new device");
             render();
             drawCharts();
           }
