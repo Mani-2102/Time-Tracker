@@ -3293,6 +3293,13 @@
           console.log("🔄 Loading data from server...");
           const result = await loadFromServer("tracker");
           console.log("📥 Server response:", result);
+          
+          // DEBUG: Show what we got from server
+          if (result && result.data) {
+            console.log("📊 Server data keys:", Object.keys(result.data));
+            console.log("📊 Server sheets:", result.data.sheets ? Object.keys(result.data.sheets) : "none");
+            console.log("📊 Current sheet from server:", result.data.currentSheet);
+          }
 
           if (result.success) {
             if (result.data && Object.keys(result.data).length > 0) {
@@ -3302,6 +3309,10 @@
               trackers = sheets[currentSheet] || [];
               runningTimers = result.data.runningTimers || {};
               singleTaskMode = result.data.singleTaskMode !== false;
+              
+              console.log("✅ Loaded from server - currentSheet:", currentSheet);
+              console.log("✅ Loaded from server - sheets count:", Object.keys(sheets).length);
+              console.log("✅ Loaded from server - trackers in current sheet:", trackers.length);
 
               // Load rowHistories from server if available
               if (result.data.rowHistories) {
