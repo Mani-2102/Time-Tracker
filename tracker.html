@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pro Work Time Tracker</title>
+    <link rel="icon" type="image/png" href="logo/logo.png" />
 
     <!-- REDIRECT TO WELCOME PAGE IF FIRST VISIT, THEN CHECK AUTH -->
     <script>
@@ -3538,8 +3539,14 @@
       }
 
       window.addEventListener("beforeunload", (e) => {
+        // Check if any task is currently running
+        const runningCount = Object.keys(runningTimers).length;
+        let message = "Your data is saved. Use delete to remove items.";
+        if (runningCount > 0) {
+          message = `You have ${runningCount} task(s) currently running! Leaving will stop tracking time for these tasks. Your data is saved.`;
+        }
         e.preventDefault();
-        e.returnValue = "Your data is saved. Use delete to remove items.";
+        e.returnValue = message;
       });
 
       function save() {
