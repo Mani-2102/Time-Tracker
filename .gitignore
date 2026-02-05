@@ -1,0 +1,44 @@
+# ================================
+# Time Tracker - Git Ignore
+# ================================
+
+# Backend files with sensitive data (KEEP PRIVATE!)
+code/DEPLOY_THIS_BACKEND.js
+code/BACKEND_TEMPLATE.js
+not for git hub/
+
+# Environment files
+.env
+.env.local
+.env.production
+*.env
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+logs/
+pm2-logs/
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+
+# Text/Documentation (optional - uncomment to exclude)
+# txt/
+# *.md
