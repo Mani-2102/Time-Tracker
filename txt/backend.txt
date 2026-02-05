@@ -1,0 +1,825 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\Mani bharathi G> ssh root@139.59.30.160
+root@139.59.30.160's password:
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-71-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Tue Feb  3 18:03:16 UTC 2026
+
+  System load:  0.01               Processes:             118
+  Usage of /:   12.6% of 23.17GB   Users logged in:       1
+  Memory usage: 70%                IPv4 address for eth0: 139.59.30.160
+  Swap usage:   0%                 IPv4 address for eth0: 10.47.0.5
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Tue Feb  3 17:35:54 2026 from 223.237.181.69
+root@Pro-Timer:~# ls
+timer-backend
+root@Pro-Timer:~# cd ~/timer-backend
+root@Pro-Timer:~/timer-backend# ls
+index.js  package.json  public
+root@Pro-Timer:~/timer-backend# rm index.js
+root@Pro-Timer:~/timer-backend# ls
+package.json  public
+root@Pro-Timer:~/timer-backend# rm package.json
+root@Pro-Timer:~/timer-backend# ls
+public
+root@Pro-Timer:~/timer-backend# cat > package.json << 'ENDFILE'
+{
+  "name": "timer-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql2": "^3.16.2"
+  }
+}
+ENDFILE
+root@Pro-Timer:~/timer-backend# client_loop: send disconnect: Connection reset
+PS C:\Users\Mani bharathi G> ssh root@139.59.30.160
+root@139.59.30.160's password:
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-71-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Tue Feb  3 18:14:48 UTC 2026
+
+  System load:  0.0                Processes:             120
+  Usage of /:   12.6% of 23.17GB   Users logged in:       1
+  Memory usage: 71%                IPv4 address for eth0: 139.59.30.160
+  Swap usage:   0%                 IPv4 address for eth0: 10.47.0.5
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Tue Feb  3 18:03:17 2026 from 223.237.181.69
+root@Pro-Timer:~# ls
+timer-backend
+root@Pro-Timer:~# cd ~timer-backend
+-bash: cd: ~timer-backend: No such file or directory
+root@Pro-Timer:~# cd ~/timer-backend
+root@Pro-Timer:~/timer-backend# cat > package.json << 'ENDFILE'
+{
+  "name": "timer-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql2": "^3.16.2"
+  }
+}
+ENDFILE
+root@Pro-Timer:~/timer-backend# cat package.json
+{
+  "name": "timer-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql2": "^3.16.2"
+  }
+}
+root@Pro-Timer:~/timer-backend# cat package.json
+{
+  "name": "timer-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql2": "^3.16.2"
+  }
+}
+root@Pro-Timer:~/timer-backend# cat > index.js << 'ENDFILE'
+const express = require("express");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "timeruser",
+  password: "Timer@123",
+  database: "time_tracker"
+});
+
+pool.getConnection()
+  .then(c => { console.log("DB connected"); c.release(); })
+  .catch(e => console.error("DB error:", e.message));
+
+app.get("/", (req, res) => res.send("Timer Backend Running!"));
+
+app.get("/api/timer/sessions", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM timer_sessions ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/timer/sessions", async (req, res) => {
+  try {
+    const { name, duration, date, category } = req.body;
+    const [r] = await pool.query(
+      "INSERT INTO timer_sessions (name, duration, date, category) VALUES (?, ?, ?, ?)",
+      [name || "Session", duration || 0, date || new Date(), category || "Work"]
+    );
+    const [rows] = await pool.query("SELECT * FROM timer_sessions WHERE id = ?", [r.insertId]);
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put("/api/timer/sessions/:id", async (req, res) => {
+}); catch (e) { res.status(500).json({ error: e.message }); } [req.params.id]);WHERE id=?",
+> cat > index.js << 'ENDFILE'
+const express = require("express");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "timeruser",
+  password: "Timer@123",
+  database: "time_tracker"
+});
+
+pool.getConnection()
+  .then(c => { console.log("DB connected"); c.release(); })
+  .catch(e => console.error("DB error:", e.message));
+
+app.get("/", (req, res) => res.send("Timer Backend Running!"));
+
+app.get("/api/timer/sessions", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM timer_sessions ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/timer/sessions", async (req, res) => {
+  try {
+    const { name, duration, date, category } = req.body;
+    const [r] = await pool.query(
+      "INSERT INTO timer_sessions (name, duration, date, category) VALUES (?, ?, ?, ?)",
+      [name || "Session", duration || 0, date || new Date(), category || "Work"]
+    );
+    const [rows] = await pool.query("SELECT * FROM timer_sessions WHERE id = ?", [r.insertId]);
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put("/api/timer/sessions/:id", async (req, res) => {
+  try {
+> const { name, duration, category } = req.body;
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+> cat > index.js << 'ENDFILE'
+const package.jsoness");
+      > index.js << 'ENDFILE'
+co
+  cat > index.js << 'ENDFILE'
+const express = require("express");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "timeruser",
+  password: "Timer@123",
+  database: "time_tracker"
+});
+
+pool.getConnection()
+  .then(c => { console.log("DB connected"); c.release(); })
+  .catch(e => console.error("DB error:", e.message));
+
+app.get("/", (req, res) => res.send("Timer Backend Running!"));
+
+app.get("/api/timer/sessions", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM timer_sessions ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/timer/sessions", async (req, res) => {
+  try {
+    const { name, duration, date, category } = req.body;
+    const [r] = await pool.query(
+      "INSERT INTO timer_sessions (name, duration, date, category) VALUES (?, ?, ?, ?)",
+      [name || "Session", duration || 0, date || new Date(), category || "Work"]
+    );
+    const [rows] = await pool.query("SELECT * FROM timer_sessions WHERE id = ?", [r.insertId]);
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put("/api/timer/sessions/:id", async (req, res) => {
+
+> eof
+> EOF
+> efo
+> EFO
+> ENDFILE
+root@Pro-Timer:~/timer-backend# ls
+index.js  package.json  public
+root@Pro-Timer:~/timer-backend# rm index.js
+root@Pro-Timer:~/timer-backend# cat > index.js << 'ENDFILE'
+const express = require("express");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "timeruser",
+  password: "Timer@123",
+  database: "time_tracker"
+});
+pool.getConnection()
+  .then(c => { console.log("DB connected"); c.release(); })
+  .catch(e => console.error("DB error:", e.message));
+
+app.get("/", (req, res) => res.send("Timer Backend Running!"));
+
+app.get("/api/timer/sessions", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM timer_sessions ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post("/api/timer/sessions", async (req, res) => {
+  try {
+    const { name, duration, date, category } = req.body;
+    const [r] = await pool.query(
+      "INSERT INTO timer_sessions (name, duration, date, category) VALUES (?, ?, ?, ?)",
+      [name || "Session", duration || 0, date || new Date(), category || "Work"]
+    );
+    const [rows] = await pool.query("SELECT * FROM timer_sessions WHERE id = ?", [r.insertId]);
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+>
+>
+>
+>
+>
+
+>
+>
+> ENDFILE
+root@Pro-Timer:~/timer-backend# rm index.js
+root@Pro-Timer:~/timer-backend# ls
+package.json  public
+root@Pro-Timer:~/timer-backend# cat > index.js << 'ENDFILE'
+const express = require("express");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "timeruser",
+  password: "Timer@123",
+  database: "time_tracker"
+});
+
+pool.getConnection()
+  .then(c => { console.log("DB connected"); c.release(); })
+  .catch(e => console.error("DB error:", e.message));
+
+app.get("/", (req, res) => res.send("Timer Backend Running!"));
+
+app.get("/api/timer/sessions", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM timer_sessions ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/timer/sessions", async (req, res) => {
+  try {
+    const { name, duration, date, category } = req.body;
+    const [r] = await pool.query(
+      "INSERT INTO timer_sessions (name, duration, date, category) VALUES (?, ?, ?, ?)",
+      [name || "Session", duration || 0, date || new Date(), category || "Work"]
+    );
+    const [rows] = await pool.query("SELECT * FROM timer_sessions WHERE id = ?", [r.insertId]);
+ENDFILEle.log("Server running at http://139.59.30.160:" + PORT);.id]);y=?, c
+root@Pro-Timer:~/timer-backend# cat index.js
+const express = require("express");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "timeruser",
+  password: "Timer@123",
+  database: "time_tracker"
+});
+
+pool.getConnection()
+  .then(c => { console.log("DB connected"); c.release(); })
+  .catch(e => console.error("DB error:", e.message));
+
+app.get("/", (req, res) => res.send("Timer Backend Running!"));
+
+app.get("/api/timer/sessions", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM timer_sessions ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/timer/sessions", async (req, res) => {
+  try {
+    const { name, duration, date, category } = req.body;
+    const [r] = await pool.query(
+      "INSERT INTO timer_sessions (name, duration, date, category) VALUES (?, ?, ?, ?)",
+      [name || "Session", duration || 0, date || new Date(), category || "Work"]
+    );
+    const [rows] = await pool.query("SELECT * FROM timer_sessions WHERE id = ?", [r.insertId]);
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put("/api/timer/sessions/:id", async (req, res) => {
+  try {
+    const { name, duration, category } = req.body;
+    await pool.query("UPDATE timer_sessions SET name=?, duration=?, category=? WHERE id=?",
+      [name, duration, category, req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/api/timer/sessions/:id", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM timer_sessions WHERE id=?", [req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/todos", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM todos ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post("/api/todos", async (req, res) => {
+  try {
+    const { title, description, priority } = req.body;
+    const [r] = await pool.query(
+      "INSERT INTO todos (title, description, priority, completed) VALUES (?, ?, ?, ?)",
+      [title, description || "", priority || "medium", false]
+    );
+    const [rows] = await pool.query("SELECT * FROM todos WHERE id = ?", [r.insertId]);
+    res.json({ success: true, data: rows[0] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put("/api/todos/:id", async (req, res) => {
+  try {
+    const { title, description, priority, completed } = req.body;
+    await pool.query("UPDATE todos SET title=?, description=?, priority=?, completed=? WHERE id=?",
+      [title, description, priority, completed, req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/api/todos/:id", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM todos WHERE id=?", [req.params.id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/test-db", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ success: true, message: "Database OK!" });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running at http://139.59.30.160:" + PORT);
+});
+root@Pro-Timer:~/timer-backend# mysql -u timeruser -p'Timer@123' time_tracker << 'ENDFILE'
+CREATE TABLE IF NOT EXISTS timer_sessions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) DEFAULT 'Session',
+  duration INT DEFAULT 0,
+  category VARCHAR(100) DEFAULT 'Work',
+  date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS todos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  priority VARCHAR(20) DEFAULT 'medium',
+  completed TINYINT(1) DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+SHOW TABLES;
+ENDFILE
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Tables_in_time_tracker
+test_check
+timer_sessions
+todos
+root@Pro-Timer:~/timer-backend# Expected output: timer_sessions, todos
+Expected: command not found
+root@Pro-Timer:~/timer-backend# npm install
+
+added 81 packages, and audited 82 packages in 8s
+
+18 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+root@Pro-Timer:~/timer-backend# node index.js
+Server running at http://139.59.30.160:5000
+DB connected
+^C
+root@Pro-Timer:~/timer-backend# ^C
+root@Pro-Timer:~/timer-backend# npm install -g pm2
+
+added 133 packages in 31s
+
+13 packages are looking for funding
+  run `npm fund` for details
+root@Pro-Timer:~/timer-backend# pm2 start index.js --name timer-backend
+
+                        -------------
+
+__/\\\\\\\\\\\\\____/\\\\____________/\\\\____/\\\\\\\\\_____
+ _\/\\\/////////\\\_\/\\\\\\________/\\\\\\__/\\\///////\\\___
+  _\/\\\_______\/\\\_\/\\\//\\\____/\\\//\\\_\///______\//\\\__
+   _\/\\\\\\\\\\\\\/__\/\\\\///\\\/\\\/_\/\\\___________/\\\/___
+    _\/\\\/////////____\/\\\__\///\\\/___\/\\\________/\\\//_____
+     _\/\\\_____________\/\\\____\///_____\/\\\_____/\\\//________
+      _\/\\\_____________\/\\\_____________\/\\\___/\\\/___________
+       _\/\\\_____________\/\\\_____________\/\\\__/\\\\\\\\\\\\\\\_
+        _\///______________\///______________\///__\///////////////__
+
+
+                          Runtime Edition
+
+        PM2 is a Production Process Manager for Node.js applications
+                     with a built-in Load Balancer.
+
+                Start and Daemonize any application:
+                $ pm2 start app.js
+
+                Load Balance 4 instances of api.js:
+                $ pm2 start api.js -i 4
+
+                Monitor in production:
+                $ pm2 monitor
+
+                Make pm2 auto-boot at server restart:
+                $ pm2 startup
+
+                To go further checkout:
+                http://pm2.io/
+
+
+                        -------------
+
+[PM2] Spawning PM2 daemon with pm2_home=/root/.pm2
+[PM2] PM2 Successfully daemonized
+[PM2] Starting /root/timer-backend/index.js in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ timer-backend      │ fork     │ 0    │ online    │ 0%       │ 30.9mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@Pro-Timer:~/timer-backend# pm2 save
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+root@Pro-Timer:~/timer-backend# pm2 startup
+[PM2] Init System found: systemd
+Platform systemd
+Template
+[Unit]
+Description=PM2 process manager
+Documentation=https://pm2.keymetrics.io/
+After=network.target
+
+[Service]
+Type=forking
+User=root
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+Environment=PM2_HOME=/root/.pm2
+PIDFile=/root/.pm2/pm2.pid
+Restart=on-failure
+
+ExecStart=/usr/lib/node_modules/pm2/bin/pm2 resurrect
+ExecReload=/usr/lib/node_modules/pm2/bin/pm2 reload all
+ExecStop=/usr/lib/node_modules/pm2/bin/pm2 kill
+
+[Install]
+WantedBy=multi-user.target
+
+Target path
+/etc/systemd/system/pm2-root.service
+Command list
+[ 'systemctl enable pm2-root' ]
+[PM2] Writing init configuration in /etc/systemd/system/pm2-root.service
+[PM2] Making script booting at startup...
+[PM2] [-] Executing: systemctl enable pm2-root...
+Created symlink /etc/systemd/system/multi-user.target.wants/pm2-root.service → /etc/systemd/system/pm2-root.service.
+[PM2] [v] Command successfully executed.
++---------------------------------------+
+[PM2] Freeze a process list on reboot via:
+$ pm2 save
+
+[PM2] Remove init script via:
+$ pm2 unstartup systemd
+root@Pro-Timer:~/timer-backend# client_loop: send disconnect: Connection reset
+PS C:\Users\Mani bharathi G>
+PS C:\Users\Mani bharathi G> ssh root@139.59.30.160
+root@139.59.30.160's password:
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-71-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Tue Feb  3 19:06:00 UTC 2026
+
+  System load:  0.0                Processes:             114
+  Usage of /:   12.9% of 23.17GB   Users logged in:       1
+  Memory usage: 73%                IPv4 address for eth0: 139.59.30.160
+  Swap usage:   0%                 IPv4 address for eth0: 10.47.0.5
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Tue Feb  3 18:14:49 2026 from 223.237.181.69
+root@Pro-Timer:~#
+root@Pro-Timer:~# mysql -u timeruser -p'Timer@123' time_tracker << 'ENDFILE'
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE timer_sessions ADD COLUMN IF NOT EXISTS user_id INT DEFAULT NULL;
+ALTER TABLE todos ADD COLUMN IF NOT EXISTS user_id INT DEFAULT NULL;
+
+SHOW TABLES;
+DESCRIBE users;
+ENDFILE
+mysql: [Warning] Using a password on the command line interface can be insecure.
+ERROR 1064 (42000) at line 9: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'IF NOT EXISTS user_id INT DEFAULT NULL' at line 1
+root@Pro-Timer:~# mysql -u timeruser -p'Timer@123' time_tracker << 'ENDFILE'
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE timer_sessions ADD COLUMN user_id INT DEFAULT NULL;
+ALTER TABLE todos ADD COLUMN user_id INT DEFAULT NULL;
+
+SHOW TABLES;
+DESCRIBE users;
+ENDFILE
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Tables_in_time_tracker
+test_check
+timer_sessions
+todos
+users
+Field   Type    Null    Key     Default Extra
+id      int     NO      PRI     NULL    auto_increment
+username        varchar(50)     NO      UNI     NULL
+email   varchar(100)    NO      UNI     NULL
+password        varchar(255)    NO              NULL
+created_at      datetime        YES             CURRENT_TIMESTAMP       DEFAULT_GENERATED
+root@Pro-Timer:~# pm2 stop all
+[PM2] Applying action stopProcessId on app [all](ids: [ 0 ])
+[PM2] [timer-backend](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ timer-backend      │ fork     │ 0    │ stopped   │ 0%       │ 0b       │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@Pro-Timer:~# cat > package.json << 'ENDFILE'
+{
+  "name": "timer-backend",
+  "version": "2.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql2": "^3.16.2",
+    "bcryptjs": "^2.4.3"
+  }
+}
+ENDFILE
+root@Pro-Timer:~# cat > index.js << 'ENDFILE'
+const express = require("express");
+const mysql = require("mysql2/promise");
+const cors = require("cors");
+const bcrypt = require("bcryptjs");
+
+const app = express();
+const PORT = 5000;
+
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "timeruser",
+  password: "Timer@123",
+  database: "time_tracker"
+});
+
+pool.getConnection()
+  .then(c => { console.log("DB connected"); c.release(); })
+  .catch(e => console.error("DB error:", e.message));
+
+app.get("/", (req, res) => res.send("Timer Backend v2.0 - With Auth!"));
+
+// ========== AUTH ROUTES ==========
+
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+      return res.json({ success: false, message: "All fields required" });
+    }
+    const [existing] = await pool.query(
+      "SELECT id FROM users WHERE username = ? OR email = ?", [username, email]
+    );
+    if (existing.length > 0) {
+      return res.json({ success: false, message: "Username or email already exists" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [result] = await pool.query(
+ENDFILEle.log("Server v2.0 running at http://139.59.30.160:" + PORT);;y=?, c
+root@Pro-Timer:~# npm install
+
+added 82 packages, and audited 83 packages in 9s
+
+18 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+root@Pro-Timer:~# pm2 restart all
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [all](ids: [ 0 ])
+[PM2] [timer-backend](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ timer-backend      │ fork     │ 0    │ online    │ 0%       │ 17.6mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@Pro-Timer:~# pm2 logs --lines 10
+[TAILING] Tailing last 10 lines for [all] processes (change the value with --lines option)
+/root/.pm2/pm2.log last 10 lines:
+PM2        | 2026-02-03T18:33:18: PM2 log: SIGTERM timeout      : 1600
+PM2        | 2026-02-03T18:33:18: PM2 log: Runtime Binary       : /usr/bin/node
+PM2        | 2026-02-03T18:33:18: PM2 log: ===============================================================================
+PM2        | 2026-02-03T18:33:18: PM2 log: App [timer-backend:0] starting in -fork mode-
+PM2        | 2026-02-03T18:33:18: PM2 log: App [timer-backend:0] online
+PM2        | 2026-02-03T19:14:39: PM2 log: Stopping app:timer-backend id:0
+PM2        | 2026-02-03T19:14:39: PM2 log: App [timer-backend:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-02-03T19:14:39: PM2 log: pid=26699 msg=process killed
+PM2        | 2026-02-03T19:17:42: PM2 log: App [timer-backend:0] starting in -fork mode-
+PM2        | 2026-02-03T19:17:42: PM2 log: App [timer-backend:0] online
+
+/root/.pm2/logs/timer-backend-error.log last 10 lines:
+/root/.pm2/logs/timer-backend-out.log last 10 lines:
+0|timer-ba | Server running at http://139.59.30.160:5000
+0|timer-ba | DB connected
+0|timer-ba | Server running at http://139.59.30.160:5000
+0|timer-ba | DB connected
+
