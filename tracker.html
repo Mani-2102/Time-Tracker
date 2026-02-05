@@ -3155,7 +3155,8 @@
         if (!indicator) {
           indicator = document.createElement("div");
           indicator.id = "syncIndicator";
-          indicator.style.cssText = "position:fixed;bottom:20px;right:20px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;z-index:9999;transition:all 0.3s;";
+          indicator.style.cssText =
+            "position:fixed;bottom:20px;right:20px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;z-index:9999;transition:all 0.3s;";
           document.body.appendChild(indicator);
         }
 
@@ -3169,13 +3170,17 @@
           indicator.style.background = "#d1fae5";
           indicator.style.color = "#065f46";
           indicator.style.opacity = "1";
-          setTimeout(() => { indicator.style.opacity = "0"; }, 2000);
+          setTimeout(() => {
+            indicator.style.opacity = "0";
+          }, 2000);
         } else if (status === "error") {
           indicator.innerHTML = "⚠️ Sync failed";
           indicator.style.background = "#fee2e2";
           indicator.style.color = "#991b1b";
           indicator.style.opacity = "1";
-          setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
+          setTimeout(() => {
+            indicator.style.opacity = "0";
+          }, 3000);
         }
       }
 
@@ -3197,12 +3202,11 @@
               console.error("Failed to load row histories:", e);
               rowHistories = {};
             }
-            }
-          } else {
-            rowHistories = {};
           }
+        } else {
+          rowHistories = {};
         }
-      
+      }
 
       /* -------------------- THEME -------------------- */
       const THEME_KEY = "tt_theme";
@@ -3293,12 +3297,18 @@
           console.log("🔄 Loading data from server...");
           const result = await loadFromServer("tracker");
           console.log("📥 Server response:", result);
-          
+
           // DEBUG: Show what we got from server
           if (result && result.data) {
             console.log("📊 Server data keys:", Object.keys(result.data));
-            console.log("📊 Server sheets:", result.data.sheets ? Object.keys(result.data.sheets) : "none");
-            console.log("📊 Current sheet from server:", result.data.currentSheet);
+            console.log(
+              "📊 Server sheets:",
+              result.data.sheets ? Object.keys(result.data.sheets) : "none",
+            );
+            console.log(
+              "📊 Current sheet from server:",
+              result.data.currentSheet,
+            );
           }
 
           if (result.success) {
@@ -3309,10 +3319,19 @@
               trackers = sheets[currentSheet] || [];
               runningTimers = result.data.runningTimers || {};
               singleTaskMode = result.data.singleTaskMode !== false;
-              
-              console.log("✅ Loaded from server - currentSheet:", currentSheet);
-              console.log("✅ Loaded from server - sheets count:", Object.keys(sheets).length);
-              console.log("✅ Loaded from server - trackers in current sheet:", trackers.length);
+
+              console.log(
+                "✅ Loaded from server - currentSheet:",
+                currentSheet,
+              );
+              console.log(
+                "✅ Loaded from server - sheets count:",
+                Object.keys(sheets).length,
+              );
+              console.log(
+                "✅ Loaded from server - trackers in current sheet:",
+                trackers.length,
+              );
 
               // Load rowHistories from server if available
               if (result.data.rowHistories) {
@@ -3359,8 +3378,11 @@
             const localParsed = localData ? JSON.parse(localData) : null;
 
             // Compare timestamps - if server is newer, update
-            if (!localParsed || !localParsed.lastSaved ||
-                new Date(result.data.lastSaved) > new Date(localParsed.lastSaved)) {
+            if (
+              !localParsed ||
+              !localParsed.lastSaved ||
+              new Date(result.data.lastSaved) > new Date(localParsed.lastSaved)
+            ) {
               console.log("🔄 Live sync: Server has newer data, updating...");
 
               currentSheet = result.data.currentSheet || "Sheet 1";
@@ -3407,7 +3429,7 @@
         console.log("🔐 User authenticated:", currentUser);
         console.log("🔑 Token exists:", !!getJWTToken());
         console.log("🌐 API URL:", API_BASE_URL);
-        
+
         // Check if this is a NEW device (no local cache)
         const localKey = `pwtm_tracker_data_${currentUser}`;
         const localData = localStorage.getItem(localKey);
@@ -3416,7 +3438,10 @@
         if (isNewDevice) {
           console.log("📱 NEW DEVICE detected - MUST load from server");
           // Show loading indicator
-          document.body.insertAdjacentHTML('afterbegin', '<div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;flex-direction:column;"><div style="font-size:24px;">🔄</div><div style="margin-top:10px;font-size:16px;">Loading your data from server...</div></div>');
+          document.body.insertAdjacentHTML(
+            "afterbegin",
+            '<div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:99999;flex-direction:column;"><div style="font-size:24px;">🔄</div><div style="margin-top:10px;font-size:16px;">Loading your data from server...</div></div>',
+          );
         } else {
           // Load local cache as initial data (while waiting for server)
           try {
@@ -3436,34 +3461,43 @@
         }
 
         // ALWAYS load from server (this is the source of truth)
-        loadDataFromServer().then((loaded) => {
-          // Remove loading overlay if exists
-          const overlay = document.getElementById('loadingOverlay');
-          if (overlay) overlay.remove();
-          
-          if (loaded) {
-            console.log("✅ Server data loaded successfully - sheets:", Object.keys(sheets));
-            console.log("✅ Current sheet:", currentSheet);
-            console.log("✅ Trackers count:", trackers.length);
-            render();
-            drawCharts();
+        loadDataFromServer()
+          .then((loaded) => {
+            // Remove loading overlay if exists
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) overlay.remove();
 
-            // Start live sync after initial load
-            startLiveSync();
-          } else if (isNewDevice) {
-            // Server failed but this is new device - show empty state
-            console.log("⚠️ Server unavailable, showing empty state for new device");
-            alert("Could not load data from server. Please check your internet connection and try again.");
-            render();
-            drawCharts();
-          }
-        }).catch(err => {
-          // Remove loading overlay on error
-          const overlay = document.getElementById('loadingOverlay');
-          if (overlay) overlay.remove();
-          console.error("❌ Critical error loading data:", err);
-          alert("Error loading data: " + err.message);
-        });
+            if (loaded) {
+              console.log(
+                "✅ Server data loaded successfully - sheets:",
+                Object.keys(sheets),
+              );
+              console.log("✅ Current sheet:", currentSheet);
+              console.log("✅ Trackers count:", trackers.length);
+              render();
+              drawCharts();
+
+              // Start live sync after initial load
+              startLiveSync();
+            } else if (isNewDevice) {
+              // Server failed but this is new device - show empty state
+              console.log(
+                "⚠️ Server unavailable, showing empty state for new device",
+              );
+              alert(
+                "Could not load data from server. Please check your internet connection and try again.",
+              );
+              render();
+              drawCharts();
+            }
+          })
+          .catch((err) => {
+            // Remove loading overlay on error
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) overlay.remove();
+            console.error("❌ Critical error loading data:", err);
+            alert("Error loading data: " + err.message);
+          });
 
         // Initialize UI immediately with cached/local data
         setTimeout(() => {
