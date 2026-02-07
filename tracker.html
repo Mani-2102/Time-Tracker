@@ -3576,7 +3576,7 @@
         return d.toLocaleTimeString("en-US", { hour12: true });
       }
       function fmtDate(d) {
-        return d.toLocaleDateString();
+        return d.toLocaleDateString('en-US');
       }
       function dur(ms) {
         let s = Math.floor(ms / 1000),
@@ -3610,8 +3610,9 @@
             month = part1 - 1;
             day = part2;
           } else {
-            day = part1;
-            month = part2 - 1;
+            // Ambiguous - assume M/D/YYYY (US format) for consistency
+            month = part1 - 1;
+            day = part2;
           }
 
           return new Date(year, month, day);
@@ -3874,9 +3875,9 @@
                   month = part1 - 1;
                   day = part2;
                 } else {
-                  // Ambiguous - assume D/M/YYYY based on user's locale
-                  day = part1;
-                  month = part2 - 1;
+                  // Ambiguous - assume M/D/YYYY (US format) since that's what toLocaleDateString('en-US') produces
+                  month = part1 - 1;
+                  day = part2;
                 }
               }
             }
@@ -6774,9 +6775,9 @@
 
       function selectDate(dateString) {
         if (currentPickerCell) {
-          // Convert ISO date (YYYY-MM-DD) to locale format (M/D/YYYY)
+          // Convert ISO date (YYYY-MM-DD) to US locale format (M/D/YYYY) for consistency
           const dateObj = new Date(dateString + "T00:00:00");
-          const localeDateStr = dateObj.toLocaleDateString();
+          const localeDateStr = dateObj.toLocaleDateString('en-US');
 
           // Clear text nodes but keep picker button
           const pickerBtn = currentPickerCell.querySelector(".cell-picker");
