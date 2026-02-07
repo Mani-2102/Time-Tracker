@@ -3576,7 +3576,7 @@
         return d.toLocaleTimeString("en-US", { hour12: true });
       }
       function fmtDate(d) {
-        return d.toLocaleDateString('en-US');
+        return d.toLocaleDateString("en-US");
       }
       function dur(ms) {
         let s = Math.floor(ms / 1000),
@@ -6777,7 +6777,7 @@
         if (currentPickerCell) {
           // Convert ISO date (YYYY-MM-DD) to US locale format (M/D/YYYY) for consistency
           const dateObj = new Date(dateString + "T00:00:00");
-          const localeDateStr = dateObj.toLocaleDateString('en-US');
+          const localeDateStr = dateObj.toLocaleDateString("en-US");
 
           // Clear text nodes but keep picker button
           const pickerBtn = currentPickerCell.querySelector(".cell-picker");
