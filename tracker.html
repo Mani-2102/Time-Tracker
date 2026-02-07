@@ -4172,8 +4172,9 @@
           }
         }
 
-        // Save history to localStorage
+        // Save history to localStorage AND sync to server
         saveRowHistories();
+        saveUserData(); // Sync rowHistories to server so it persists after refresh
 
         // Refresh the modal to show the updated comment
         showRowHistory(taskIdx, rowIdx);
