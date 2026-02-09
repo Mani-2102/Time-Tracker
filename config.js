@@ -5,8 +5,10 @@
 const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
-    ? "http://139.59.30.160:5000" // Development - direct to server
-    : "https://api.iamtimer.com"; // Production - use domain
+    ? "http://localhost:5000" // Development - local
+    : window.location.hostname === "139.59.30.160"
+      ? "http://139.59.30.160:5000" // Direct IP access
+      : "https://api.iamtimer.com"; // Production - use domain
 
 // JWT Token Storage Keys
 const JWT_KEYS = {
@@ -91,6 +93,27 @@ async function apiCall(
   } catch (error) {
     console.error("Fetch Error:", error);
     return { success: false, error: error.message };
+  }
+}
+
+// Check JWT authentication status
+function isJWTAuthenticated() {
+  const token = getAuthToken();
+  const userData = getCurrentUserData();
+  return !!token && !!userData;
+}
+
+// Test backend connection
+async function testBackendConnection() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/health`);
+    const result = await response.json();
+    console.log("✅ Backend is reachable:", result);
+    return true;
+  } catch (error) {
+    console.error("❌ Backend connection failed:", error.message);
+    console.error("💡 Trying alternative URL...");
+    return false;
   }
 }
 
