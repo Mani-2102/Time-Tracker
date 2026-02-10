@@ -3463,8 +3463,43 @@
       let isSyncing = false;
       let syncDebounceTimer = null;
 
+      // Show sync status indicator
+      function showSyncStatus(status) {
+        let indicator = document.getElementById("syncIndicator");
+        if (!indicator) {
+          indicator = document.createElement("div");
+          indicator.id = "syncIndicator";
+          indicator.style.cssText =
+            "position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:25px;font-size:13px;font-weight:600;z-index:9999;transition:all 0.3s;box-shadow:0 4px 12px rgba(0,0,0,0.15);";
+          document.body.appendChild(indicator);
+        }
+
+        if (status === "syncing") {
+          indicator.innerHTML = "🔄 Syncing...";
+          indicator.style.background = "#fef3c7";
+          indicator.style.color = "#92400e";
+          indicator.style.opacity = "1";
+        } else if (status === "synced") {
+          indicator.innerHTML = "✅ Synced";
+          indicator.style.background = "#d1fae5";
+          indicator.style.color = "#065f46";
+          indicator.style.opacity = "1";
+          setTimeout(() => {
+            indicator.style.opacity = "0";
+          }, 2000);
+        } else if (status === "error") {
+          indicator.innerHTML = "⚠️ Sync failed";
+          indicator.style.background = "#fee2e2";
+          indicator.style.color = "#991b1b";
+          indicator.style.opacity = "1";
+          setTimeout(() => {
+            indicator.style.opacity = "0";
+          }, 3000);
+        }
+      }
+
       // Save activity data to backend server
-      async function syncToServer(data) {
+      async function syncToServer(data, showStatus = true) {
         const token = getJWTToken();
         if (!token) {
           console.log("❌ syncToServer: No token available");
@@ -3473,6 +3508,8 @@
 
         try {
           console.log(`📤 Syncing activity data to server...`);
+          if (showStatus) showSyncStatus("syncing");
+
           const response = await fetch(`${API_BASE_URL}/api/sync/activity`, {
             method: "POST",
             headers: {
@@ -3485,12 +3522,15 @@
           const result = await response.json();
           if (response.ok && result.success) {
             console.log(`✅ Activity data synced successfully`);
+            if (showStatus) showSyncStatus("synced");
           } else {
             console.log(`❌ Sync failed: ${result.error || "Unknown error"}`);
+            if (showStatus) showSyncStatus("error");
           }
           return result;
         } catch (error) {
           console.error("❌ Sync to server failed:", error);
+          if (showStatus) showSyncStatus("error");
           return { success: false, error: error.message };
         }
       }
@@ -3530,10 +3570,13 @@
         if (syncDebounceTimer) {
           clearTimeout(syncDebounceTimer);
         }
+        // Show syncing status immediately when user makes a change
+        showSyncStatus("syncing");
+
         syncDebounceTimer = setTimeout(async () => {
           if (isSyncing) return;
           isSyncing = true;
-          await syncToServer({ sheets, currentSheet });
+          await syncToServer({ sheets, currentSheet }, true);
           isSyncing = false;
         }, 1000); // Wait 1 second after last change before syncing
       }
@@ -3767,9 +3810,9 @@
           sheets["Sheet 1"] = createDefaultState();
         }
 
-        // If authenticated, sync local data to server
+        // If authenticated, sync local data to server (silent - no status indicator)
         if (isJWTAuthenticated() && Object.keys(sheets).length > 0) {
-          syncToServer({ sheets, currentSheet });
+          syncToServer({ sheets, currentSheet }, false);
         }
       }
 
