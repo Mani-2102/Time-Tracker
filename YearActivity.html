@@ -3439,11 +3439,110 @@
       let lineChart = null;
       let pieChart = null;
 
+      // ==================== JWT AUTHENTICATION ====================
+      const JWT_STORAGE_KEYS = {
+        AUTH_TOKEN: "pwtm_auth_token",
+        REFRESH_TOKEN: "pwtm_refresh_token",
+        USER_DATA: "pwtm_user_data",
+        DEVICE_ID: "pwtm_device_id",
+      };
+
+      // Check if user is logged in via JWT
+      function isJWTAuthenticated() {
+        const token = localStorage.getItem(JWT_STORAGE_KEYS.AUTH_TOKEN);
+        const userData = localStorage.getItem(JWT_STORAGE_KEYS.USER_DATA);
+        return token && userData;
+      }
+
+      // Get JWT token for API calls
+      function getJWTToken() {
+        return localStorage.getItem(JWT_STORAGE_KEYS.AUTH_TOKEN);
+      }
+
+      // ==================== BACKEND SYNC FUNCTIONS ====================
+      let isSyncing = false;
+      let syncDebounceTimer = null;
+
+      // Save activity data to backend server
+      async function syncToServer(data) {
+        const token = getJWTToken();
+        if (!token) {
+          console.log("❌ syncToServer: No token available");
+          return { success: false, error: "Not authenticated" };
+        }
+
+        try {
+          console.log(`📤 Syncing activity data to server...`);
+          const response = await fetch(`${API_BASE_URL}/api/sync/activity`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+          if (response.ok && result.success) {
+            console.log(`✅ Activity data synced successfully`);
+          } else {
+            console.log(`❌ Sync failed: ${result.error || "Unknown error"}`);
+          }
+          return result;
+        } catch (error) {
+          console.error("❌ Sync to server failed:", error);
+          return { success: false, error: error.message };
+        }
+      }
+
+      // Load activity data from backend server
+      async function loadFromServer() {
+        const token = getJWTToken();
+        if (!token) {
+          console.log("❌ loadFromServer: No token available");
+          return { success: false, error: "Not authenticated" };
+        }
+
+        try {
+          console.log(`📡 Loading activity data from server...`);
+          const response = await fetch(`${API_BASE_URL}/api/sync/activity`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const result = await response.json();
+          if (response.ok && result.success) {
+            console.log(`✅ Activity data loaded from server`);
+          } else {
+            console.log(`❌ Load failed: ${result.error || "Unknown error"}`);
+          }
+          return result;
+        } catch (error) {
+          console.error("❌ Load from server failed:", error);
+          return { success: false, error: error.message };
+        }
+      }
+
+      // Debounced sync to avoid too many API calls
+      function debouncedSyncToServer() {
+        if (syncDebounceTimer) {
+          clearTimeout(syncDebounceTimer);
+        }
+        syncDebounceTimer = setTimeout(async () => {
+          if (isSyncing) return;
+          isSyncing = true;
+          await syncToServer({ sheets, currentSheet });
+          isSyncing = false;
+        }, 1000); // Wait 1 second after last change before syncing
+      }
+
       // ==================== INITIALIZATION ====================
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", async () => {
         applyTheme();
         loadLockSettings();
-        loadSheets();
+        await loadSheets();
         loadState();
         initYearSelect();
         initMonthSelect();
@@ -3606,9 +3705,38 @@
           SHEETS_KEY,
           JSON.stringify({ sheets, currentSheet }),
         );
+        // Sync to backend (debounced)
+        if (isJWTAuthenticated()) {
+          debouncedSyncToServer();
+        }
       }
 
-      function loadSheets() {
+      async function loadSheets() {
+        // First try to load from backend server
+        if (isJWTAuthenticated()) {
+          try {
+            const serverResult = await loadFromServer();
+            if (serverResult.success && serverResult.data) {
+              console.log("✅ Loaded activity data from server");
+              sheets = serverResult.data.sheets || {};
+              currentSheet = serverResult.data.currentSheet || "Sheet 1";
+              // Also save to localStorage as cache
+              localStorage.setItem(
+                SHEETS_KEY,
+                JSON.stringify({ sheets, currentSheet }),
+              );
+              // Ensure at least one sheet exists
+              if (Object.keys(sheets).length === 0) {
+                sheets["Sheet 1"] = createDefaultState();
+              }
+              return;
+            }
+          } catch (e) {
+            console.error("Failed to load from server, using localStorage:", e);
+          }
+        }
+
+        // Fallback: load from localStorage
         const saved = localStorage.getItem(SHEETS_KEY);
         if (saved) {
           try {
@@ -3637,6 +3765,11 @@
         // Ensure at least one sheet exists
         if (Object.keys(sheets).length === 0) {
           sheets["Sheet 1"] = createDefaultState();
+        }
+
+        // If authenticated, sync local data to server
+        if (isJWTAuthenticated() && Object.keys(sheets).length > 0) {
+          syncToServer({ sheets, currentSheet });
         }
       }
 
